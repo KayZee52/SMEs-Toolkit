@@ -34,20 +34,21 @@ export default function SidebarNav() {
     <>
       <SidebarHeader>
         <div className="flex items-center gap-2">
-            <div className="bg-primary p-2 rounded-lg">
+            <div className="bg-primary/80 p-2 rounded-lg shadow-md shadow-primary/30">
                 <Bot className="text-primary-foreground" />
             </div>
             <h1 className="font-headline text-xl font-semibold">SMEs Toolkit</h1>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="p-2">
         <SidebarMenu>
           {navItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               <Link href={item.href} legacyBehavior passHref>
                 <SidebarMenuButton
                   isActive={pathname === item.href}
-                  className="font-body"
+                  className="font-body text-base"
+                  tooltip={item.label}
                 >
                   <item.icon />
                   <span>{item.label}</span>
@@ -58,11 +59,7 @@ export default function SidebarNav() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
-        <AIAssistantSheet>
-          <Button variant="outline" className="w-full justify-start gap-2">
-            <Bot /> AI Assistant
-          </Button>
-        </AIAssistantSheet>
+        {/* Footer content can go here if needed */}
       </SidebarFooter>
     </>
   );

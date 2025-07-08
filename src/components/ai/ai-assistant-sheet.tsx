@@ -1,27 +1,28 @@
 "use client";
-import { useState, useRef, useEffect, type ReactNode } from "react";
-import { Bot, User, CornerDownLeft, Loader } from "lucide-react";
+import { useState, useRef, useEffect, type FormEvent } from "react";
+import { Bot, User, CornerDownLeft, Loader, X, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getAiReply, getCustomerInfoFromText } from "@/actions/ai";
 import { useApp } from "@/contexts/app-context";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 type Message = {
   role: "user" | "assistant";
   content: string;
 };
 
-export function AIAssistantSheet({ children }: { children: ReactNode }) {
+export function AIAssistant() {
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -32,9 +33,9 @@ export function AIAssistantSheet({ children }: { children: ReactNode }) {
     setInput(e.target.value);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
 
     const userMessage: Message = { role: "user", content: input };
     setMessages((prev) => [...prev, userMessage]);
@@ -81,80 +82,112 @@ export function AIAssistantSheet({ children }: { children: ReactNode }) {
   }, [messages]);
 
   return (
-    <Sheet>
-      <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="flex flex-col">
-        <SheetHeader>
-          <SheetTitle className="font-headline">AI Assistant</SheetTitle>
-          <SheetDescription className="font-body">
-            Ask about sales, inventory, or log new activities.
-          </SheetDescription>
-        </SheetHeader>
-        <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full" ref={scrollAreaRef}>
-            <div className="p-4 space-y-4">
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex items-start gap-3 ${
-                    message.role === "user" ? "justify-end" : ""
-                  }`}
-                >
-                  {message.role === "assistant" && (
-                    <Avatar className="h-8 w-8">
-                       <AvatarFallback className="bg-primary text-primary-foreground"><Bot size={20} /></AvatarFallback>
-                    </Avatar>
-                  )}
-                  <div
-                    className={`rounded-lg px-4 py-2 max-w-[80%] ${
-                      message.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
-                    }`}
-                  >
-                    <p className="text-sm">{message.content}</p>
-                  </div>
-                   {message.role === "user" && (
-                     <Avatar className="h-8 w-8">
-                       <AvatarFallback><User size={20} /></AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
-              ))}
-               {isLoading && (
-                <div className="flex items-start gap-3">
-                   <Avatar className="h-8 w-8">
-                       <AvatarFallback className="bg-primary text-primary-foreground"><Bot size={20} /></AvatarFallback>
-                    </Avatar>
-                  <div className="rounded-lg px-4 py-2 bg-muted flex items-center">
-                    <Loader className="animate-spin h-5 w-5" />
-                  </div>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-        </div>
-        <form
-          onSubmit={handleSubmit}
-          className="relative mt-auto"
-        >
-          <Input
-            value={input}
-            onChange={handleInputChange}
-            placeholder="e.g., Sold one silk tie to Jane Doe..."
-            className="pr-12"
-            disabled={isLoading}
-          />
-          <Button
-            type="submit"
-            size="icon"
-            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-            disabled={isLoading}
+    <>
+      <div className="fixed bottom-6 right-6 z-50">
+        <AnimatePresence>
+          {!isOpen && (
+            <motion.div
+              initial={{ scale: 0, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0, y: 50 }}
+              transition={{type: "spring", stiffness: 260, damping: 20}}
+            >
+              <Button
+                onClick={() => setIsOpen(true)}
+                className="rounded-full w-16 h-16 shadow-lg shadow-primary/40"
+                size="icon"
+                variant="default"
+              >
+                <Bot size={32} />
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <AnimatePresence>
+        {isOpen && (
+           <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            transition={{ ease: "easeInOut", duration: 0.3 }}
+            className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-full sm:w-full sm:max-w-sm h-full sm:h-[70vh] sm:rounded-2xl"
           >
-            <CornerDownLeft size={16} />
-          </Button>
-        </form>
-      </SheetContent>
-    </Sheet>
+            <div className="glass-panel flex flex-col h-full bg-slate-900/70 p-0 overflow-hidden">
+                <SheetHeader className="p-4 flex flex-row justify-between items-center text-left border-b border-white/10">
+                    <SheetTitle className="font-headline text-lg">AI Assistant</SheetTitle>
+                    <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}><X className="h-4 w-4" /></Button>
+                </SheetHeader>
+                 <div className="flex-1 overflow-hidden">
+                    <ScrollArea className="h-full" ref={scrollAreaRef}>
+                        <div className="p-4 space-y-6">
+                        {messages.map((message, index) => (
+                            <div
+                            key={index}
+                            className={cn("flex items-start gap-3",
+                                message.role === "user" ? "justify-end" : ""
+                            )}
+                            >
+                            {message.role === "assistant" && (
+                                <Avatar className="h-8 w-8 border border-white/20">
+                                <AvatarFallback className="bg-primary/20 text-primary"><Bot size={20} /></AvatarFallback>
+                                </Avatar>
+                            )}
+                            <div
+                                className={cn("rounded-xl px-4 py-3 max-w-[85%] text-sm",
+                                message.role === "user"
+                                    ? "bg-accent/80 text-accent-foreground rounded-br-none"
+                                    : "bg-white/10 rounded-bl-none"
+                                )}
+                            >
+                                <p>{message.content}</p>
+                            </div>
+                            {message.role === "user" && (
+                                <Avatar className="h-8 w-8 border border-white/20">
+                                <AvatarFallback className="bg-transparent"><User size={20} /></AvatarFallback>
+                                </Avatar>
+                            )}
+                            </div>
+                        ))}
+                        {isLoading && (
+                            <div className="flex items-start gap-3">
+                            <Avatar className="h-8 w-8 border border-white/20">
+                                <AvatarFallback className="bg-primary/20 text-primary"><Bot size={20} /></AvatarFallback>
+                            </Avatar>
+                            <div className="rounded-lg px-4 py-2 bg-white/10 flex items-center">
+                                <Loader className="animate-spin h-5 w-5" />
+                            </div>
+                            </div>
+                        )}
+                        </div>
+                    </ScrollArea>
+                </div>
+
+                <form
+                onSubmit={handleSubmit}
+                className="relative m-4"
+                >
+                <Input
+                    value={input}
+                    onChange={handleInputChange}
+                    placeholder="e.g., Sold one silk tie..."
+                    className="pr-12 bg-black/20 border-white/20 h-12 text-base"
+                    disabled={isLoading}
+                />
+                <Button
+                    type="submit"
+                    size="icon"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 bg-accent hover:bg-accent/90"
+                    disabled={isLoading || !input.trim()}
+                >
+                    <Send size={18} />
+                </Button>
+                </form>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

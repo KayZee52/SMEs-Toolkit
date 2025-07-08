@@ -22,6 +22,8 @@ export default {
         code: ['monospace'],
       },
       colors: {
+        'dark-start': 'var(--dark-start)',
+        'dark-end': 'var(--dark-end)',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
@@ -63,15 +65,15 @@ export default {
           '5': 'hsl(var(--chart-5))',
         },
         sidebar: {
-          DEFAULT: 'hsl(var(--background))',
+          DEFAULT: 'transparent',
           foreground: 'hsl(var(--foreground))',
           border: 'hsl(var(--border))',
         },
       },
       borderRadius: {
         lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        md: 'calc(var(--radius) - 4px)',
+        sm: 'calc(var(--radius) - 8px)',
       },
       keyframes: {
         'accordion-down': {
