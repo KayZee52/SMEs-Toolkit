@@ -78,13 +78,27 @@ export function LogSaleDialog() {
   const onSubmit = (data: SaleFormValues) => {
     addSale(data);
     form.reset({ productId: "", customerName: "", quantity: 1, notes: "" });
+    setCustomerSearch("");
     setOpen(false);
   };
   
+  const filteredCustomers = useMemo(() => {
+    if (!customerSearch) return customers;
+    return customers.filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase()));
+  }, [customerSearch, customers]);
+
   const showAddNewCustomer = useMemo(() => {
     if (!customerSearch.trim()) return false;
+    // Check if the exact typed name exists
     return !customers.some(c => c.name.toLowerCase() === customerSearch.trim().toLowerCase());
   }, [customerSearch, customers]);
+
+  // Reset search when popover closes
+  useEffect(() => {
+    if (!popoverOpen) {
+      setCustomerSearch("");
+    }
+  }, [popoverOpen]);
 
 
   return (
@@ -151,9 +165,11 @@ export function LogSaleDialog() {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                    <Command onValueChange={setCustomerSearch}>
+                    <Command shouldFilter={false}>
                       <CommandInput
                         placeholder="Search or add customer..."
+                        value={customerSearch}
+                        onValueChange={setCustomerSearch}
                       />
                        <CommandList>
                         <CommandEmpty>No customer found.</CommandEmpty>
@@ -161,7 +177,7 @@ export function LogSaleDialog() {
                             <CommandItem
                                 value=""
                                 onSelect={() => {
-                                    field.onChange(""); // set as walk-in
+                                    form.setValue("customerName", "");
                                     setPopoverOpen(false);
                                 }}
                             >
@@ -173,12 +189,12 @@ export function LogSaleDialog() {
                                 />
                                 Walk-in Customer
                             </CommandItem>
-                          {customers.map((customer) => (
+                          {filteredCustomers.map((customer) => (
                             <CommandItem
                               key={customer.id}
                               value={customer.name}
                               onSelect={() => {
-                                field.onChange(customer.name);
+                                form.setValue("customerName", customer.name);
                                 setPopoverOpen(false);
                               }}
                             >
@@ -197,8 +213,9 @@ export function LogSaleDialog() {
                                 <CommandSeparator />
                                 <CommandGroup>
                                     <CommandItem
+                                        value={customerSearch.trim()}
                                         onSelect={() => {
-                                            field.onChange(customerSearch.trim());
+                                            form.setValue("customerName", customerSearch.trim());
                                             setPopoverOpen(false);
                                         }}
                                     >
