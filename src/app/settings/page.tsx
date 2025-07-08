@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -7,9 +8,46 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { Building, BrainCircuit, Cloud, Lock, Languages } from "lucide-react";
+import { Building, BrainCircuit, Cloud, Languages, Save } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SettingsPage() {
+  const { toast } = useToast();
+
+  const [settings, setSettings] = useState({
+    businessName: "SMEs Toolkit",
+    currency: "USD",
+    enableAssistant: true,
+    autoSuggestions: true,
+    language: "en",
+  });
+
+  const [initialSettings, setInitialSettings] = useState(settings);
+
+  const handleInputChange = (field: keyof typeof settings, value: string | boolean) => {
+    setSettings(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = () => {
+    // In a real app, this would update a global context or send data to an API
+    console.log("Saving settings:", settings);
+    setInitialSettings(settings); // Set the new initial state
+    toast({
+      title: "Settings Saved",
+      description: "Your changes have been successfully saved.",
+    });
+  };
+
+  const handleDiscard = () => {
+    setSettings(initialSettings);
+    toast({
+      title: "Changes Discarded",
+      description: "Your pending changes have been discarded.",
+    });
+  };
+  
+  const hasChanges = JSON.stringify(settings) !== JSON.stringify(initialSettings);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -31,11 +69,18 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="business-name">Business Name</Label>
-              <Input id="business-name" defaultValue="SMEs Toolkit" />
+              <Input 
+                id="business-name" 
+                value={settings.businessName}
+                onChange={(e) => handleInputChange('businessName', e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="currency">Currency</Label>
-              <Select defaultValue="USD">
+              <Select 
+                value={settings.currency}
+                onValueChange={(value) => handleInputChange('currency', value)}
+              >
                 <SelectTrigger id="currency">
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
@@ -66,7 +111,10 @@ export default function SettingsPage() {
                   Turn the AI helper on or off.
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={settings.enableAssistant}
+                onCheckedChange={(checked) => handleInputChange('enableAssistant', checked)}
+              />
             </div>
             <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
@@ -75,7 +123,10 @@ export default function SettingsPage() {
                   Let the AI provide smart prompts.
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={settings.autoSuggestions}
+                onCheckedChange={(checked) => handleInputChange('autoSuggestions', checked)}
+              />
             </div>
           </CardContent>
         </Card>
@@ -130,7 +181,10 @@ export default function SettingsPage() {
                   Select your preferred language.
                 </p>
               </div>
-              <Select defaultValue="en">
+              <Select 
+                value={settings.language}
+                onValueChange={(value) => handleInputChange('language', value)}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
@@ -144,6 +198,17 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
+      </div>
+
+      {/* Save Changes Footer */}
+      <div className="mt-4 flex justify-end gap-2">
+        <Button variant="outline" onClick={handleDiscard} disabled={!hasChanges}>
+          Discard
+        </Button>
+        <Button onClick={handleSave} disabled={!hasChanges}>
+          <Save className="mr-2 h-4 w-4" />
+          Save Changes
+        </Button>
       </div>
     </div>
   );
