@@ -11,25 +11,25 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 351 31% 57%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 25 91% 59%; /* Pumpkin */
+    --primary-foreground: 24 9.8% 10%; /* Dark contrast for Pumpkin */
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 208 82% 66%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 203 96% 56%; /* Picton Blue */
+    --accent-foreground: 222.2 47.4% 11.2%; /* Dark contrast for Blue */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 208 82% 66%;
+    --ring: 203 96% 56%; /* Picton Blue */
     --radius: 1.25rem;
     
     /* Gradients */
     --light-start: #F9FAFB;
     --light-end: #E5E7EB;
-    --dark-start: #1e293b;
+    --dark-start: #1E293B;
     --dark-end: #293846;
   }
 
@@ -37,23 +37,23 @@
     /* Dark Theme Overrides */
     --background: 215 30% 18%;
     --foreground: 210 40% 98%;
-    --card: 215 30% 18%;
+    --card: 215 28% 17%;
     --card-foreground: 210 40% 98%;
     --popover: 215 28% 17%;
     --popover-foreground: 210 40% 98%;
-    --primary: 351 31% 57%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 25 91% 59%; /* Pumpkin */
+    --primary-foreground: 24 9.8% 10%; /* Dark contrast for Pumpkin */
     --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
-    --accent: 208 82% 66%;
-    --accent-foreground: 215 30% 11%;
+    --accent: 203 96% 56%; /* Picton Blue */
+    --accent-foreground: 215 30% 11%; /* Dark contrast for Blue */
     --destructive: 0 72% 51%;
     --destructive-foreground: 210 40% 98%;
     --border: 217 33% 25%;
     --input: 217 33% 25%;
-    --ring: 208 82% 66%;
+    --ring: 203 96% 56%;
   }
 }
 
@@ -72,22 +72,27 @@
 }
 
 @layer components {
-  /* Glassmorphism base style (Light) */
+  /* Glassmorphism base style (Shared) */
   .glass-panel {
-    background: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-radius: var(--radius);
+    transition: all 0.3s ease;
+  }
+  
+  /* Glassmorphism base style (Light) */
+  .light .glass-panel {
+    background: rgba(255, 255, 255, 0.6);
     border: 1px solid rgba(0, 0, 0, 0.05);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
   }
 
   /* Glassmorphism base style (Dark) */
   .dark .glass-panel {
-    background: rgba(30, 41, 59, 0.5);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px 0 rgba(8, 7, 16, 0.37);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.1),
+                0 10px 40px rgba(31, 38, 135, 0.37);
   }
 
   /* Apply glass to ShadCN components */
@@ -95,12 +100,15 @@
     @apply glass-panel;
   }
   
+  /* Component-specific overrides to ensure glass effect */
   .dark .card, .dark .dialog-content, .dark .popover-content, .dark [data-sidebar='sidebar'] {
-    background: rgba(30, 41, 59, 0.5) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
   }
   
   .light .card, .light .dialog-content, .light .popover-content, .light [data-sidebar='sidebar'] {
      background: rgba(255, 255, 255, 0.6) !important;
+     border-color: rgba(0, 0, 0, 0.05) !important;
   }
 
 
@@ -110,11 +118,13 @@
   }
 
   .dark .sheet-content {
-    background: rgba(30, 41, 59, 0.8) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
   }
   
   .light .sheet-content {
-     background: rgba(255, 255, 255, 0.8) !important;
+     background: rgba(255, 255, 255, 0.7) !important;
+     border-color: rgba(0, 0, 0, 0.05) !important;
   }
 
 
