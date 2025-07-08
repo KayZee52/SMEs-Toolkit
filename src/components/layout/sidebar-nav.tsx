@@ -37,7 +37,7 @@ export default function SidebarNav() {
             <div className="bg-primary p-2 rounded-lg">
                 <Bot className="text-primary-foreground" />
             </div>
-            <h1 className="font-headline text-xl font-semibold">KEMZ</h1>
+            <h1 className="font-headline text-xl font-semibold">SMEs Toolkit</h1>
         </div>
       </SidebarHeader>
       <SidebarContent>

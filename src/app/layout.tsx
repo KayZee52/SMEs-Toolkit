@@ -7,7 +7,7 @@ import Header from "@/components/layout/header";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "KEMZ SMEs Toolkit",
+  title: "SMEs Toolkit",
   description: "Smart tools for your business.",
 };
 
