@@ -1,10 +1,11 @@
+
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
 import type { Sale } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Printer } from "lucide-react";
+import { Download } from "lucide-react";
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("en-US", {
@@ -25,10 +26,10 @@ const ProfitBadge = ({ profit }: { profit: number }) => {
 };
 
 interface ColumnsProps {
-  onPrint: (sale: Sale) => void;
+  onExportReceipt: (sale: Sale) => void;
 }
 
-export const columns = ({ onPrint }: ColumnsProps): ColumnDef<Sale>[] => [
+export const columns = ({ onExportReceipt }: ColumnsProps): ColumnDef<Sale>[] => [
   {
     accessorKey: "productName",
     header: "Product",
@@ -61,8 +62,8 @@ export const columns = ({ onPrint }: ColumnsProps): ColumnDef<Sale>[] => [
     cell: ({ row }) => {
       const sale = row.original;
       return (
-        <Button variant="ghost" size="icon" onClick={() => onPrint(sale)}>
-          <Printer className="h-4 w-4" />
+        <Button variant="ghost" size="icon" onClick={() => onExportReceipt(sale)}>
+          <Download className="h-4 w-4" />
         </Button>
       );
     },
