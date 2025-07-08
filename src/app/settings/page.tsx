@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { Building, BrainCircuit, CloudSync, Lock, Languages } from "lucide-react";
+import { Building, BrainCircuit, Cloud, Lock, Languages } from "lucide-react";
 
 export default function SettingsPage() {
   return (
@@ -83,7 +83,7 @@ export default function SettingsPage() {
         {/* Backup & Sync Card */}
         <Card>
           <CardHeader className="flex flex-row items-center gap-4">
-            <CloudSync className="h-6 w-6" />
+            <Cloud className="h-6 w-6" />
             <div>
               <CardTitle className="font-headline">Backup & Sync</CardTitle>
               <CardDescription>Manage your data backup and synchronization.</CardDescription>
@@ -95,7 +95,7 @@ export default function SettingsPage() {
                 <p>Last Sync: Today, 2:15 PM</p>
             </div>
             <Button className="w-full">
-              <CloudSync className="mr-2 h-4 w-4" />
+              <Cloud className="mr-2 h-4 w-4" />
               Sync Manually
             </Button>
             <p className="text-xs text-muted-foreground text-center">
