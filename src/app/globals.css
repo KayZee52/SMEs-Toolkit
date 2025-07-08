@@ -63,19 +63,22 @@
   }
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(to bottom right, var(--light-start), var(--light-end));
+    /* Updated gradient for a more 'liquid' feel */
+    background: linear-gradient(135deg, var(--light-start) 0%, var(--light-end) 50%, hsl(var(--accent)) 100%);
     min-height: 100vh;
   }
   .dark body {
-    background: linear-gradient(to bottom right, var(--dark-start), var(--dark-end));
+     /* Updated gradient for a more 'liquid' feel */
+    background: linear-gradient(135deg, var(--dark-start) 0%, var(--dark-end) 50%, hsl(var(--primary)) 100%);
   }
 }
 
 @layer components {
   /* Glassmorphism base style (Shared) */
   .glass-panel {
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    /* Increased blur for a more 'liquid' effect */
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
     border-radius: var(--radius);
     transition: all 0.3s ease;
   }
