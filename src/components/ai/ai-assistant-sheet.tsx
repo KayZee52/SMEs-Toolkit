@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useRef, useEffect, type FormEvent } from "react";
 import { Bot, User, Loader, X, Send } from "lucide-react";
@@ -28,7 +29,7 @@ export function AIAssistant() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const { addCustomer, findCustomerByName } = useApp();
+  const { addCustomer, findCustomerByName, settings } = useApp();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
@@ -84,28 +85,37 @@ export function AIAssistant() {
     }
   }, [messages]);
 
+  // If the setting to enable the assistant is toggled off, close the sheet.
+  useEffect(() => {
+    if (!settings.enableAssistant) {
+      setIsOpen(false);
+    }
+  }, [settings.enableAssistant]);
+
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-50">
-        <AnimatePresence>
-          {!isOpen && (
-            <motion.div
-              initial={{ scale: 0, y: 50 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0, y: 50 }}
-              transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            >
-              <Button
-                onClick={() => setIsOpen(true)}
-                className="rounded-full w-16 h-16 shadow-lg shadow-primary/40 bg-accent text-accent-foreground hover:bg-accent/90"
-                size="icon"
+      {settings.enableAssistant && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <AnimatePresence>
+            {!isOpen && (
+              <motion.div
+                initial={{ scale: 0, y: 50 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0, y: 50 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
               >
-                <Bot size={32} />
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+                <Button
+                  onClick={() => setIsOpen(true)}
+                  className="rounded-full w-16 h-16 shadow-lg shadow-primary/40 bg-accent text-accent-foreground hover:bg-accent/90"
+                  size="icon"
+                >
+                  <Bot size={32} />
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent className="flex flex-col p-0">
