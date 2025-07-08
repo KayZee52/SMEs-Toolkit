@@ -63,13 +63,19 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* Updated gradient for a more 'liquid' feel */
-    background: linear-gradient(135deg, var(--light-start) 0%, var(--light-end) 50%, hsl(var(--accent)) 100%);
+    /* Set background image with a light liquid glass overlay */
+    background-image: linear-gradient(135deg, rgba(249, 250, 251, 0.7) 0%, rgba(229, 231, 235, 0.8) 50%, hsla(var(--accent), 0.5) 100%), url('/assets/images/kemz.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
     min-height: 100vh;
   }
   .dark body {
-     /* Updated gradient for a more 'liquid' feel */
-    background: linear-gradient(135deg, var(--dark-start) 0%, var(--dark-end) 50%, hsl(var(--primary)) 100%);
+     /* Set background image with a dark liquid glass overlay */
+    background-image: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(41, 56, 70, 0.8) 50%, hsla(var(--primary), 0.5) 100%), url('/assets/images/kemz.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
   }
 }
 
