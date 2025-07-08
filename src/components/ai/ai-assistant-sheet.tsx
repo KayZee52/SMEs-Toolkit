@@ -1,12 +1,13 @@
 "use client";
 import { useState, useRef, useEffect, type FormEvent } from "react";
-import { Bot, User, CornerDownLeft, Loader, X, Send } from "lucide-react";
+import { Bot, User, Loader, X, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetClose,
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -45,13 +46,15 @@ export function AIAssistant() {
     // Check for new customer info
     const customerInfoRes = await getCustomerInfoFromText(input);
     if (customerInfoRes.success && customerInfoRes.data?.customerName) {
-        const existingCustomer = findCustomerByName(customerInfoRes.data.customerName);
-        if (!existingCustomer) {
-            addCustomer({
-                name: customerInfoRes.data.customerName,
-                phone: customerInfoRes.data.customerPhoneNumber,
-            });
-        }
+      const existingCustomer = findCustomerByName(
+        customerInfoRes.data.customerName
+      );
+      if (!existingCustomer) {
+        addCustomer({
+          name: customerInfoRes.data.customerName,
+          phone: customerInfoRes.data.customerPhoneNumber,
+        });
+      }
     }
 
     const aiReplyRes = await getAiReply(input);
@@ -62,7 +65,7 @@ export function AIAssistant() {
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } else {
-       const errorMessage: Message = {
+      const errorMessage: Message = {
         role: "assistant",
         content: "Sorry, I couldn't process that request. Please try again.",
       };
@@ -90,13 +93,12 @@ export function AIAssistant() {
               initial={{ scale: 0, y: 50 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0, y: 50 }}
-              transition={{type: "spring", stiffness: 260, damping: 20}}
+              transition={{ type: "spring", stiffness: 260, damping: 20 }}
             >
               <Button
                 onClick={() => setIsOpen(true)}
-                className="rounded-full w-16 h-16 shadow-lg shadow-primary/40"
+                className="rounded-full w-16 h-16 shadow-lg shadow-primary/40 bg-accent text-accent-foreground hover:bg-accent/90"
                 size="icon"
-                variant="default"
               >
                 <Bot size={32} />
               </Button>
@@ -105,89 +107,90 @@ export function AIAssistant() {
         </AnimatePresence>
       </div>
 
-      <AnimatePresence>
-        {isOpen && (
-           <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            transition={{ ease: "easeInOut", duration: 0.3 }}
-            className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-full sm:w-full sm:max-w-sm h-full sm:h-[70vh] sm:rounded-2xl"
-          >
-            <div className="glass-panel flex flex-col h-full bg-slate-900/70 p-0 overflow-hidden">
-                <SheetHeader className="p-4 flex flex-row justify-between items-center text-left border-b border-white/10">
-                    <SheetTitle className="font-headline text-lg">AI Assistant</SheetTitle>
-                    <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}><X className="h-4 w-4" /></Button>
-                </SheetHeader>
-                 <div className="flex-1 overflow-hidden">
-                    <ScrollArea className="h-full" ref={scrollAreaRef}>
-                        <div className="p-4 space-y-6">
-                        {messages.map((message, index) => (
-                            <div
-                            key={index}
-                            className={cn("flex items-start gap-3",
-                                message.role === "user" ? "justify-end" : ""
-                            )}
-                            >
-                            {message.role === "assistant" && (
-                                <Avatar className="h-8 w-8 border border-white/20">
-                                <AvatarFallback className="bg-primary/20 text-primary"><Bot size={20} /></AvatarFallback>
-                                </Avatar>
-                            )}
-                            <div
-                                className={cn("rounded-xl px-4 py-3 max-w-[85%] text-sm",
-                                message.role === "user"
-                                    ? "bg-accent/80 text-accent-foreground rounded-br-none"
-                                    : "bg-white/10 rounded-bl-none"
-                                )}
-                            >
-                                <p>{message.content}</p>
-                            </div>
-                            {message.role === "user" && (
-                                <Avatar className="h-8 w-8 border border-white/20">
-                                <AvatarFallback className="bg-transparent"><User size={20} /></AvatarFallback>
-                                </Avatar>
-                            )}
-                            </div>
-                        ))}
-                        {isLoading && (
-                            <div className="flex items-start gap-3">
-                            <Avatar className="h-8 w-8 border border-white/20">
-                                <AvatarFallback className="bg-primary/20 text-primary"><Bot size={20} /></AvatarFallback>
-                            </Avatar>
-                            <div className="rounded-lg px-4 py-2 bg-white/10 flex items-center">
-                                <Loader className="animate-spin h-5 w-5" />
-                            </div>
-                            </div>
-                        )}
-                        </div>
-                    </ScrollArea>
-                </div>
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetContent className="flex flex-col p-0">
+          <SheetHeader className="p-4 flex flex-row justify-between items-center text-left border-b">
+            <SheetTitle className="font-headline text-lg">
+              AI Assistant
+            </SheetTitle>
+            <SheetClose asChild>
+              <Button variant="ghost" size="icon">
+                <X className="h-4 w-4" />
+              </Button>
+            </SheetClose>
+          </SheetHeader>
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full" ref={scrollAreaRef}>
+              <div className="p-4 space-y-6">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={cn(
+                      "flex items-start gap-3",
+                      message.role === "user" ? "justify-end" : ""
+                    )}
+                  >
+                    {message.role === "assistant" && (
+                      <Avatar className="h-8 w-8 border">
+                        <AvatarFallback className="bg-primary/20 text-primary">
+                          <Bot size={20} />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div
+                      className={cn(
+                        "rounded-xl px-4 py-3 max-w-[85%] text-sm",
+                        message.role === "user"
+                          ? "bg-accent text-accent-foreground rounded-br-none"
+                          : "bg-muted rounded-bl-none"
+                      )}
+                    >
+                      <p>{message.content}</p>
+                    </div>
+                    {message.role === "user" && (
+                      <Avatar className="h-8 w-8 border">
+                        <AvatarFallback>
+                          <User size={20} />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex items-start gap-3">
+                    <Avatar className="h-8 w-8 border">
+                      <AvatarFallback className="bg-primary/20 text-primary">
+                        <Bot size={20} />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="rounded-lg px-4 py-2 bg-muted flex items-center">
+                      <Loader className="animate-spin h-5 w-5" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
 
-                <form
-                onSubmit={handleSubmit}
-                className="relative m-4"
-                >
-                <Input
-                    value={input}
-                    onChange={handleInputChange}
-                    placeholder="e.g., Sold one silk tie..."
-                    className="pr-12 bg-black/20 border-white/20 h-12 text-base"
-                    disabled={isLoading}
-                />
-                <Button
-                    type="submit"
-                    size="icon"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 bg-accent hover:bg-accent/90"
-                    disabled={isLoading || !input.trim()}
-                >
-                    <Send size={18} />
-                </Button>
-                </form>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          <form onSubmit={handleSubmit} className="relative m-4 shrink-0">
+            <Input
+              value={input}
+              onChange={handleInputChange}
+              placeholder="e.g., Sold one silk tie..."
+              className="pr-12 h-12 text-base"
+              disabled={isLoading}
+            />
+            <Button
+              type="submit"
+              size="icon"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 bg-accent hover:bg-accent/90"
+              disabled={isLoading || !input.trim()}
+            >
+              <Send size={18} />
+            </Button>
+          </form>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }
