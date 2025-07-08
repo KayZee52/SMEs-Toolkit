@@ -2,20 +2,23 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import type { Product, Sale, Customer } from "@/lib/types";
-import { MOCK_PRODUCTS, MOCK_SALES, MOCK_CUSTOMERS } from "@/lib/mock-data";
+import type { Product, Sale, Customer, Expense } from "@/lib/types";
+import { MOCK_PRODUCTS, MOCK_SALES, MOCK_CUSTOMERS, MOCK_EXPENSES } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/utils";
 
 interface AppContextType {
   products: Product[];
   sales: Sale[];
   customers: Customer[];
+  expenses: Expense[];
   addProduct: (product: Omit<Product, "id" | "lastUpdatedAt">) => void;
   updateProduct: (product: Product) => void;
   receiveStock: (productId: string, quantity: number, costPerUnit: number) => void;
   addSale: (sale: Omit<Sale, "id" | "total" | "date" | "productName" | "customerName" | "profit">) => void;
   addCustomer: (customer: Omit<Customer, "id" | "createdAt">) => Customer;
   updateCustomer: (customer: Customer) => void;
+  addExpense: (expense: Omit<Expense, "id" | "date">) => void;
   findCustomerByName: (name: string) => Customer | undefined;
 }
 
@@ -49,6 +52,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [products, setProducts] = useLocalStorage<Product[]>("products", []);
   const [sales, setSales] = useLocalStorage<Sale[]>("sales", []);
   const [customers, setCustomers] = useLocalStorage<Customer[]>("customers", []);
+  const [expenses, setExpenses] = useLocalStorage<Expense[]>("expenses", []);
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
@@ -56,6 +60,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setProducts(MOCK_PRODUCTS);
       setSales(MOCK_SALES);
       setCustomers(MOCK_CUSTOMERS);
+      setExpenses(MOCK_EXPENSES);
       localStorage.setItem("dataInitialized", "true");
     }
     setIsInitialized(true);
@@ -152,14 +157,39 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     toast({ title: "Customer Updated", description: `${updatedCustomer.name}'s details have been updated.` });
   };
 
+  const addExpense = (expenseData: Omit<Expense, "id" | "date">) => {
+    const newExpense: Expense = {
+      ...expenseData,
+      id: `exp_${Date.now()}`,
+      date: new Date().toISOString(),
+    };
+    setExpenses((prev) => [newExpense, ...prev]);
+    toast({ title: "Expense Logged", description: `${expenseData.description} for ${formatCurrency(expenseData.amount)} has been logged.` });
+  };
+
   const findCustomerByName = (name: string): Customer | undefined => {
     return customers.find(c => c.name.toLowerCase() === name.toLowerCase());
   }
 
   if (!isInitialized) return null;
 
+  const value = {
+    products,
+    sales,
+    customers,
+    expenses,
+    addProduct,
+    updateProduct,
+    receiveStock,
+    addSale,
+    addCustomer,
+    updateCustomer,
+    addExpense,
+    findCustomerByName,
+  };
+  
   return (
-    <AppContext.Provider value={{ products, sales, customers, addProduct, updateProduct, receiveStock, addSale, addCustomer, updateCustomer, findCustomerByName }}>
+    <AppContext.Provider value={value}>
       {children}
     </AppContext.Provider>
   );

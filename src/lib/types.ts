@@ -33,3 +33,11 @@ export type Customer = {
   notes?: string;
   type?: "Regular" | "VIP" | "Debtor";
 };
+
+export type Expense = {
+  id: string;
+  description: string;
+  category: string;
+  amount: number;
+  date: string;
+};

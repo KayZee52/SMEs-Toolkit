@@ -1,3 +1,4 @@
+
 "use client";
 
 import { usePathname } from "next/navigation";
@@ -10,21 +11,27 @@ import {
   SidebarContent,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   ShoppingCart,
   Package,
   Users,
+  Landmark,
+  AreaChart,
+  ArrowRightLeft,
+  Settings,
   Bot,
 } from "lucide-react";
-import { AIAssistantSheet } from "@/components/ai/ai-assistant-sheet";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/sales", label: "Sales", icon: ShoppingCart },
   { href: "/inventory", label: "Inventory", icon: Package },
   { href: "/customers", label: "Customers", icon: Users },
+  { href: "/expenses", label: "Expenses", icon: Landmark },
+  { href: "/transactions", label: "Transactions", icon: ArrowRightLeft },
+  { href: "/reports", label: "Reports", icon: AreaChart },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export default function SidebarNav() {
@@ -37,7 +44,7 @@ export default function SidebarNav() {
             <div className="bg-primary/80 p-2 rounded-lg shadow-md shadow-primary/30">
                 <Bot className="text-primary-foreground" />
             </div>
-            <h1 className="font-headline text-xl font-semibold">SMEs Toolkit</h1>
+            <h1 className="font-headline text-xl font-semibold">BizSmart</h1>
         </div>
       </SidebarHeader>
       <SidebarContent className="p-2">

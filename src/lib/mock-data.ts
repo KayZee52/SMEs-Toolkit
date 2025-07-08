@@ -1,5 +1,5 @@
 
-import type { Product, Customer, Sale } from "./types";
+import type { Product, Customer, Sale, Expense } from "./types";
 
 export const MOCK_PRODUCTS: Product[] = [
   { id: "prod_1", name: "Classic Leather Wallet", stock: 25, price: 49.99, cost: 15.5, lastUpdatedAt: new Date().toISOString() },
@@ -22,3 +22,10 @@ export const MOCK_SALES: Sale[] = [
   { id: "sale_4", productId: "prod_1", customerId: "cust_1", customerName: "Alice Johnson", productName: "Classic Leather Wallet", quantity: 1, pricePerUnit: 49.99, total: 49.99, profit: 34.49, date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() }, // A second sale for Alice, within 30 days
   { id: "sale_5", productId: "prod_3", customerId: "cust_3", customerName: "Charlie Brown", productName: "Canvas Messenger Bag", quantity: 1, pricePerUnit: 79.99, total: 79.99, profit: 54.99, date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
 ];
+
+export const MOCK_EXPENSES: Expense[] = [
+    { id: "exp_1", description: "Office rent", category: "Rent", amount: 500, date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: "exp_2", description: "Fuel for delivery", category: "Transportation", amount: 50, date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: "exp_3", description: "Packing materials", category: "Supplies", amount: 25, date: new Date().toISOString() },
+    { id: "exp_4", description: "Website hosting", category: "Utilities", amount: 20, date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+  ];
