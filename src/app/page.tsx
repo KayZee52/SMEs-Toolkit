@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatsCards } from "@/components/dashboard/stats-cards";
@@ -12,6 +13,7 @@ import { ProductDialog } from "@/components/inventory/product-dialog";
 import { Download } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import html2canvas from "html2canvas";
 import { useApp } from "@/contexts/app-context";
 import { formatCurrency } from "@/lib/utils";
 import { format, formatDistanceToNow, subDays } from "date-fns";
@@ -19,6 +21,9 @@ import type { Sale } from "@/lib/types";
 
 export default function DashboardPage() {
   const { sales, products } = useApp();
+  const salesChartRef = useRef<HTMLDivElement>(null);
+  const topProductsChartRef = useRef<HTMLDivElement>(null);
+  const recentActivityRef = useRef<HTMLDivElement>(null);
 
   const handleExportRecentActivityPdf = () => {
     const doc = new jsPDF();
@@ -54,8 +59,23 @@ export default function DashboardPage() {
     doc.save("recent_activity.pdf");
   };
 
-  const handleExportSalesChartPdf = () => {
+  const handleExportSalesChartPdf = async () => {
     const doc = new jsPDF();
+    doc.text("Sales Over the Week", 14, 15);
+    let tableStartY = 20;
+
+    if (salesChartRef.current) {
+      const canvas = await html2canvas(salesChartRef.current, { 
+        backgroundColor: 'hsl(224 71.4% 4.1%)' // Themed background
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const imgProps = doc.getImageProperties(imgData);
+      const pdfWidth = doc.internal.pageSize.getWidth();
+      const imgWidth = pdfWidth - 28; // with 14 margin on each side
+      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+      doc.addImage(imgData, 'PNG', 14, 25, imgWidth, imgHeight);
+      tableStartY = 25 + imgHeight + 5;
+    }
 
     const salesData = Array.from({ length: 7 }, (_, i) => {
       const date = subDays(new Date(), i);
@@ -82,18 +102,32 @@ export default function DashboardPage() {
       tableRows.push(rowData);
     });
 
-    doc.text("Sales Over the Week", 14, 15);
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
-      startY: 20,
+      startY: tableStartY,
     });
 
     doc.save("sales_over_week.pdf");
   };
 
-  const handleExportTopProductsPdf = () => {
+  const handleExportTopProductsPdf = async () => {
     const doc = new jsPDF();
+    doc.text("Top-Selling Products", 14, 15);
+    let tableStartY = 20;
+    
+    if (topProductsChartRef.current) {
+        const canvas = await html2canvas(topProductsChartRef.current, {
+            backgroundColor: 'hsl(224 71.4% 4.1%)' // Themed background
+        });
+        const imgData = canvas.toDataURL('image/png');
+        const imgProps = doc.getImageProperties(imgData);
+        const pdfWidth = doc.internal.pageSize.getWidth();
+        const imgWidth = pdfWidth - 28; // with 14 margin on each side
+        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+        doc.addImage(imgData, 'PNG', 14, 25, imgWidth, imgHeight);
+        tableStartY = 25 + imgHeight + 5;
+    }
 
     const productSales = sales.reduce<Record<string, { name: string; sales: number }>>((acc, sale) => {
       const productName = products.find(p => p.id === sale.productId)?.name || "Unknown";
@@ -119,11 +153,10 @@ export default function DashboardPage() {
         tableRows.push(rowData);
     });
 
-    doc.text("Top-Selling Products", 14, 15);
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
-      startY: 20,
+      startY: tableStartY,
     });
 
     doc.save("top_selling_products.pdf");
@@ -165,7 +198,7 @@ export default function DashboardPage() {
               Export PDF
             </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent ref={salesChartRef}>
             <SalesChart />
           </CardContent>
         </Card>
@@ -179,7 +212,7 @@ export default function DashboardPage() {
               Export PDF
             </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent ref={topProductsChartRef}>
             <TopProductsChart />
           </CardContent>
         </Card>
