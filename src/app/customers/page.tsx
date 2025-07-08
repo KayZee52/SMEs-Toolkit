@@ -1,8 +1,8 @@
 "use client";
 
 import { useApp } from "@/contexts/app-context";
-import { DataTable } from "./data-table";
-import { columns } from "./columns";
+import { DataTable } from "@/components/customers/data-table";
+import { columns } from "@/components/customers/columns";
 
 export default function CustomersPage() {
   const { customers } = useApp();

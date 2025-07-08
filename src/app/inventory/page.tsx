@@ -1,9 +1,9 @@
 "use client";
 
 import { useApp } from "@/contexts/app-context";
-import { DataTable } from "./data-table";
-import { columns } from "./columns";
-import { ProductDialog } from "./product-dialog";
+import { DataTable } from "@/components/inventory/data-table";
+import { columns } from "@/components/inventory/columns";
+import { ProductDialog } from "@/components/inventory/product-dialog";
 
 export default function InventoryPage() {
   const { products } = useApp();

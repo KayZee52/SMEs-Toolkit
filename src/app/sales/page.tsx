@@ -1,9 +1,9 @@
 "use client";
 
 import { useApp } from "@/contexts/app-context";
-import { DataTable } from "./data-table";
-import { columns } from "./columns";
-import { LogSaleDialog } from "./log-sale-dialog";
+import { DataTable } from "@/components/sales/data-table";
+import { columns } from "@/components/sales/columns";
+import { LogSaleDialog } from "@/components/sales/log-sale-dialog";
 
 export default function SalesPage() {
   const { sales } = useApp();
