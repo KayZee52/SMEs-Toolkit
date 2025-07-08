@@ -11,7 +11,7 @@ interface AppContextType {
   customers: Customer[];
   addProduct: (product: Omit<Product, "id">) => void;
   updateProduct: (product: Product) => void;
-  addSale: (sale: Omit<Sale, "id" | "total" | "date" | "productName" | "customerName">) => void;
+  addSale: (sale: Omit<Sale, "id" | "total" | "date" | "productName" | "customerName" | "profit">) => void;
   addCustomer: (customer: Omit<Customer, "id" | "createdAt">) => Customer;
   findCustomerByName: (name: string) => Customer | undefined;
 }
@@ -72,7 +72,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     toast({ title: "Product Updated", description: `${updatedProduct.name} has been updated.` });
   };
 
-  const addSale = (saleData: Omit<Sale, "id" | "total" | "date" | "productName" | "customerName">) => {
+  const addSale = (saleData: Omit<Sale, "id" | "total" | "date" | "productName" | "customerName" | "profit">) => {
     const product = products.find((p) => p.id === saleData.productId);
     if (!product) {
       toast({ variant: "destructive", title: "Error", description: "Product not found." });
@@ -89,12 +89,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         if (customer) customerName = customer.name;
     }
 
+    const profit = (saleData.pricePerUnit - product.cost) * saleData.quantity;
+
     const newSale: Sale = {
       ...saleData,
       id: `sale_${Date.now()}`,
       productName: product.name,
       customerName,
       total: saleData.pricePerUnit * saleData.quantity,
+      profit,
       date: new Date().toISOString(),
     };
 

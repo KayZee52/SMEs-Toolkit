@@ -1,32 +1,10 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { useApp } from "@/contexts/app-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, TrendingUp, AlertTriangle, Star } from "lucide-react";
-import { motion, useSpring, useTransform } from "framer-motion";
-
-function AnimatedCounter({ value, isCurrency = false }: { value: number, isCurrency?: boolean }) {
-  const spring = useSpring(0, { damping: 50, stiffness: 200 });
-  
-  const display = useTransform(spring, (current) => {
-    const rounded = Math.round(current);
-    if (isCurrency) {
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(current);
-    }
-    return rounded.toLocaleString();
-  });
-
-  useEffect(() => {
-    spring.set(value);
-  }, [spring, value]);
-
-  return <motion.span>{display}</motion.span>;
-}
-
+import { AnimatedCounter } from "@/components/ui/animated-counter";
 
 export function StatsCards() {
   const { sales, products } = useApp();

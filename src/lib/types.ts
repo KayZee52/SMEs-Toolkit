@@ -15,6 +15,8 @@ export type Sale = {
   quantity: number;
   pricePerUnit: number;
   total: number;
+  profit: number;
+  notes?: string;
   date: string;
 };
 
