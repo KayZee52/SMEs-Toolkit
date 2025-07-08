@@ -29,6 +29,7 @@ export async function aiAssistedQuery(input: AiAssistedQueryInput): Promise<AiAs
 
 const prompt = ai.definePrompt({
   name: 'aiAssistedQueryPrompt',
+  model: 'googleai/gemini-1.5-flash-latest',
   input: {schema: AiAssistedQueryInputSchema},
   output: {schema: AiAssistedQueryOutputSchema},
   prompt: `You are a helpful AI assistant designed to answer questions about sales data and inventory.
