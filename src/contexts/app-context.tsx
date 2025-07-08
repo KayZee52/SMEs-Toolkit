@@ -87,13 +87,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const newStock = product.stock + quantity;
-    const newAverageCost = ((product.cost * product.stock) + (costPerUnit * quantity)) / newStock;
+    // Ensure data is numeric
+    const currentStock = Number(product.stock) || 0;
+    const currentCost = Number(product.cost) || 0;
+    
+    if (quantity <= 0) return; // Should be handled by form validation
 
-    const updatedProduct = {
+    const newStock = currentStock + quantity;
+
+    // Calculate new average cost. If current stock is 0, new cost is just the cost of new units.
+    const newAverageCost = newStock > 0
+      ? ((currentCost * currentStock) + (costPerUnit * quantity)) / newStock
+      : costPerUnit;
+
+    const updatedProduct: Product = {
       ...product,
       stock: newStock,
-      cost: newAverageCost,
+      // Fallback to current cost if calculation results in NaN
+      cost: isNaN(newAverageCost) ? currentCost : newAverageCost,
       lastUpdatedAt: new Date().toISOString(),
     };
 
