@@ -1,18 +1,14 @@
+
 "use client";
 
 import { useApp } from "@/contexts/app-context";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { formatCurrency } from "@/lib/utils";
+
 
 export function RecentSales() {
   const { sales } = useApp();
   const recentSales = sales.slice(0, 5);
-
-  const formatCurrency = (amount: number) => {
-     return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
-  }
 
   return (
     <div className="space-y-4">
@@ -30,6 +26,11 @@ export function RecentSales() {
           <div className="ml-auto font-medium">{formatCurrency(sale.total)}</div>
         </div>
       ))}
+       {recentSales.length === 0 && (
+        <div className="flex items-center justify-center h-24 text-muted-foreground">
+            No recent sales.
+        </div>
+      )}
     </div>
   );
 }
