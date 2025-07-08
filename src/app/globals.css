@@ -4,25 +4,25 @@
 
 @layer base {
   :root {
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 20% 98%;
-    --card: 224 71.4% 4.1%;
-    --card-foreground: 210 20% 98%;
-    --popover: 224 71.4% 4.1%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 14 74.3% 58.6%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 14 74.3% 58.6%;
+    --background: 0 0% 94.1%; /* #F0F0F0 light gray */
+    --foreground: 224 71.4% 4.1%; /* Dark slate */
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 14 56.1% 74.1%; /* #E6A394 soft rose */
+    --primary-foreground: 14 60% 10%; /* Dark brown for contrast */
+    --secondary: 215 20% 95%;
+    --secondary-foreground: 215 20% 30%;
+    --muted: 215 20% 95%;
+    --muted-foreground: 215 15% 55%;
+    --accent: 165 56.1% 74.1%; /* #A3E6D5 pale cyan */
+    --accent-foreground: 165 50% 20%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 14 56.1% 74.1%;
     --radius: 1rem;
     --chart-1: 221.2 83.2% 53.3%;
     --chart-2: 16.3 92.8% 54.5%;
@@ -44,8 +44,8 @@
     --secondary-foreground: 210 20% 98%;
     --muted: 215 27.9% 16.9%;
     --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
+    --accent: 165 56% 74%;
+    --accent-foreground: 165 50% 15%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 20% 98%;
     --border: 215 27.9% 16.9%;
@@ -65,28 +65,41 @@
 @layer components {
   /* Glassmorphism base style */
   .glass-panel {
-    background: rgba(255, 255, 255, 0.05);
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
     border-radius: var(--radius);
-    border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
   }
 
-  /* Apply glass to ShadCN components */
+  /* Light Mode Glass */
   .card,
   .dialog-content,
   .popover-content,
   [data-sidebar="sidebar"] {
     @apply glass-panel;
-    background: rgba(30, 30, 47, 0.75) !important;
+    background: rgba(255, 255, 255, 0.4) !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
   }
-
-  /* Special case for Sheet which is used for AI assistant now */
   .sheet-content {
     @apply glass-panel;
+    background: rgba(255, 255, 255, 0.8) !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  }
+
+  /* Dark Mode Glass */
+  .dark .card,
+  .dark .dialog-content,
+  .dark .popover-content,
+  .dark [data-sidebar="sidebar"] {
+    @apply glass-panel;
+    background: rgba(30, 30, 47, 0.75) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  .dark .sheet-content {
+    @apply glass-panel;
     background: rgba(30, 30, 47, 0.85) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
   }
 
   /* Glow for active sidebar item */
