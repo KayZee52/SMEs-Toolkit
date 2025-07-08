@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm, Controller } from "react-hook-form";
@@ -61,7 +62,11 @@ export function LogSaleDialog() {
   }, [selectedProductId, products, form]);
 
   const onSubmit = (data: SaleFormValues) => {
-    addSale(data);
+    const saleData = { ...data };
+    if (saleData.customerId === "walk-in") {
+      saleData.customerId = undefined;
+    }
+    addSale(saleData);
     form.reset({ quantity: 1, notes: "" });
     setOpen(false);
   };
@@ -125,7 +130,7 @@ export function LogSaleDialog() {
                     <SelectValue placeholder="Select a customer" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Walk-in Customer</SelectItem>
+                    <SelectItem value="walk-in">Walk-in Customer</SelectItem>
                     {customers.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name}
