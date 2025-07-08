@@ -48,7 +48,13 @@ export const columns: ColumnDef<Product>[] = [
   {
     accessorKey: "lastUpdatedAt",
     header: "Last Updated",
-    cell: ({ row }) => formatDistanceToNow(new Date(row.original.lastUpdatedAt), { addSuffix: true }),
+    cell: ({ row }) => {
+      const date = new Date(row.original.lastUpdatedAt);
+      if (isNaN(date.getTime())) {
+        return "N/A";
+      }
+      return formatDistanceToNow(date, { addSuffix: true });
+    },
   },
   {
     id: "actions",
