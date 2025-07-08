@@ -44,7 +44,7 @@ export default function SidebarNav() {
             <div className="bg-primary/80 p-2 rounded-lg shadow-md shadow-primary/30">
                 <Bot className="text-primary-foreground" />
             </div>
-            <h1 className="font-headline text-xl font-semibold">BizSmart</h1>
+            <h1 className="font-headline text-xl font-semibold">SMEs Toolkit</h1>
         </div>
       </SidebarHeader>
       <SidebarContent className="p-2">
