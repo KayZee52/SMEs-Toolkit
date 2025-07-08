@@ -55,8 +55,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (localStorage.getItem("dataInitialized") !== "true") {
+      const salesWithProfit = MOCK_SALES.map(sale => {
+        const product = MOCK_PRODUCTS.find(p => p.id === sale.productId);
+        const profit = product ? (sale.pricePerUnit - product.cost) * sale.quantity : 0;
+        return { ...sale, profit };
+      });
+
       setProducts(MOCK_PRODUCTS);
-      setSales(MOCK_SALES);
+      setSales(salesWithProfit);
       setCustomers(MOCK_CUSTOMERS);
       setExpenses(MOCK_EXPENSES);
       setSettings(defaultSettings);
