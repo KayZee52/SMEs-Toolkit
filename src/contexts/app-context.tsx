@@ -2,7 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import type { Product, Sale, Customer, Expense, Settings, AppContextType } from "@/lib/types";
+import type { Product, Sale, Customer, Expense, Settings, AppContextType, LogSaleFormValues } from "@/lib/types";
 import { MOCK_PRODUCTS, MOCK_SALES, MOCK_CUSTOMERS, MOCK_EXPENSES } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
@@ -119,7 +119,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
 
-  const addSale = (saleData: Omit<Sale, "id" | "total" | "date" | "productName" | "customerName" | "profit">) => {
+  const addSale = (saleData: LogSaleFormValues) => {
     const product = products.find((p) => p.id === saleData.productId);
     if (!product) {
       toast({ variant: "destructive", title: "Error", description: "Product not found." });
@@ -130,21 +130,37 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    let customerName = "Walk-in Customer";
-    if (saleData.customerId && saleData.customerId !== 'walk-in') {
-        const customer = customers.find(c => c.id === saleData.customerId);
-        if (customer) customerName = customer.name;
+    let customerId: string | undefined;
+    let customerName: string;
+
+    if (saleData.customerName && saleData.customerName.trim() !== "") {
+        const existingCustomer = findCustomerByName(saleData.customerName);
+        if (existingCustomer) {
+            customerId = existingCustomer.id;
+            customerName = existingCustomer.name;
+        } else {
+            // Create a new customer if name is provided but not found
+            const newCustomer = addCustomer({ name: saleData.customerName });
+            customerId = newCustomer.id;
+            customerName = newCustomer.name;
+        }
+    } else {
+         customerName = "Walk-in Customer";
     }
 
     const profit = (saleData.pricePerUnit - product.cost) * saleData.quantity;
 
     const newSale: Sale = {
-      ...saleData,
       id: `sale_${Date.now()}`,
+      productId: saleData.productId,
       productName: product.name,
-      customerName,
+      customerName: customerName,
+      customerId: customerId,
+      quantity: saleData.quantity,
+      pricePerUnit: saleData.pricePerUnit,
       total: saleData.pricePerUnit * saleData.quantity,
       profit,
+      notes: saleData.notes,
       date: new Date().toISOString(),
     };
 

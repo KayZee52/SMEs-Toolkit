@@ -53,6 +53,14 @@ export type Settings = {
   language: "en" | "en-lr" | "fr";
 };
 
+export type LogSaleFormValues = {
+  productId: string;
+  customerName?: string;
+  quantity: number;
+  pricePerUnit: number;
+  notes?: string;
+};
+
 export interface AppContextType {
   products: Product[];
   sales: Sale[];
@@ -62,7 +70,7 @@ export interface AppContextType {
   addProduct: (product: Omit<Product, "id" | "lastUpdatedAt">) => void;
   updateProduct: (product: Product) => void;
   receiveStock: (productId: string, quantity: number, costPerUnit: number) => void;
-  addSale: (sale: Omit<Sale, "id" | "total" | "date" | "productName" | "customerName" | "profit">) => void;
+  addSale: (sale: LogSaleFormValues) => void;
   addCustomer: (customer: Omit<Customer, "id" | "createdAt">) => Customer;
   updateCustomer: (customer: Customer) => void;
   addExpense: (expense: Omit<Expense, "id" | "date">) => void;

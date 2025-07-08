@@ -26,11 +26,21 @@ import {
 } from "@/components/ui/select";
 import { useApp } from "@/contexts/app-context";
 import { useState, useEffect } from "react";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, ChevronsUpDown, Check } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 const saleSchema = z.object({
   productId: z.string().min(1, "Product is required"),
-  customerId: z.string().optional(),
+  customerName: z.string().optional(),
   quantity: z.coerce.number().int().min(1, "Quantity must be at least 1"),
   pricePerUnit: z.coerce.number().min(0, "Price must be a positive number"),
   notes: z.string().optional(),
@@ -41,12 +51,15 @@ type SaleFormValues = z.infer<typeof saleSchema>;
 export function LogSaleDialog() {
   const { products, customers, addSale } = useApp();
   const [open, setOpen] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState("");
 
   const form = useForm<SaleFormValues>({
     resolver: zodResolver(saleSchema),
     defaultValues: {
       quantity: 1,
       notes: "",
+      customerName: "",
     },
   });
 
@@ -62,12 +75,8 @@ export function LogSaleDialog() {
   }, [selectedProductId, products, form]);
 
   const onSubmit = (data: SaleFormValues) => {
-    const saleData = { ...data };
-    if (saleData.customerId === "walk-in") {
-      saleData.customerId = undefined;
-    }
-    addSale(saleData);
-    form.reset({ quantity: 1, notes: "" });
+    addSale(data);
+    form.reset({ productId: "", customerName: "", quantity: 1, notes: "" });
     setOpen(false);
   };
 
@@ -120,24 +129,76 @@ export function LogSaleDialog() {
             <Label>Customer (Optional)</Label>
             <Controller
               control={form.control}
-              name="customerId"
+              name="customerName"
               render={({ field }) => (
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a customer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="walk-in">Walk-in Customer</SelectItem>
-                    {customers.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={popoverOpen}
+                      className="w-full justify-between font-normal"
+                    >
+                      {field.value || "Select or type customer..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <Command>
+                      <CommandInput
+                        placeholder="Search or add customer..."
+                        onValueChange={setCustomerSearch}
+                      />
+                       <CommandList>
+                        <CommandEmpty>
+                          <CommandItem
+                            onSelect={() => {
+                              field.onChange(customerSearch);
+                              setPopoverOpen(false);
+                            }}
+                          >
+                            Add "{customerSearch}" as new customer
+                          </CommandItem>
+                        </CommandEmpty>
+                        <CommandGroup>
+                            <CommandItem
+                                value=""
+                                onSelect={() => {
+                                    field.onChange(""); // set as walk-in
+                                    setPopoverOpen(false);
+                                }}
+                            >
+                                <Check
+                                    className={cn(
+                                    "mr-2 h-4 w-4",
+                                    !field.value ? "opacity-100" : "opacity-0"
+                                    )}
+                                />
+                                Walk-in Customer
+                            </CommandItem>
+                          {customers.map((customer) => (
+                            <CommandItem
+                              key={customer.id}
+                              value={customer.name}
+                              onSelect={() => {
+                                field.onChange(customer.name);
+                                setPopoverOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value === customer.name ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {customer.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               )}
             />
           </div>
