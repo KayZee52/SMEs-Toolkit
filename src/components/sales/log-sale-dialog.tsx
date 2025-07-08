@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useApp } from "@/contexts/app-context";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { PlusCircle, ChevronsUpDown, Check } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -35,6 +35,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 
@@ -79,6 +80,12 @@ export function LogSaleDialog() {
     form.reset({ productId: "", customerName: "", quantity: 1, notes: "" });
     setOpen(false);
   };
+  
+  const showAddNewCustomer = useMemo(() => {
+    if (!customerSearch.trim()) return false;
+    return !customers.some(c => c.name.toLowerCase() === customerSearch.trim().toLowerCase());
+  }, [customerSearch, customers]);
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -144,22 +151,12 @@ export function LogSaleDialog() {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                    <Command>
+                    <Command onValueChange={setCustomerSearch}>
                       <CommandInput
                         placeholder="Search or add customer..."
-                        onValueChange={setCustomerSearch}
                       />
                        <CommandList>
-                        <CommandEmpty>
-                          <CommandItem
-                            onSelect={() => {
-                              field.onChange(customerSearch);
-                              setPopoverOpen(false);
-                            }}
-                          >
-                            Add "{customerSearch}" as new customer
-                          </CommandItem>
-                        </CommandEmpty>
+                        <CommandEmpty>No customer found.</CommandEmpty>
                         <CommandGroup>
                             <CommandItem
                                 value=""
@@ -195,6 +192,22 @@ export function LogSaleDialog() {
                             </CommandItem>
                           ))}
                         </CommandGroup>
+                        {showAddNewCustomer && (
+                            <>
+                                <CommandSeparator />
+                                <CommandGroup>
+                                    <CommandItem
+                                        onSelect={() => {
+                                            field.onChange(customerSearch.trim());
+                                            setPopoverOpen(false);
+                                        }}
+                                    >
+                                        <PlusCircle className="mr-2 h-4 w-4" />
+                                        <span>Add "{customerSearch.trim()}"</span>
+                                    </CommandItem>
+                                </CommandGroup>
+                            </>
+                        )}
                       </CommandList>
                     </Command>
                   </PopoverContent>
