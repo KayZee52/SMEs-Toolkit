@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
@@ -9,8 +10,9 @@ interface AppContextType {
   products: Product[];
   sales: Sale[];
   customers: Customer[];
-  addProduct: (product: Omit<Product, "id">) => void;
+  addProduct: (product: Omit<Product, "id" | "lastUpdatedAt">) => void;
   updateProduct: (product: Product) => void;
+  receiveStock: (productId: string, quantity: number, costPerUnit: number) => void;
   addSale: (sale: Omit<Sale, "id" | "total" | "date" | "productName" | "customerName" | "profit">) => void;
   addCustomer: (customer: Omit<Customer, "id" | "createdAt">) => Customer;
   findCustomerByName: (name: string) => Customer | undefined;
@@ -58,19 +60,42 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setIsInitialized(true);
   }, []);
 
-  const addProduct = (productData: Omit<Product, "id">) => {
+  const addProduct = (productData: Omit<Product, "id" | "lastUpdatedAt">) => {
     const newProduct: Product = {
       ...productData,
       id: `prod_${Date.now()}`,
+      lastUpdatedAt: new Date().toISOString(),
     };
     setProducts((prev) => [...prev, newProduct]);
     toast({ title: "Product Added", description: `${newProduct.name} has been added to inventory.` });
   };
   
   const updateProduct = (updatedProduct: Product) => {
-    setProducts((prev) => prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p)));
+    setProducts((prev) => prev.map((p) => (p.id === updatedProduct.id ? { ...updatedProduct, lastUpdatedAt: new Date().toISOString() } : p)));
     toast({ title: "Product Updated", description: `${updatedProduct.name} has been updated.` });
   };
+  
+  const receiveStock = (productId: string, quantity: number, costPerUnit: number) => {
+    const product = products.find((p) => p.id === productId);
+    if (!product) {
+      toast({ variant: "destructive", title: "Error", description: "Product not found." });
+      return;
+    }
+
+    const newStock = product.stock + quantity;
+    const newAverageCost = ((product.cost * product.stock) + (costPerUnit * quantity)) / newStock;
+
+    const updatedProduct = {
+      ...product,
+      stock: newStock,
+      cost: newAverageCost,
+      lastUpdatedAt: new Date().toISOString(),
+    };
+
+    setProducts((prev) => prev.map((p) => (p.id === productId ? updatedProduct : p)));
+    toast({ title: "Stock Received", description: `${quantity} units of ${product.name} added.` });
+  };
+
 
   const addSale = (saleData: Omit<Sale, "id" | "total" | "date" | "productName" | "customerName" | "profit">) => {
     const product = products.find((p) => p.id === saleData.productId);
@@ -103,7 +128,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     setSales((prev) => [newSale, ...prev]);
     
-    const updatedProduct = { ...product, stock: product.stock - saleData.quantity };
+    const updatedProduct = { ...product, stock: product.stock - saleData.quantity, lastUpdatedAt: new Date().toISOString() };
     updateProduct(updatedProduct);
 
     toast({ title: "Sale Logged", description: `Sold ${saleData.quantity} of ${product.name}.` });
@@ -127,7 +152,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   if (!isInitialized) return null;
 
   return (
-    <AppContext.Provider value={{ products, sales, customers, addProduct, updateProduct, addSale, addCustomer, findCustomerByName }}>
+    <AppContext.Provider value={{ products, sales, customers, addProduct, updateProduct, receiveStock, addSale, addCustomer, findCustomerByName }}>
       {children}
     </AppContext.Provider>
   );

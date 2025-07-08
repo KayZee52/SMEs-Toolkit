@@ -1,11 +1,12 @@
+
 import type { Product, Customer, Sale } from "./types";
 
 export const MOCK_PRODUCTS: Product[] = [
-  { id: "prod_1", name: "Classic Leather Wallet", stock: 25, price: 49.99, cost: 15.5 },
-  { id: "prod_2", name: "Stainless Steel Watch", stock: 15, price: 129.99, cost: 45.0 },
-  { id: "prod_3", name: "Canvas Messenger Bag", stock: 30, price: 79.99, cost: 25.0 },
-  { id: "prod_4", name: "Silk Tie", stock: 50, price: 29.99, cost: 8.0 },
-  { id: "prod_5", name: "Wool Scarf", stock: 8, price: 39.99, cost: 12.5 },
+  { id: "prod_1", name: "Classic Leather Wallet", stock: 25, price: 49.99, cost: 15.5, lastUpdatedAt: new Date().toISOString() },
+  { id: "prod_2", name: "Stainless Steel Watch", stock: 15, price: 129.99, cost: 45.0, lastUpdatedAt: new Date().toISOString() },
+  { id: "prod_3", name: "Canvas Messenger Bag", stock: 30, price: 79.99, cost: 25.0, lastUpdatedAt: new Date().toISOString() },
+  { id: "prod_4", name: "Silk Tie", stock: 50, price: 29.99, cost: 8.0, lastUpdatedAt: new Date().toISOString() },
+  { id: "prod_5", name: "Wool Scarf", stock: 8, price: 39.99, cost: 12.5, lastUpdatedAt: new Date().toISOString() },
 ];
 
 export const MOCK_CUSTOMERS: Customer[] = [

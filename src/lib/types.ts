@@ -1,9 +1,14 @@
+
 export type Product = {
   id: string;
   name: string;
+  description?: string;
   stock: number;
   price: number;
   cost: number;
+  category?: string;
+  supplier?: string;
+  lastUpdatedAt: string;
 };
 
 export type Sale = {
