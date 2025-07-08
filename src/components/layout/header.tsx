@@ -1,6 +1,7 @@
 "use client";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export default function Header() {
   return (
@@ -9,6 +10,7 @@ export default function Header() {
       <div className="flex-1">
         {/* Can add breadcrumbs or page title here */}
       </div>
+      <ThemeToggle />
     </header>
   );
 }

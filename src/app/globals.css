@@ -4,41 +4,56 @@
 
 @layer base {
   :root {
-    /* Main Background Gradient */
+    /* Light Theme Defaults */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 351 31% 57%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 208 82% 66%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 208 82% 66%;
+    --radius: 1.25rem;
+    
+    /* Gradients */
+    --light-start: #F9FAFB;
+    --light-end: #E5E7EB;
     --dark-start: #1e293b;
     --dark-end: #293846;
+  }
 
-    /* ShadCN Theme Variables (Dark Mode) */
-    --background: 215 30% 18%; /* Corresponds to dark-start */
-    --foreground: 210 40% 98%; /* #F9FAFB */
-
+  .dark {
+    /* Dark Theme Overrides */
+    --background: 215 30% 18%;
+    --foreground: 210 40% 98%;
     --card: 215 30% 18%;
     --card-foreground: 210 40% 98%;
-
     --popover: 215 28% 17%;
     --popover-foreground: 210 40% 98%;
-
-    /* Accents */
-    --primary: 351 31% 57%; /* Rose Gold #B76E79 */
+    --primary: 351 31% 57%;
     --primary-foreground: 210 40% 98%;
-
     --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%; /* #94A3B8 */
-
-    --accent: 208 82% 66%; /* Calm Blue #63B3ED */
+    --muted-foreground: 215 20% 65%;
+    --accent: 208 82% 66%;
     --accent-foreground: 215 30% 11%;
-
     --destructive: 0 72% 51%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217 33% 25%;
     --input: 217 33% 25%;
-    --ring: 208 82% 66%; /* Calm Blue */
-
-    --radius: 1.25rem; /* 20px */
+    --ring: 208 82% 66%;
   }
 }
 
@@ -48,38 +63,68 @@
   }
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(to bottom right, var(--dark-start), var(--dark-end));
+    background: linear-gradient(to bottom right, var(--light-start), var(--light-end));
     min-height: 100vh;
+  }
+  .dark body {
+    background: linear-gradient(to bottom right, var(--dark-start), var(--dark-end));
   }
 }
 
 @layer components {
-  /* Glassmorphism base style */
+  /* Glassmorphism base style (Light) */
   .glass-panel {
-    background: rgba(30, 41, 59, 0.5);
+    background: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px); /* For Safari */
+    -webkit-backdrop-filter: blur(20px);
     border-radius: var(--radius);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px 0 rgba(8, 7, 16, 0.37);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+  }
+
+  /* Glassmorphism base style (Dark) */
+  .dark .glass-panel {
+    background: rgba(30, 41, 59, 0.5);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(8, 7, 16, 0.37);
   }
 
   /* Apply glass to ShadCN components */
   .card, .dialog-content, .popover-content, [data-sidebar='sidebar'] {
     @apply glass-panel;
+  }
+  
+  .dark .card, .dark .dialog-content, .dark .popover-content, .dark [data-sidebar='sidebar'] {
     background: rgba(30, 41, 59, 0.5) !important;
   }
+  
+  .light .card, .light .dialog-content, .light .popover-content, .light [data-sidebar='sidebar'] {
+     background: rgba(255, 255, 255, 0.6) !important;
+  }
+
 
   /* Special case for Sheet which is used for AI assistant now */
   .sheet-content {
       @apply glass-panel;
-      background: rgba(30, 41, 59, 0.8) !important;
   }
 
+  .dark .sheet-content {
+    background: rgba(30, 41, 59, 0.8) !important;
+  }
+  
+  .light .sheet-content {
+     background: rgba(255, 255, 255, 0.8) !important;
+  }
+
+
   /* Glow for active sidebar item */
-  [data-sidebar=menu-button][data-active=true] {
+  .dark [data-sidebar=menu-button][data-active=true] {
     background-color: hsl(var(--primary) / 0.1);
     box-shadow: inset 0 0 10px hsl(var(--primary) / 0.4), 0 0 10px hsl(var(--primary) / 0.2);
+  }
+  .light [data-sidebar=menu-button][data-active=true] {
+    background-color: hsl(var(--primary) / 0.2);
+    box-shadow: inset 0 0 10px hsl(var(--primary) / 0.5), 0 0 10px hsl(var(--primary) / 0.3);
   }
 }
