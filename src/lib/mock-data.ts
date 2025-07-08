@@ -24,8 +24,10 @@ export const MOCK_SALES: Sale[] = [
 ];
 
 export const MOCK_EXPENSES: Expense[] = [
-    { id: "exp_1", description: "Office rent", category: "Rent", amount: 500, date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() },
-    { id: "exp_2", description: "Fuel for delivery", category: "Transportation", amount: 50, date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-    { id: "exp_3", description: "Packing materials", category: "Supplies", amount: 25, date: new Date().toISOString() },
-    { id: "exp_4", description: "Website hosting", category: "Utilities", amount: 20, date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: "exp_1", description: "Office rent", category: "Rent", amount: 500, date: new Date(new Date().setDate(new Date().getDate() - 15)).toISOString(), notes: "Monthly rent payment." },
+    { id: "exp_2", description: "Fuel for delivery", category: "Transportation", amount: 50, date: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString() },
+    { id: "exp_3", description: "Packing materials", category: "Supplies", amount: 25, date: new Date().toISOString(), notes: "Boxes and tape." },
+    { id: "exp_4", description: "Website hosting", category: "Utilities", amount: 20, date: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString() },
+    { id: "exp_5", description: "Lunch for team", category: "Other", amount: 45, date: new Date().toISOString() },
+    { id: "exp_6", description: "Internet Bill", category: "Utilities", amount: 60, date: new Date(new Date().setDate(new Date().getDate() - 8)).toISOString() },
   ];

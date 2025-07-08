@@ -26,7 +26,7 @@ export type Sale = {
 };
 
 export type Customer = {
-  id: string;
+  id:string;
   name: string;
   phone?: string;
   createdAt: string;
@@ -40,4 +40,5 @@ export type Expense = {
   category: string;
   amount: number;
   date: string;
+  notes?: string;
 };

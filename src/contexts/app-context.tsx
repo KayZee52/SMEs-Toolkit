@@ -19,6 +19,8 @@ interface AppContextType {
   addCustomer: (customer: Omit<Customer, "id" | "createdAt">) => Customer;
   updateCustomer: (customer: Customer) => void;
   addExpense: (expense: Omit<Expense, "id" | "date">) => void;
+  updateExpense: (expense: Expense) => void;
+  deleteExpense: (id: string) => void;
   findCustomerByName: (name: string) => Customer | undefined;
 }
 
@@ -166,6 +168,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setExpenses((prev) => [newExpense, ...prev]);
     toast({ title: "Expense Logged", description: `${expenseData.description} for ${formatCurrency(expenseData.amount)} has been logged.` });
   };
+  
+  const updateExpense = (updatedExpense: Expense) => {
+    setExpenses((prev) => prev.map((e) => (e.id === updatedExpense.id ? { ...updatedExpense, date: new Date().toISOString() } : e)));
+    toast({ title: "Expense Updated", description: `${updatedExpense.description} has been updated.` });
+  };
+
+  const deleteExpense = (id: string) => {
+    setExpenses((prev) => prev.filter((e) => e.id !== id));
+    toast({ title: "Expense Deleted", description: "The expense has been removed." });
+  };
 
   const findCustomerByName = (name: string): Customer | undefined => {
     return customers.find(c => c.name.toLowerCase() === name.toLowerCase());
@@ -185,6 +197,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     addCustomer,
     updateCustomer,
     addExpense,
+    updateExpense,
+    deleteExpense,
     findCustomerByName,
   };
   
