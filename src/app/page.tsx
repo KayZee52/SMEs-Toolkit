@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,9 +8,51 @@ import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { TopProductsChart } from "@/components/dashboard/top-products-chart";
 import { LogSaleDialog } from "@/components/sales/log-sale-dialog";
 import { ProductDialog } from "@/components/inventory/product-dialog";
-import { Plus, PackagePlus } from "lucide-react";
+import { Download } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { useApp } from "@/contexts/app-context";
+import { formatCurrency } from "@/lib/utils";
+import { formatDistanceToNow } from "date-fns";
+import type { Sale } from "@/lib/types";
 
 export default function DashboardPage() {
+  const { sales, products } = useApp();
+
+  const handleExportPdf = () => {
+    const doc = new jsPDF();
+    const recentSales = sales.slice(0, 5);
+
+    const getProfit = (sale: Sale) => {
+      const product = products.find((p) => p.id === sale.productId);
+      if (!product) return 0;
+      return (sale.pricePerUnit - product.cost) * sale.quantity;
+    };
+
+    const tableColumn = ["Product", "Customer", "Total", "Profit", "Time"];
+    const tableRows: (string | number)[][] = [];
+
+    recentSales.forEach((sale) => {
+      const saleData = [
+        `${sale.productName}\n${sale.quantity} units`,
+        sale.customerName,
+        formatCurrency(sale.total),
+        formatCurrency(getProfit(sale)),
+        formatDistanceToNow(new Date(sale.date), { addSuffix: true }),
+      ];
+      tableRows.push(saleData);
+    });
+
+    doc.text("Recent Activity", 14, 15);
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+    });
+
+    doc.save("recent_activity.pdf");
+  };
+
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
@@ -50,7 +91,9 @@ export default function DashboardPage() {
         </Card>
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="font-headline">Top-Selling Products</CardTitle>
+            <CardTitle className="font-headline">
+              Top-Selling Products
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <TopProductsChart />
@@ -60,8 +103,12 @@ export default function DashboardPage() {
 
       {/* Recent Activity */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="font-headline">Recent Activity</CardTitle>
+          <Button onClick={handleExportPdf} variant="outline" size="sm">
+            <Download className="mr-2 h-4 w-4" />
+            Export PDF
+          </Button>
         </CardHeader>
         <CardContent>
           <RecentActivity />
