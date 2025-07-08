@@ -15,6 +15,7 @@ interface AppContextType {
   receiveStock: (productId: string, quantity: number, costPerUnit: number) => void;
   addSale: (sale: Omit<Sale, "id" | "total" | "date" | "productName" | "customerName" | "profit">) => void;
   addCustomer: (customer: Omit<Customer, "id" | "createdAt">) => Customer;
+  updateCustomer: (customer: Customer) => void;
   findCustomerByName: (name: string) => Customer | undefined;
 }
 
@@ -139,10 +140,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       ...customerData,
       id: `cust_${Date.now()}`,
       createdAt: new Date().toISOString(),
+      type: customerData.type || "Regular",
     };
-    setCustomers((prev) => [...prev, newCustomer]);
+    setCustomers((prev) => [newCustomer, ...prev]);
     toast({ title: "Customer Added", description: `${newCustomer.name} has been added.` });
     return newCustomer;
+  };
+  
+  const updateCustomer = (updatedCustomer: Customer) => {
+    setCustomers((prev) => prev.map((c) => (c.id === updatedCustomer.id ? updatedCustomer : c)));
+    toast({ title: "Customer Updated", description: `${updatedCustomer.name}'s details have been updated.` });
   };
 
   const findCustomerByName = (name: string): Customer | undefined => {
@@ -152,7 +159,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   if (!isInitialized) return null;
 
   return (
-    <AppContext.Provider value={{ products, sales, customers, addProduct, updateProduct, receiveStock, addSale, addCustomer, findCustomerByName }}>
+    <AppContext.Provider value={{ products, sales, customers, addProduct, updateProduct, receiveStock, addSale, addCustomer, updateCustomer, findCustomerByName }}>
       {children}
     </AppContext.Provider>
   );

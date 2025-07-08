@@ -30,4 +30,6 @@ export type Customer = {
   name: string;
   phone?: string;
   createdAt: string;
+  notes?: string;
+  type?: "Regular" | "VIP" | "Debtor";
 };
