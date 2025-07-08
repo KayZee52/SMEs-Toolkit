@@ -42,3 +42,11 @@ export type Expense = {
   date: string;
   notes?: string;
 };
+
+export type Settings = {
+  businessName: string;
+  currency: "USD" | "LRD" | "NGN";
+  enableAssistant: boolean;
+  autoSuggestions: boolean;
+  language: "en" | "en-lr" | "fr";
+};

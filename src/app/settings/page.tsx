@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -10,43 +11,39 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Building, BrainCircuit, Cloud, Languages, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useApp } from "@/contexts/app-context";
+import type { Settings } from "@/lib/types";
 
 export default function SettingsPage() {
+  const { settings: globalSettings, updateSettings } = useApp();
   const { toast } = useToast();
 
-  const [settings, setSettings] = useState({
-    businessName: "SMEs Toolkit",
-    currency: "USD",
-    enableAssistant: true,
-    autoSuggestions: true,
-    language: "en",
-  });
+  // Local state for form edits
+  const [settings, setSettings] = useState<Settings>(globalSettings);
 
-  const [initialSettings, setInitialSettings] = useState(settings);
+  // Sync local state if global state changes (e.g., on initial load or after save)
+  useEffect(() => {
+    setSettings(globalSettings);
+  }, [globalSettings]);
 
-  const handleInputChange = (field: keyof typeof settings, value: string | boolean) => {
-    setSettings(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: keyof Settings, value: string | boolean) => {
+    setSettings(prev => ({ ...prev, [field]: value as any }));
   };
 
   const handleSave = () => {
-    // In a real app, this would update a global context or send data to an API
-    console.log("Saving settings:", settings);
-    setInitialSettings(settings); // Set the new initial state
-    toast({
-      title: "Settings Saved",
-      description: "Your changes have been successfully saved.",
-    });
+    updateSettings(settings);
+    // Toast is now handled in the context
   };
 
   const handleDiscard = () => {
-    setSettings(initialSettings);
+    setSettings(globalSettings); // Revert local changes to match global state
     toast({
       title: "Changes Discarded",
       description: "Your pending changes have been discarded.",
     });
   };
   
-  const hasChanges = JSON.stringify(settings) !== JSON.stringify(initialSettings);
+  const hasChanges = JSON.stringify(settings) !== JSON.stringify(globalSettings);
 
   return (
     <div className="flex flex-col gap-6">
@@ -79,7 +76,7 @@ export default function SettingsPage() {
               <Label htmlFor="currency">Currency</Label>
               <Select 
                 value={settings.currency}
-                onValueChange={(value) => handleInputChange('currency', value)}
+                onValueChange={(value: "USD" | "LRD" | "NGN") => handleInputChange('currency', value)}
               >
                 <SelectTrigger id="currency">
                   <SelectValue placeholder="Select currency" />
@@ -183,7 +180,7 @@ export default function SettingsPage() {
               </div>
               <Select 
                 value={settings.language}
-                onValueChange={(value) => handleInputChange('language', value)}
+                onValueChange={(value: "en" | "en-lr" | "fr") => handleInputChange('language', value)}
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select language" />

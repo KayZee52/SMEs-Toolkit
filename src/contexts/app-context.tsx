@@ -2,7 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import type { Product, Sale, Customer, Expense } from "@/lib/types";
+import type { Product, Sale, Customer, Expense, Settings } from "@/lib/types";
 import { MOCK_PRODUCTS, MOCK_SALES, MOCK_CUSTOMERS, MOCK_EXPENSES } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
@@ -12,6 +12,7 @@ interface AppContextType {
   sales: Sale[];
   customers: Customer[];
   expenses: Expense[];
+  settings: Settings;
   addProduct: (product: Omit<Product, "id" | "lastUpdatedAt">) => void;
   updateProduct: (product: Product) => void;
   receiveStock: (productId: string, quantity: number, costPerUnit: number) => void;
@@ -22,6 +23,7 @@ interface AppContextType {
   updateExpense: (expense: Expense) => void;
   deleteExpense: (id: string) => void;
   findCustomerByName: (name: string) => Customer | undefined;
+  updateSettings: (settings: Settings) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -55,6 +57,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [sales, setSales] = useLocalStorage<Sale[]>("sales", []);
   const [customers, setCustomers] = useLocalStorage<Customer[]>("customers", []);
   const [expenses, setExpenses] = useLocalStorage<Expense[]>("expenses", []);
+  
+  const defaultSettings: Settings = {
+    businessName: "SMEs Toolkit",
+    currency: "USD",
+    enableAssistant: true,
+    autoSuggestions: true,
+    language: "en",
+  };
+  const [settings, setSettings] = useLocalStorage<Settings>("settings", defaultSettings);
+
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
@@ -63,6 +75,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setSales(MOCK_SALES);
       setCustomers(MOCK_CUSTOMERS);
       setExpenses(MOCK_EXPENSES);
+      setSettings(defaultSettings);
       localStorage.setItem("dataInitialized", "true");
     }
     setIsInitialized(true);
@@ -117,7 +130,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
 
     let customerName = "Walk-in Customer";
-    if (saleData.customerId) {
+    if (saleData.customerId && saleData.customerId !== 'walk-in') {
         const customer = customers.find(c => c.id === saleData.customerId);
         if (customer) customerName = customer.name;
     }
@@ -183,6 +196,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return customers.find(c => c.name.toLowerCase() === name.toLowerCase());
   }
 
+  const updateSettings = (newSettings: Settings) => {
+    setSettings(newSettings);
+    toast({
+      title: "Settings Saved",
+      description: "Your changes have been successfully saved.",
+    });
+  };
+
   if (!isInitialized) return null;
 
   const value = {
@@ -190,6 +211,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     sales,
     customers,
     expenses,
+    settings,
     addProduct,
     updateProduct,
     receiveStock,
@@ -200,6 +222,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     updateExpense,
     deleteExpense,
     findCustomerByName,
+    updateSettings,
   };
   
   return (
