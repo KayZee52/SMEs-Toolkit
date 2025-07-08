@@ -42,9 +42,11 @@ export const columns: ColumnDef<Transaction>[] = [
         header: "Amount",
         cell: ({ row }) => {
             const transaction = row.original;
-            const amount = transaction.type === 'Sale' ? transaction.total : transaction.amount;
             const isSale = transaction.type === 'Sale';
-            return <span className={isSale ? "text-green-500" : "text-red-500"}>{formatCurrency(amount)}</span>
+            const amount = isSale ? transaction.total : transaction.amount;
+            const sign = isSale ? '+ ' : '- ';
+            
+            return <span className={isSale ? "text-green-500" : "text-red-500"}>{sign}{formatCurrency(amount)}</span>
         }
     },
     {

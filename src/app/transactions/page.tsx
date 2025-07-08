@@ -6,6 +6,7 @@ import { useApp } from "@/contexts/app-context";
 import type { Sale, Expense } from "@/lib/types";
 import { DataTable } from "@/components/transactions/data-table";
 import { columns } from "@/components/transactions/columns";
+import { TransactionsSummaryCards } from "@/components/transactions/summary-cards";
 
 type Transaction = 
   | ({ type: 'Sale' } & Sale)
@@ -32,6 +33,8 @@ export default function TransactionsPage() {
           Transactions Log
         </h1>
       </div>
+
+      <TransactionsSummaryCards sales={sales} expenses={expenses} />
 
       <DataTable columns={columns} data={allTransactions} />
     </div>
