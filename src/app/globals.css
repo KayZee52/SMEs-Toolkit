@@ -55,36 +55,24 @@
     --input: 217 33% 25%;
     --ring: 203 96% 56%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
-    /* Set background image with a light liquid glass overlay */
-    background-image: linear-gradient(135deg, rgba(249, 250, 251, 0.7) 0%, rgba(229, 231, 235, 0.8) 50%, hsla(var(--accent), 0.5) 100%), url('/assets/images/kemz.jpg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
+    @apply bg-gradient-to-br from-light-start to-light-end text-foreground;
     min-height: 100vh;
   }
   .dark body {
-     /* Set background image with a dark liquid glass overlay */
-    background-image: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(41, 56, 70, 0.8) 50%, hsla(var(--primary), 0.5) 100%), url('/assets/images/kemz.jpg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
+    @apply bg-gradient-to-br from-dark-start to-dark-end;
   }
 }
 
 @layer components {
   /* Glassmorphism base style (Shared) */
   .glass-panel {
-    /* Increased blur for a more 'liquid' effect */
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-radius: var(--radius);
     transition: all 0.3s ease;
   }

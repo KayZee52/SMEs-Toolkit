@@ -22,6 +22,8 @@ export default {
         code: ['monospace'],
       },
       colors: {
+        'light-start': 'var(--light-start)',
+        'light-end': 'var(--light-end)',
         'dark-start': 'var(--dark-start)',
         'dark-end': 'var(--dark-end)',
         background: 'hsl(var(--background))',
