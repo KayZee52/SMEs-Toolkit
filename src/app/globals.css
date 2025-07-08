@@ -111,11 +111,13 @@
 }
 
 @media print {
-  body > *:not(.printable-area) {
-    display: none;
+  body * {
+    visibility: hidden;
+  }
+  .printable-area, .printable-area * {
+    visibility: visible;
   }
   .printable-area {
-    display: block !important;
     position: absolute;
     left: 0;
     top: 0;

@@ -12,7 +12,7 @@ const formatCurrency = (amount: number) => {
 
 export function PrintableReceipt({ sale }: { sale: Sale }) {
   return (
-    <div className="printable-area hidden">
+    <div className="printable-area">
       <div className="mx-auto max-w-2xl rounded-lg border border-gray-200 bg-white p-8">
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-2">
