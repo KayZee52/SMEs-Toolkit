@@ -15,7 +15,7 @@ export type AugmentedCustomer = Customer & {
 };
 
 export default function CustomersPage() {
-  const { customers, sales, updateCustomer } = useApp();
+  const { customers, sales, updateCustomer, translations } = useApp();
 
   const augmentedCustomers = useMemo(() => {
     return customers.map((customer) => {
@@ -40,7 +40,7 @@ export default function CustomersPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="font-headline text-3xl font-bold tracking-tight">
-          Customers
+          {translations.customers}
         </h1>
         <div className="flex items-center gap-2">
             <CustomerDialog />
@@ -50,7 +50,7 @@ export default function CustomersPage() {
       <CustomerSummaryCards customers={customers} sales={sales} />
 
       <DataTable
-        columns={columns({ onEdit: updateCustomer })}
+        columns={columns({ onEdit: updateCustomer, translations })}
         data={augmentedCustomers}
       />
     </div>

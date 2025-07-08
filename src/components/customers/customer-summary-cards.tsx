@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Repeat, AlertTriangle } from "lucide-react";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import type { Customer, Sale } from "@/lib/types";
+import { useApp } from "@/contexts/app-context";
 
 interface CustomerSummaryCardsProps {
     customers: Customer[];
@@ -13,7 +14,7 @@ interface CustomerSummaryCardsProps {
 }
 
 export function CustomerSummaryCards({ customers, sales }: CustomerSummaryCardsProps) {
-
+  const { translations } = useApp();
   const totalCustomers = customers.length;
   const debtors = customers.filter(c => c.type === 'Debtor').length;
 
@@ -34,17 +35,17 @@ export function CustomerSummaryCards({ customers, sales }: CustomerSummaryCardsP
 
   const stats = [
     {
-      title: "Total Customers",
+      title: translations.totalCustomers,
       value: totalCustomers,
       icon: Users,
     },
     {
-      title: "Repeat Buyers (30d)",
+      title: translations.repeatBuyers30d,
       value: repeatBuyers,
       icon: Repeat,
     },
     {
-      title: "Debtors",
+      title: translations.debtors,
       value: debtors,
       icon: AlertTriangle,
     },

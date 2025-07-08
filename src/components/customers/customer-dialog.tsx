@@ -44,7 +44,7 @@ interface CustomerDialogProps {
 }
 
 export function CustomerDialog({ customer, onSave }: CustomerDialogProps) {
-  const { addCustomer, updateCustomer } = useApp();
+  const { addCustomer, updateCustomer, translations } = useApp();
   const [open, setOpen] = useState(false);
 
   const form = useForm<CustomerFormValues>({
@@ -85,51 +85,51 @@ export function CustomerDialog({ customer, onSave }: CustomerDialogProps) {
           </Button>
         ) : (
           <Button>
-            <UserPlus className="mr-2 h-4 w-4" /> Add Customer
+            <UserPlus className="mr-2 h-4 w-4" /> {translations.addCustomer}
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-headline">
-            {customer ? "Edit Customer" : "Add New Customer"}
+            {customer ? translations.editCustomer : translations.addNewCustomer}
           </DialogTitle>
           <DialogDescription>
             {customer
-              ? "Update the details for this customer."
-              : "Enter the details for the new customer."}
+              ? translations.updateCustomerDetails
+              : translations.enterNewCustomerDetails}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name">{translations.fullName}</Label>
             <Input id="name" {...form.register("name")} />
             {form.formState.errors.name && (
               <p className="text-sm text-destructive">
-                {form.formState.errors.name.message}
+                {translations.customerNameRequired}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone (Optional)</Label>
+            <Label htmlFor="phone">{translations.phoneOptional}</Label>
             <Input id="phone" {...form.register("phone")} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="type">Customer Type</Label>
+            <Label htmlFor="type">{translations.customerType}</Label>
             <Controller
               control={form.control}
               name="type"
               render={({ field }) => (
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder={translations.selectType} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Regular">Regular</SelectItem>
-                    <SelectItem value="VIP">VIP</SelectItem>
-                    <SelectItem value="Debtor">Debtor</SelectItem>
+                    <SelectItem value="Regular">{translations.regular}</SelectItem>
+                    <SelectItem value="VIP">{translations.vip}</SelectItem>
+                    <SelectItem value="Debtor">{translations.debtor}</SelectItem>
                   </SelectContent>
                 </Select>
               )}
@@ -137,12 +137,12 @@ export function CustomerDialog({ customer, onSave }: CustomerDialogProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Label htmlFor="notes">{translations.notesOptional}</Label>
             <Textarea id="notes" {...form.register("notes")} />
           </div>
 
           <DialogFooter>
-            <Button type="submit">Save changes</Button>
+            <Button type="submit">{translations.saveChanges}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

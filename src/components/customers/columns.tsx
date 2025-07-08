@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit } from "lucide-react";
 import { CustomerDialog } from "./customer-dialog";
+import type { Translation } from "@/lib/i18n";
 
 export type AugmentedCustomer = Customer & {
   totalSpent: number;
@@ -21,48 +22,53 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-const DebtBadge = ({ type }: { type?: string }) => {
+const DebtBadge = ({ type, translations }: { type?: string; translations: Translation }) => {
   if (type === "Debtor") {
-    return <Badge variant="destructive">Has Debt</Badge>;
+    return <Badge variant="destructive">{translations.hasDebt}</Badge>;
   }
-  return <Badge variant="secondary">No Debt</Badge>;
+  return <Badge variant="secondary">{translations.noDebt}</Badge>;
 };
 
 interface ColumnsProps {
     onEdit: (customer: Customer) => void;
+    translations: Translation;
 }
 
-export const columns = ({ onEdit }: ColumnsProps): ColumnDef<AugmentedCustomer>[] => [
+export const columns = ({ onEdit, translations }: ColumnsProps): ColumnDef<AugmentedCustomer>[] => [
   {
     accessorKey: "name",
-    header: "Name",
+    header: translations.name,
     cell: ({ row }) => (
         <div className="font-medium">{row.original.name}</div>
     )
   },
   {
     accessorKey: "phone",
-    header: "Phone Number",
+    header: translations.phoneNumber,
     cell: ({ row }) => row.original.phone || "N/A",
   },
   {
     accessorKey: "totalSpent",
-    header: "Total Spent",
+    header: translations.totalSpent,
     cell: ({ row }) => formatCurrency(row.original.totalSpent),
   },
   {
     accessorKey: "lastPurchaseDate",
-    header: "Last Purchase",
+    header: translations.lastPurchase,
     cell: ({ row }) => {
       const { lastPurchaseDate } = row.original;
       if (!lastPurchaseDate) return "N/A";
-      return formatDistanceToNow(new Date(lastPurchaseDate), { addSuffix: true });
+      const date = new Date(lastPurchaseDate);
+      if (isNaN(date.getTime())) {
+        return "N/A";
+      }
+      return formatDistanceToNow(date, { addSuffix: true });
     },
   },
   {
     accessorKey: "type",
-    header: "Debt Status",
-    cell: ({ row }) => <DebtBadge type={row.original.type} />,
+    header: translations.debtStatus,
+    cell: ({ row }) => <DebtBadge type={row.original.type} translations={translations} />,
   },
   {
     id: "actions",

@@ -2,29 +2,11 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import type { Product, Sale, Customer, Expense, Settings } from "@/lib/types";
+import type { Product, Sale, Customer, Expense, Settings, AppContextType } from "@/lib/types";
 import { MOCK_PRODUCTS, MOCK_SALES, MOCK_CUSTOMERS, MOCK_EXPENSES } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
-
-interface AppContextType {
-  products: Product[];
-  sales: Sale[];
-  customers: Customer[];
-  expenses: Expense[];
-  settings: Settings;
-  addProduct: (product: Omit<Product, "id" | "lastUpdatedAt">) => void;
-  updateProduct: (product: Product) => void;
-  receiveStock: (productId: string, quantity: number, costPerUnit: number) => void;
-  addSale: (sale: Omit<Sale, "id" | "total" | "date" | "productName" | "customerName" | "profit">) => void;
-  addCustomer: (customer: Omit<Customer, "id" | "createdAt">) => Customer;
-  updateCustomer: (customer: Customer) => void;
-  addExpense: (expense: Omit<Expense, "id" | "date">) => void;
-  updateExpense: (expense: Expense) => void;
-  deleteExpense: (id: string) => void;
-  findCustomerByName: (name: string) => Customer | undefined;
-  updateSettings: (settings: Settings) => void;
-}
+import { getTranslations } from "@/lib/i18n";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -68,6 +50,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [settings, setSettings] = useLocalStorage<Settings>("settings", defaultSettings);
 
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  const translations = getTranslations(settings.language);
 
   useEffect(() => {
     if (localStorage.getItem("dataInitialized") !== "true") {
@@ -206,7 +190,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   if (!isInitialized) return null;
 
-  const value = {
+  const value: AppContextType = {
     products,
     sales,
     customers,
@@ -223,6 +207,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     deleteExpense,
     findCustomerByName,
     updateSettings,
+    translations,
   };
   
   return (

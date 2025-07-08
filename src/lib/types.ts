@@ -1,4 +1,6 @@
 
+import type { Translation } from "./i18n";
+
 export type Product = {
   id: string;
   name: string;
@@ -50,3 +52,23 @@ export type Settings = {
   autoSuggestions: boolean;
   language: "en" | "en-lr" | "fr";
 };
+
+export interface AppContextType {
+  products: Product[];
+  sales: Sale[];
+  customers: Customer[];
+  expenses: Expense[];
+  settings: Settings;
+  addProduct: (product: Omit<Product, "id" | "lastUpdatedAt">) => void;
+  updateProduct: (product: Product) => void;
+  receiveStock: (productId: string, quantity: number, costPerUnit: number) => void;
+  addSale: (sale: Omit<Sale, "id" | "total" | "date" | "productName" | "customerName" | "profit">) => void;
+  addCustomer: (customer: Omit<Customer, "id" | "createdAt">) => Customer;
+  updateCustomer: (customer: Customer) => void;
+  addExpense: (expense: Omit<Expense, "id" | "date">) => void;
+  updateExpense: (expense: Expense) => void;
+  deleteExpense: (id: string) => void;
+  findCustomerByName: (name: string) => Customer | undefined;
+  updateSettings: (settings: Settings) => void;
+  translations: Translation;
+}
