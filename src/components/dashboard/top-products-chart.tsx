@@ -29,7 +29,7 @@ export function TopProductsChart() {
             <YAxis 
                 type="category" 
                 dataKey="name" 
-                width={80} 
+                width={120} 
                 tickLine={false} 
                 axisLine={false} 
                 fontSize={12}

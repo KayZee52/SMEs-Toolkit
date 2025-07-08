@@ -7,6 +7,7 @@ export const MOCK_PRODUCTS: Product[] = [
   { id: "prod_3", name: "Canvas Messenger Bag", stock: 30, price: 79.99, cost: 25.0, lastUpdatedAt: new Date().toISOString() },
   { id: "prod_4", name: "Silk Tie", stock: 50, price: 29.99, cost: 8.0, lastUpdatedAt: new Date().toISOString() },
   { id: "prod_5", name: "Wool Scarf", stock: 8, price: 39.99, cost: 12.5, lastUpdatedAt: new Date().toISOString() },
+  { id: "prod_6", name: "Cat Food", stock: 100, price: 19.99, cost: 5.0, lastUpdatedAt: new Date().toISOString() },
 ];
 
 export const MOCK_CUSTOMERS: Customer[] = [
@@ -15,12 +16,31 @@ export const MOCK_CUSTOMERS: Customer[] = [
   { id: "cust_3", name: "Charlie Brown", phone: "555-0103", createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), type: "Debtor", notes: "Owes $20 from last purchase." },
 ];
 
+const now = new Date();
+const day = 24 * 60 * 60 * 1000;
+
 export const MOCK_SALES: Sale[] = [
-  { id: "sale_1", productId: "prod_2", customerId: "cust_1", customerName: "Alice Johnson", productName: "Stainless Steel Watch", quantity: 1, pricePerUnit: 129.99, total: 129.99, profit: 84.99, date: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(), notes: "Customer requested gift wrapping." },
-  { id: "sale_2", productId: "prod_4", customerId: "cust_2", customerName: "Bob Williams", productName: "Silk Tie", quantity: 2, pricePerUnit: 29.99, total: 59.98, profit: 43.98, date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-  { id: "sale_3", productId: "prod_5", customerName: "Walk-in Customer", productName: "Wool Scarf", quantity: 1, pricePerUnit: 39.99, total: 39.99, profit: 27.49, date: new Date().toISOString() },
-  { id: "sale_4", productId: "prod_1", customerId: "cust_1", customerName: "Alice Johnson", productName: "Classic Leather Wallet", quantity: 1, pricePerUnit: 49.99, total: 49.99, profit: 34.49, date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() }, // A second sale for Alice, within 30 days
-  { id: "sale_5", productId: "prod_3", customerId: "cust_3", customerName: "Charlie Brown", productName: "Canvas Messenger Bag", quantity: 1, pricePerUnit: 79.99, total: 79.99, profit: 54.99, date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
+  // Day -6
+  { id: "sale_d6_1", productId: "prod_5", customerName: "Walk-in Customer", productName: "Wool Scarf", quantity: 1, pricePerUnit: 39.99, total: 39.99, profit: 27.49, date: new Date(now.getTime() - 6 * day).toISOString() },
+  
+  // Day -5
+  { id: "sale_d5_1", productId: "prod_4", customerName: "Walk-in Customer", productName: "Silk Tie", quantity: 1, pricePerUnit: 29.99, total: 29.99, profit: 21.99, date: new Date(now.getTime() - 5 * day).toISOString() },
+
+  // Day -4
+  { id: "sale_d4_1", productId: "prod_1", customerName: "Walk-in Customer", productName: "Classic Leather Wallet", quantity: 1, pricePerUnit: 49.99, total: 49.99, profit: 34.49, date: new Date(now.getTime() - 4 * day).toISOString() },
+
+  // Day -3
+  { id: "sale_d3_1", productId: "prod_2", customerId: "cust_1", customerName: "Alice Johnson", productName: "Stainless Steel Watch", quantity: 1, pricePerUnit: 129.99, total: 129.99, profit: 84.99, date: new Date(now.getTime() - 3 * day).toISOString() },
+
+  // Day -2
+  { id: "sale_d2_1", productId: "prod_6", customerId: "cust_2", customerName: "Bob Williams", productName: "Cat Food", quantity: 5, pricePerUnit: 19.99, total: 99.95, profit: 74.95, date: new Date(now.getTime() - 2 * day).toISOString() },
+  { id: "sale_d2_2", productId: "prod_3", customerName: "Walk-in Customer", productName: "Canvas Messenger Bag", quantity: 1, pricePerUnit: 79.99, total: 79.99, profit: 54.99, date: new Date(now.getTime() - 2 * day).toISOString() },
+
+  // Day -1
+  { id: "sale_d1_1", productId: "prod_6", customerName: "Walk-in Customer", productName: "Cat Food", quantity: 15, pricePerUnit: 19.99, total: 299.85, profit: 224.85, date: new Date(now.getTime() - 1 * day).toISOString() },
+
+  // Today
+  { id: "sale_d0_1", productId: "prod_6", customerId: "cust_1", customerName: "Alice Johnson", productName: "Cat Food", quantity: 50, pricePerUnit: 19.99, total: 999.50, profit: 749.50, date: new Date(now.getTime() - 1 * 1000).toISOString() },
 ];
 
 export const MOCK_EXPENSES: Expense[] = [
