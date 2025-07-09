@@ -2,7 +2,7 @@
 'use server';
 
 /**
- * @fileOverview An AI assistant that answers natural language queries about sales data and inventory using tools.
+ * @fileOverview An AI assistant that answers natural language queries about sales data and inventory.
  *
  * - aiAssistedQuery - A function that handles the AI-assisted query process.
  * - AiAssistedQueryInput - The input type for the aiAssistedQuery function.
@@ -11,7 +11,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {subDays, startOfDay} from 'date-fns';
 
 // Zod schemas for data types, mirroring src/lib/types.ts
 const ProductSchema = z.object({
@@ -23,7 +22,7 @@ const ProductSchema = z.object({
     cost: z.number(),
     category: z.string().optional(),
     supplier: z.string().optional(),
-    lastUpdatedAt: z.string(), // Now required due to data migration
+    lastUpdatedAt: z.string(),
 });
 
 const SaleSchema = z.object({
@@ -47,6 +46,11 @@ const AiAssistedQueryInputSchema = z.object({
 });
 export type AiAssistedQueryInput = z.infer<typeof AiAssistedQueryInputSchema>;
 
+// This is the schema for the prompt's input, which extends the flow's input.
+const PromptInputSchema = AiAssistedQueryInputSchema.extend({
+    currentDate: z.string().describe("The current date in ISO format, to be used as a reference for 'today'."),
+});
+
 const AiAssistedQueryOutputSchema = z.object({
   answer: z.string().describe('The answer to the query.'),
 });
@@ -56,6 +60,38 @@ export async function aiAssistedQuery(input: AiAssistedQueryInput): Promise<AiAs
   return aiAssistedQueryFlow(input);
 }
 
+// Define the prompt at the top level, outside the flow.
+const prompt = ai.definePrompt({
+  name: 'aiAssistedQueryPrompt',
+  model: 'googleai/gemini-2.0-flash',
+  input: { schema: PromptInputSchema }, // Use the extended schema
+  output: { schema: AiAssistedQueryOutputSchema },
+  system: `You are a helpful AI assistant for a small business owner. Your goal is to answer questions about sales data, provide predictive insights, and help with marketing based on the data provided.
+
+You will be given a user's query, the current date, and the complete inventory and sales data in JSON format.
+
+Your task is to analyze the data to answer the user's query. Here are your capabilities and how to perform them:
+- **Inventory Status**: To check stock levels, refer to the 'stock' field for each item in the 'products' data.
+- **Sales Summary**: To get sales totals for a period (e.g., today, this week), you must filter the 'sales' data by the 'date' field. Use the provided 'currentDate' as your reference for today.
+- **Product Profitability**: To find the most profitable product, you must calculate the total profit for each product. The profit for a single sale is already provided as the 'profit' field in each sale object. You need to sum these profits grouped by 'productName'.
+- **Top-Selling Products**: To find the best-selling products, you must sum the 'total' field for each sale, grouped by 'productName'.
+- **Inventory Forecasting**: To predict when an item will run out of stock, calculate its average daily sales over the last 30 days and divide its current 'stock' by that daily average.
+
+- When presenting currency, format it with a dollar sign and two decimal places (e.g., $1,234.56).
+- Be concise and friendly in your response.
+- IMPORTANT: Always respond with just the final, user-facing text answer in the 'answer' field. Do not output JSON.`,
+  prompt: `
+  Current Date: {{{currentDate}}}
+
+  Data:
+  Products: {{{json products}}}
+  Sales: {{{json sales}}}
+
+  User Query: {{{query}}}
+  `,
+});
+
+
 const aiAssistedQueryFlow = ai.defineFlow(
   {
     name: 'aiAssistedQueryFlow',
@@ -63,156 +99,32 @@ const aiAssistedQueryFlow = ai.defineFlow(
     outputSchema: AiAssistedQueryOutputSchema,
   },
   async (flowInput) => {
-    // Tools are defined within the flow to have access to the data passed in the input.
-    const getInventoryStatus = ai.defineTool(
-      {
-        name: 'getInventoryStatus',
-        description: 'Get the current stock levels for all products or a specific product.',
-        inputSchema: z.object({ productName: z.string().optional().describe("The name of a specific product to check.") }),
-        outputSchema: z.array(z.object({ name: z.string(), stock: z.number() })),
-      },
-      async ({ productName }) => {
-        if (productName) {
-            const product = flowInput.products.find(p => p.name.toLowerCase() === productName.toLowerCase());
-            return product ? [{ name: product.name, stock: product.stock }] : [];
-        }
-        return flowInput.products.map(p => ({ name: p.name, stock: p.stock }));
-      }
-    );
-
-    const getSalesSummary = ai.defineTool(
-        {
-            name: 'getSalesSummary',
-            description: "Get a summary of sales totals over a given period of days. Use this for questions about revenue or profit for specific timeframes.",
-            inputSchema: z.object({
-                periodInDays: z.number().describe("The number of past days to summarize. For 'today', use 1. For 'this week' or 'last 7 days', use 7. For 'this month' use 30.")
-            }),
-            outputSchema: z.object({ totalRevenue: z.number(), totalProfit: z.number(), itemsSold: z.number() })
-        },
-        async ({ periodInDays = 1 }) => {
-            const fromDate = startOfDay(subDays(new Date(), periodInDays - 1));
-            const filteredSales = flowInput.sales.filter(s => new Date(s.date) >= fromDate);
-
-            const totalRevenue = filteredSales.reduce((sum, s) => sum + s.total, 0);
-            const totalProfit = filteredSales.reduce((sum, s) => sum + s.profit, 0);
-            const itemsSold = filteredSales.reduce((sum, s) => sum + s.quantity, 0);
-            
-            return { totalRevenue, totalProfit, itemsSold };
-        }
-    );
-
-    const getProductProfitability = ai.defineTool(
-        {
-            name: 'getProductProfitability',
-            description: 'Get a list of products ranked by their total profitability. Use this to find the most or least profitable product.',
-            inputSchema: z.object({}), // No input needed, uses data from the flow's context.
-            outputSchema: z.array(z.object({ name: z.string(), totalProfit: z.number() }))
-        },
-        async () => {
-            const profitability: Record<string, number> = {};
-            for (const sale of flowInput.sales) {
-                profitability[sale.productName] = (profitability[sale.productName] || 0) + sale.profit;
-            }
-            
-            return Object.entries(profitability)
-                .map(([name, totalProfit]) => ({ name, totalProfit }))
-                .sort((a, b) => b.totalProfit - a.totalProfit);
-        }
-    );
-    
-    const getTopSellingProducts = ai.defineTool(
-        {
-            name: 'getTopSellingProducts',
-            description: 'Get a list of products ranked by total sales revenue. Use this to find the best-selling or top-selling products.',
-            inputSchema: z.object({}),
-            outputSchema: z.array(z.object({ name: z.string(), totalRevenue: z.number() }))
-        },
-        async () => {
-            const productRevenue: Record<string, number> = {};
-            for (const sale of flowInput.sales) {
-                productRevenue[sale.productName] = (productRevenue[sale.productName] || 0) + sale.total;
-            }
-
-            return Object.entries(productRevenue)
-                .map(([name, totalRevenue]) => ({ name, totalRevenue }))
-                .sort((a, b) => b.totalRevenue - a.totalRevenue);
-        }
-    );
-
-    const getInventoryForecast = ai.defineTool(
-      {
-        name: 'getInventoryForecast',
-        description: 'Forecasts inventory levels based on recent sales velocity to predict when products might run out of stock.',
-        inputSchema: z.object({ productName: z.string().optional().describe("The specific product to forecast. If omitted, forecasts for all products with recent sales.") }),
-        outputSchema: z.array(z.object({
-            productName: z.string(),
-            stock: z.number(),
-            thirtyDaySales: z.number(),
-            dailyVelocity: z.number().describe("Average units sold per day over the last 30 days."),
-            daysUntilEmpty: z.string().describe("Estimated days until stock runs out. 'N/A' if no recent sales."),
-        })),
-      },
-      async ({ productName }) => {
-        const relevantProducts = productName 
-            ? flowInput.products.filter(p => p.name.toLowerCase() === productName.toLowerCase())
-            : flowInput.products;
-
-        const thirtyDaysAgo = startOfDay(subDays(new Date(), 30));
-        const recentSales = flowInput.sales.filter(s => new Date(s.date) >= thirtyDaysAgo);
-
-        const forecasts = relevantProducts.map(product => {
-            const productSales = recentSales.filter(s => s.productId === product.id);
-            const thirtyDaySales = productSales.reduce((sum, s) => sum + s.quantity, 0);
-            const dailyVelocity = thirtyDaySales / 30;
-            
-            let daysUntilEmpty = 'N/A';
-            if (dailyVelocity > 0) {
-                const days = Math.floor(product.stock / dailyVelocity);
-                daysUntilEmpty = days.toString();
-            }
-
-            return {
-                productName: product.name,
-                stock: product.stock,
-                thirtyDaySales,
-                dailyVelocity: parseFloat(dailyVelocity.toFixed(2)),
-                daysUntilEmpty,
-            };
-        });
-
-        // If a specific product was requested, return only that. Otherwise, return all forecasts with recent sales.
-        if (productName) {
-            return forecasts;
-        }
-        return forecasts.filter(f => f.thirtyDaySales > 0);
-      }
-    );
-
-    const prompt = ai.definePrompt({
-      name: 'aiAssistedQueryPromptWithTools',
-      model: 'googleai/gemini-2.0-flash',
-      tools: [getInventoryStatus, getSalesSummary, getProductProfitability, getTopSellingProducts, getInventoryForecast],
-      system: `You are a helpful AI assistant for a small business owner. Your goal is to answer questions about sales data, provide predictive insights, and help with marketing.
-
-- Use the available tools to find the information needed to answer the user's query.
-- For questions about specific time periods (e.g., "today", "this week", "last 7 days"), use the 'getSalesSummary' tool with the appropriate 'periodInDays' value (e.g., for "today", use periodInDays: 1. for "this week" or "last 7 days", use periodInDays: 7).
-- Use the getProductProfitability tool to answer questions about which products are most or least profitable.
-- Use the getTopSellingProducts tool to answer questions about best-selling or top-selling items.
-- You can perform comparisons, like comparing sales this month vs. last month, by calling the necessary tools multiple times with different parameters.
-- When presenting currency, format it with a dollar sign and two decimal places (e.g., $1,234.56).
-- If asked to create marketing content, like an email, use the product information available to you to write a compelling draft.
-- Use the getInventoryForecast tool to predict when items might run out of stock.
-- Be concise and friendly in your response.
-- IMPORTANT: Always respond with just the final, user-facing text answer. Do not output JSON.`,
+    // Call the single, top-level prompt with all the necessary data.
+    const response = await prompt({
+        ...flowInput,
+        currentDate: new Date().toISOString(),
     });
-
-    const response = await prompt({ query: flowInput.query });
-    const answer = response.text;
     
-    if (answer) {
-      return { answer };
+    const output = response.output;
+
+    if (output?.answer) {
+      return output;
     }
     
+    // Fallback in case structured output fails
+    const textResponse = response.text;
+    if (textResponse) {
+        // Attempt to parse if it's a JSON string with an answer key
+        try {
+            const parsed = JSON.parse(textResponse);
+            if (parsed.answer) return { answer: parsed.answer };
+        } catch (e) {
+            // Not a JSON string, so return the raw text
+            return { answer: textResponse };
+        }
+        return { answer: textResponse };
+    }
+
     throw new Error("AI failed to generate a valid response.");
   }
 );
