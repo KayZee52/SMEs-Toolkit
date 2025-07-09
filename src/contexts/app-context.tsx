@@ -17,17 +17,29 @@ const useLocalStorage = <T,>(key: string, initialValue: T): [T, React.Dispatch<R
     }
     try {
       const item = window.localStorage.getItem(key);
-      // Merge stored data with defaults to handle new settings being added.
-      return item ? { ...initialValue, ...JSON.parse(item) } : initialValue;
+      if (item) {
+        const parsedItem = JSON.parse(item);
+        // The merging logic is only intended for objects (like settings) to be forward-compatible.
+        if (typeof initialValue === 'object' && !Array.isArray(initialValue) && initialValue !== null) {
+          return { ...initialValue, ...parsedItem };
+        }
+        // For arrays and primitives, return the parsed value directly.
+        return parsedItem;
+      }
+      return initialValue;
     } catch (error) {
-      console.error(error);
+      console.error(`Error reading localStorage key "${key}":`, error);
       return initialValue;
     }
   });
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(key, JSON.stringify(storedValue));
+      try {
+        window.localStorage.setItem(key, JSON.stringify(storedValue));
+      } catch (error) {
+        console.error(`Error writing to localStorage key "${key}":`, error);
+      }
     }
   }, [key, storedValue]);
 
@@ -75,7 +87,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } else {
       // For returning users, check if their data needs migration.
       let currentProducts = products;
-      const needsProductMigration = products.some(p => !p.lastUpdatedAt);
+      const needsProductMigration = Array.isArray(products) && products.some(p => !p.lastUpdatedAt);
 
       if (needsProductMigration) {
         console.log("Running data migration for products...");
@@ -86,7 +98,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         currentProducts = migratedProducts;
       }
 
-      const needsSaleMigration = sales.some(s => s.profit === undefined);
+      const needsSaleMigration = Array.isArray(sales) && sales.some(s => s.profit === undefined);
       if (needsSaleMigration) {
           console.log("Running data migration for sales...");
           const migratedSales = sales.map(sale => {
@@ -100,6 +112,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
     }
     setIsInitialized(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty array ensures this runs only once on mount.
 
 
