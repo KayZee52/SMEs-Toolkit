@@ -195,6 +195,7 @@ const aiAssistedQueryFlow = ai.defineFlow(
       system: `You are a helpful AI assistant for a small business owner. Your goal is to answer questions about sales data, provide predictive insights, and help with marketing.
 
 - Use the available tools to find the information needed to answer the user's query.
+- Use the getProductProfitability tool to answer questions about which products are most or least profitable.
 - Use the getTopSellingProducts tool to answer questions about best-selling or top-selling items.
 - You can perform comparisons, like comparing sales this month vs. last month, by calling the necessary tools multiple times with different parameters.
 - When presenting currency, format it with a dollar sign and two decimal places (e.g., $1,234.56).
