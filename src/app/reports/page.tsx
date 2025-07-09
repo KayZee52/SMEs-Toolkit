@@ -12,6 +12,7 @@ import { TopCustomersTable } from "@/components/reports/top-customers-table";
 import { DateRangePicker } from "@/components/reports/date-range-picker";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import { AiSummary } from "@/components/reports/ai-summary";
 
 export default function ReportsPage() {
   const { sales, expenses, customers } = useApp();
@@ -70,6 +71,12 @@ export default function ReportsPage() {
           </Button>
         </div>
       </div>
+      
+      <AiSummary
+        filteredSales={filteredData.sales}
+        filteredExpenses={filteredData.expenses}
+        dateRange={date}
+      />
       
       <OverviewCards sales={filteredData.sales} expenses={filteredData.expenses} customers={customers} />
 

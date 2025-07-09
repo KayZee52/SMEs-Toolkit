@@ -4,7 +4,8 @@
 import { aiAssistedQuery } from "@/ai/flows/ai-powered-query-assistance";
 import { generateProductDescription } from "@/ai/flows/generate-product-description";
 import { extractCustomerInfo } from "@/ai/flows/extract-customer-info";
-import type { Product, Sale } from "@/lib/types";
+import { summarizeReport } from "@/ai/flows/summarize-report-flow";
+import type { Product, Sale, Expense } from "@/lib/types";
 
 export async function getAiReply(
   query: string,
@@ -45,5 +46,21 @@ export async function generateDescriptionForProduct(
     console.error(error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
     return { success: false, error: `Failed to generate description: ${errorMessage}` };
+  }
+}
+
+export async function getReportSummary(context: {
+  sales: Sale[];
+  expenses: Expense[];
+  products: Product[];
+  dateRange: { from: string; to: string };
+}) {
+  try {
+    const result = await summarizeReport(context);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error(error);
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    return { success: false, error: `AI request failed: ${errorMessage}` };
   }
 }
