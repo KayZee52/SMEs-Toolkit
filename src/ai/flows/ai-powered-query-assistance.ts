@@ -205,7 +205,17 @@ const aiAssistedQueryFlow = ai.defineFlow(
       output: {schema: AiAssistedQueryOutputSchema},
     });
 
-    const {output} = await prompt({ query: flowInput.query });
-    return output!;
+    const response = await prompt({ query: flowInput.query });
+    
+    if (response.output) {
+      return response.output;
+    }
+
+    const textResponse = response.text;
+    if (textResponse) {
+      return { answer: textResponse };
+    }
+    
+    throw new Error("AI failed to generate a valid response.");
   }
 );
