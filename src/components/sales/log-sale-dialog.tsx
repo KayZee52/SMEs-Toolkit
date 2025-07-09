@@ -47,7 +47,7 @@ export function LogSaleDialog() {
     defaultValues: {
       quantity: 1,
       notes: "",
-      customerId: "",
+      customerId: "walk-in",
       productId: "",
       pricePerUnit: 0,
     },
@@ -68,7 +68,7 @@ export function LogSaleDialog() {
     if (!open) {
         form.reset({
             productId: "",
-            customerId: "",
+            customerId: "walk-in",
             quantity: 1,
             notes: "",
             pricePerUnit: 0,
@@ -132,12 +132,12 @@ export function LogSaleDialog() {
               control={form.control}
               name="customerId"
               render={({ field }) => (
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a customer" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Walk-in Customer</SelectItem>
+                    <SelectItem value="walk-in">Walk-in Customer</SelectItem>
                     {customers.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name}
