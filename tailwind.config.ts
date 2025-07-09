@@ -19,6 +19,7 @@ export default {
       fontFamily: {
         body: ['Alegreya', 'serif'],
         headline: ['Belleza', 'sans-serif'],
+        futuristic: ['Orbitron', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {

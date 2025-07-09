@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useRef, useEffect, type FormEvent } from "react";
 import { Bot, User, Loader, X, Send } from "lucide-react";
@@ -134,8 +133,8 @@ export function AIAssistant() {
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent className="flex flex-col p-0">
           <SheetHeader className="p-4 flex flex-row justify-between items-center text-left border-b">
-            <SheetTitle className="font-headline text-lg">
-              Ma-D
+            <SheetTitle className="font-futuristic text-lg tracking-wider">
+              Ma-D <span className="text-primary font-normal">AI Assistant</span>
             </SheetTitle>
             <SheetClose asChild>
               <Button variant="ghost" size="icon">

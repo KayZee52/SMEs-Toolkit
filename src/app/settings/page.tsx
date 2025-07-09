@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -96,7 +95,9 @@ export default function SettingsPage() {
           <CardHeader className="flex flex-row items-center gap-4">
             <BrainCircuit className="h-6 w-6" />
             <div>
-              <CardTitle className="font-headline">Ma-D</CardTitle>
+              <CardTitle className="font-futuristic text-xl tracking-wider">
+                Ma-D <span className="text-primary font-normal">AI Assistant</span>
+              </CardTitle>
               <CardDescription>Customize the behavior of the assistant.</CardDescription>
             </div>
           </CardHeader>
