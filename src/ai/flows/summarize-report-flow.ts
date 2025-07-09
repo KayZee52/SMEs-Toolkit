@@ -10,7 +10,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { format } from 'date-fns';
 
 const ProductSchema = z.object({
     id: z.string(),
@@ -72,47 +71,25 @@ const prompt = ai.definePrompt({
   model: 'googleai/gemini-1.5-flash-latest',
   input: {schema: SummarizeReportInputSchema},
   output: {schema: SummarizeReportOutputSchema},
-  system: `You are a savvy business analyst AI. Your task is to provide a clear and concise summary of business performance based on the provided sales and expense data for a specific date range.
+  prompt: `You are a savvy business analyst AI. Your task is to provide a clear and concise summary of business performance based on the provided data for a specific date range.
 
 Your summary should be a single paragraph and achieve the following:
-1.  State the date range being summarized.
-2.  Report the total sales revenue, total expenses, and the resulting net profit.
+1.  State the date range being summarized. The dates are in ISO format; present them in a human-readable format like "MMM d, yyyy".
+2.  Calculate and report the total sales revenue, total expenses, and the resulting net profit (revenue - expenses).
 3.  Identify the top-selling product by revenue during the period. If there are no sales, state that.
-4.  Briefly mention the category with the highest expenses. If there are no expenses, state that.
+4.  Identify the category with the highest expenses. If there are no expenses, state that.
 5.  Maintain a helpful and professional tone.
-`,
-  templateHelpers: {
-    formatDate: (dateString: string) => format(new Date(dateString), "MMM d, yyyy"),
-    totalSales: (sales: z.infer<typeof SaleSchema>[]) => sales.reduce((sum, s) => sum + s.total, 0),
-    totalExpenses: (expenses: z.infer<typeof ExpenseSchema>[]) => expenses.reduce((sum, e) => sum + e.amount, 0),
-    netProfit: (sales: z.infer<typeof SaleSchema>[], expenses: z.infer<typeof ExpenseSchema>[]) => {
-        const totalSales = sales.reduce((sum, s) => sum + s.total, 0);
-        const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-        return totalSales - totalExpenses;
-    },
-    topProduct: (sales: z.infer<typeof SaleSchema>[]) => {
-        if (sales.length === 0) return "N/A";
-        const productRevenue: Record<string, number> = {};
-        for (const sale of sales) {
-            productRevenue[sale.productName] = (productRevenue[sale.productName] || 0) + sale.total;
-        }
-        return Object.entries(productRevenue)
-            .sort((a, b) => b[1] - a[1])[0][0];
-    },
-    topExpenseCategory: (expenses: z.infer<typeof ExpenseSchema>[]) => {
-        if (expenses.length === 0) return "N/A";
-        const categoryExpenses: Record<string, number> = {};
-        for (const expense of expenses) {
-            categoryExpenses[expense.category] = (categoryExpenses[expense.category] || 0) + expense.amount;
-        }
-        return Object.entries(categoryExpenses)
-            .sort((a, b) => b[1] - a[1])[0][0];
-    }
-  },
-  prompt: `
-Date Range: {{formatDate dateRange.from}} to {{formatDate dateRange.to}}
-Sales Data: {{{json sales}}}
-Expense Data: {{{json expenses}}}
+6.  Format all monetary values with a dollar sign and two decimal places (e.g., $1,234.56).
+
+Here is the data for your analysis:
+
+Date Range: From {{dateRange.from}} to {{dateRange.to}}
+
+Sales Data:
+{{{json sales}}}
+
+Expense Data:
+{{{json expenses}}}
 `,
 });
 
