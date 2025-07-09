@@ -20,7 +20,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/contexts/app-context";
 import type { Product } from "@/lib/types";
 import { useState } from "react";
-import { Edit, PlusCircle } from "lucide-react";
+import { Edit, PlusCircle, Sparkles } from "lucide-react";
+import { generateDescriptionForProduct } from "@/actions/ai";
+import { useToast } from "@/hooks/use-toast";
 
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
@@ -40,7 +42,9 @@ interface ProductDialogProps {
 
 export function ProductDialog({ product }: ProductDialogProps) {
   const { addProduct, updateProduct } = useApp();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -54,12 +58,46 @@ export function ProductDialog({ product }: ProductDialogProps) {
       supplier: "",
     },
   });
-  
+
+  const { watch, setValue } = form;
+  const productName = watch("name");
+  const productCategory = watch("category");
+
   // Reset form when dialog opens/closes or product changes
   useState(() => {
     form.reset(product);
   });
 
+  const handleGenerateDescription = async () => {
+    if (!productName) {
+      toast({
+        variant: "destructive",
+        title: "Product Name Required",
+        description:
+          "Please enter a product name before generating a description.",
+      });
+      return;
+    }
+    setIsGenerating(true);
+    const res = await generateDescriptionForProduct(
+      productName,
+      productCategory
+    );
+    if (res.success && res.data?.description) {
+      setValue("description", res.data.description, { shouldValidate: true });
+      toast({
+        title: "Description Generated",
+        description: "The AI has generated a new description.",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Generation Failed",
+        description: "Could not generate a description. Please try again.",
+      });
+    }
+    setIsGenerating(false);
+  };
 
   const onSubmit = (data: ProductFormValues) => {
     if (product) {
@@ -107,7 +145,21 @@ export function ProductDialog({ product }: ProductDialogProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
+            <div className="flex justify-between items-center">
+              <Label htmlFor="description">Description (Optional)</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleGenerateDescription}
+                disabled={isGenerating || !productName}
+              >
+                <Sparkles
+                  className={`mr-2 h-4 w-4 ${isGenerating ? "animate-spin" : ""}`}
+                />
+                {isGenerating ? "Generating..." : "Generate with AI"}
+              </Button>
+            </div>
             <Textarea id="description" {...form.register("description")} />
           </div>
 
@@ -151,13 +203,13 @@ export function ProductDialog({ product }: ProductDialogProps) {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-             <div className="space-y-2">
-                <Label htmlFor="category">Category (Optional)</Label>
-                <Input id="category" {...form.register("category")} />
+            <div className="space-y-2">
+              <Label htmlFor="category">Category (Optional)</Label>
+              <Input id="category" {...form.register("category")} />
             </div>
-             <div className="space-y-2">
-                <Label htmlFor="supplier">Supplier (Optional)</Label>
-                <Input id="supplier" {...form.register("supplier")} />
+            <div className="space-y-2">
+              <Label htmlFor="supplier">Supplier (Optional)</Label>
+              <Input id="supplier" {...form.register("supplier")} />
             </div>
           </div>
           <DialogFooter>

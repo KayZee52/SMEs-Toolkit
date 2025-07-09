@@ -29,7 +29,8 @@ export function AIAssistant() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const { addCustomer, findCustomerByName, settings } = useApp();
+  const { addCustomer, findCustomerByName, settings, products, sales } =
+    useApp();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
@@ -58,7 +59,7 @@ export function AIAssistant() {
       }
     }
 
-    const aiReplyRes = await getAiReply(input);
+    const aiReplyRes = await getAiReply(input, { products, sales });
     if (aiReplyRes.success && aiReplyRes.data?.answer) {
       const assistantMessage: Message = {
         role: "assistant",
