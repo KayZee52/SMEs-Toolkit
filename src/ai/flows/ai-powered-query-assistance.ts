@@ -120,6 +120,25 @@ const aiAssistedQueryFlow = ai.defineFlow(
         }
     );
     
+    const getTopSellingProducts = ai.defineTool(
+        {
+            name: 'getTopSellingProducts',
+            description: 'Get a list of products ranked by total sales revenue. Can be used to find the best-selling products.',
+            inputSchema: z.object({}),
+            outputSchema: z.array(z.object({ name: z.string(), totalRevenue: z.number() }))
+        },
+        async () => {
+            const productRevenue: Record<string, number> = {};
+            for (const sale of flowInput.sales) {
+                productRevenue[sale.productName] = (productRevenue[sale.productName] || 0) + sale.total;
+            }
+
+            return Object.entries(productRevenue)
+                .map(([name, totalRevenue]) => ({ name, totalRevenue }))
+                .sort((a, b) => b.totalRevenue - a.totalRevenue);
+        }
+    );
+
     const getInventoryForecast = ai.defineTool(
       {
         name: 'getInventoryForecast',
@@ -172,10 +191,11 @@ const aiAssistedQueryFlow = ai.defineFlow(
     const prompt = ai.definePrompt({
       name: 'aiAssistedQueryPromptWithTools',
       model: 'googleai/gemini-1.5-flash-latest',
-      tools: [getInventoryStatus, getSalesSummary, getProductProfitability, getInventoryForecast],
+      tools: [getInventoryStatus, getSalesSummary, getProductProfitability, getTopSellingProducts, getInventoryForecast],
       system: `You are a helpful AI assistant for a small business owner. Your goal is to answer questions about sales data, provide predictive insights, and help with marketing.
 
 - Use the available tools to find the information needed to answer the user's query.
+- Use the getTopSellingProducts tool to answer questions about best-selling or top-selling items.
 - You can perform comparisons, like comparing sales this month vs. last month, by calling the necessary tools multiple times with different parameters.
 - When presenting currency, format it with a dollar sign and two decimal places (e.g., $1,234.56).
 - If asked to create marketing content, like an email, use the product information available to you to write a compelling draft.
