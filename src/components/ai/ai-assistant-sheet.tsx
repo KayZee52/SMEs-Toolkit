@@ -23,6 +23,13 @@ type Message = {
   content: string;
 };
 
+const suggestions = [
+  "What were my total sales today?",
+  "Which product is the most profitable?",
+  "Forecast inventory for all products",
+  "Write a marketing email for the Wool Scarf",
+];
+
 export function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -36,17 +43,16 @@ export function AIAssistant() {
     setInput(e.target.value);
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const handleQuery = async (query: string) => {
+    if (!query.trim() || isLoading) return;
 
-    const userMessage: Message = { role: "user", content: input };
+    const userMessage: Message = { role: "user", content: query };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
 
     // Check for new customer info
-    const customerInfoRes = await getCustomerInfoFromText(input);
+    const customerInfoRes = await getCustomerInfoFromText(query);
     if (customerInfoRes.success && customerInfoRes.data?.customerName) {
       const existingCustomer = findCustomerByName(
         customerInfoRes.data.customerName
@@ -59,7 +65,7 @@ export function AIAssistant() {
       }
     }
 
-    const aiReplyRes = await getAiReply(input, { products, sales });
+    const aiReplyRes = await getAiReply(query, { products, sales });
     if (aiReplyRes.success && aiReplyRes.data?.answer) {
       const assistantMessage: Message = {
         role: "assistant",
@@ -77,12 +83,17 @@ export function AIAssistant() {
     setIsLoading(false);
   };
 
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    handleQuery(input);
+  };
+
   useEffect(() => {
     if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({
-        top: scrollAreaRef.current.scrollHeight,
-        behavior: "smooth",
-      });
+      const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+      }
     }
   }, [messages]);
 
@@ -133,6 +144,26 @@ export function AIAssistant() {
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full" ref={scrollAreaRef}>
               <div className="p-4 space-y-6">
+                {messages.length === 0 && !isLoading && settings.autoSuggestions && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Try one of these suggestions:
+                    </p>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {suggestions.map((suggestion, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          size="sm"
+                          className="h-auto whitespace-normal text-left justify-start"
+                          onClick={() => handleQuery(suggestion)}
+                        >
+                          {suggestion}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {messages.map((message, index) => (
                   <div
                     key={index}
