@@ -168,7 +168,7 @@ export default function DashboardPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-headline text-3xl font-bold tracking-tight motion-safe:animate-fade-in">
-            Hi, Kelvin 👋
+            Hi, there 👋
           </h1>
           <p className="text-muted-foreground">
             {new Date().toLocaleDateString("en-US", {
