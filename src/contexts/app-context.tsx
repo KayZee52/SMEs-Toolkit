@@ -17,7 +17,8 @@ const useLocalStorage = <T,>(key: string, initialValue: T): [T, React.Dispatch<R
     }
     try {
       const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
+      // Merge stored data with defaults to handle new settings being added.
+      return item ? { ...initialValue, ...JSON.parse(item) } : initialValue;
     } catch (error) {
       console.error(error);
       return initialValue;
@@ -35,18 +36,20 @@ const useLocalStorage = <T,>(key: string, initialValue: T): [T, React.Dispatch<R
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
-  const [products, setProducts] = useLocalStorage<Product[]>("products", []);
-  const [sales, setSales] = useLocalStorage<Sale[]>("sales", []);
-  const [customers, setCustomers] = useLocalStorage<Customer[]>("customers", []);
-  const [expenses, setExpenses] = useLocalStorage<Expense[]>("expenses", []);
   
   const defaultSettings: Settings = {
     businessName: "SMEs Toolkit",
+    assistantName: "AI Assistant",
     currency: "USD",
     enableAssistant: true,
     autoSuggestions: true,
     language: "en",
   };
+
+  const [products, setProducts] = useLocalStorage<Product[]>("products", []);
+  const [sales, setSales] = useLocalStorage<Sale[]>("sales", []);
+  const [customers, setCustomers] = useLocalStorage<Customer[]>("customers", []);
+  const [expenses, setExpenses] = useLocalStorage<Expense[]>("expenses", []);
   const [settings, setSettings] = useLocalStorage<Settings>("settings", defaultSettings);
 
   const [isInitialized, setIsInitialized] = useState(false);

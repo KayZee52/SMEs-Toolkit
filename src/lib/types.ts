@@ -47,6 +47,7 @@ export type Expense = {
 
 export type Settings = {
   businessName: string;
+  assistantName: string;
   currency: "USD" | "LRD" | "NGN";
   enableAssistant: boolean;
   autoSuggestions: boolean;
