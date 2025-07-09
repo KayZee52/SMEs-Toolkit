@@ -49,7 +49,16 @@ const generateProductDescriptionFlow = ai.defineFlow(
     outputSchema: GenerateProductDescriptionOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const response = await prompt(input);
+    if (response.output) {
+      return response.output;
+    }
+    // Fallback to using the raw text response if structured output fails.
+    const textResponse = response.text;
+    if (textResponse) {
+      return { description: textResponse };
+    }
+    // If all else fails, throw an error.
+    throw new Error("AI failed to generate a description.");
   }
 );
