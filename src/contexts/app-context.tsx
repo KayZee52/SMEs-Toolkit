@@ -3,142 +3,105 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import type { Product, Sale, Customer, Expense, Settings, AppContextType, LogSaleFormValues } from "@/lib/types";
-import { MOCK_PRODUCTS, MOCK_SALES, MOCK_CUSTOMERS, MOCK_EXPENSES } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 import { getTranslations } from "@/lib/i18n";
+import { db } from "@/lib/db";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const useLocalStorage = <T,>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] => {
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    if (typeof window === "undefined") {
-      return initialValue;
-    }
-    try {
-      const item = window.localStorage.getItem(key);
-      if (item) {
-        const parsedItem = JSON.parse(item);
-
-        // Guard against data corruption: if we expect an array but don't get one, reset.
-        if (Array.isArray(initialValue) && !Array.isArray(parsedItem)) {
-          console.warn(`LocalStorage Corruption: Resetting "${key}" because an array was expected.`);
-          window.localStorage.setItem("dataInitialized", "false"); // Force re-seed
-          return initialValue;
-        }
-
-        // The merging logic is only intended for objects (like settings) to be forward-compatible.
-        if (typeof initialValue === 'object' && !Array.isArray(initialValue) && initialValue !== null) {
-          return { ...initialValue, ...parsedItem };
-        }
-        
-        return parsedItem;
-      }
-      return initialValue;
-    } catch (error) {
-      console.error(`Error reading localStorage key "${key}":`, error);
-      return initialValue;
-    }
-  });
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        window.localStorage.setItem(key, JSON.stringify(storedValue));
-      } catch (error) {
-        console.error(`Error writing to localStorage key "${key}":`, error);
-      }
-    }
-  }, [key, storedValue]);
-
-  return [storedValue, setStoredValue];
+const defaultSettings: Settings = {
+  businessName: "Ma-D",
+  currency: "USD",
+  enableAssistant: true,
+  autoSuggestions: true,
+  language: "en",
 };
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   
-  const defaultSettings: Settings = {
-    businessName: "SMEs Toolkit",
-    currency: "USD",
-    enableAssistant: true,
-    autoSuggestions: true,
-    language: "en",
-  };
-
-  const [products, setProducts] = useLocalStorage<Product[]>("products", []);
-  const [sales, setSales] = useLocalStorage<Sale[]>("sales", []);
-  const [customers, setCustomers] = useLocalStorage<Customer[]>("customers", []);
-  const [expenses, setExpenses] = useLocalStorage<Expense[]>("expenses", []);
-  const [settings, setSettings] = useLocalStorage<Settings>("settings", defaultSettings);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [settings, setSettings] = useState<Settings>(defaultSettings);
 
   const [isInitialized, setIsInitialized] = useState(false);
   
   const translations = getTranslations(settings.language);
 
-  useEffect(() => {
-    // This effect runs only once after the initial render to seed or migrate data.
-    if (localStorage.getItem("dataInitialized") !== "true") {
-      // First run: seed with mock data.
-      const salesWithProfit = MOCK_SALES.map(sale => {
-        const product = MOCK_PRODUCTS.find(p => p.id === sale.productId);
-        const profit = product ? (sale.pricePerUnit - product.cost) * sale.quantity : 0;
-        return { ...sale, profit };
-      });
-
-      setProducts(MOCK_PRODUCTS);
-      setSales(salesWithProfit);
-      setCustomers(MOCK_CUSTOMERS);
-      setExpenses(MOCK_EXPENSES);
-      setSettings(defaultSettings);
-      localStorage.setItem("dataInitialized", "true");
-    } else {
-      // For returning users, check if their data needs migration.
-      let currentProducts = products;
-      if (Array.isArray(products)) {
-        const needsProductMigration = products.some(p => !p.lastUpdatedAt);
-        if (needsProductMigration) {
-          console.log("Running data migration for products...");
-          const migratedProducts = products.map(p => 
-            p.lastUpdatedAt ? p : { ...p, lastUpdatedAt: new Date().toISOString() }
-          );
-          setProducts(migratedProducts);
-          currentProducts = migratedProducts;
-        }
+  const loadData = () => {
+    try {
+      setProducts(db.prepare("SELECT * FROM products ORDER BY name ASC").all() as Product[]);
+      setSales(db.prepare("SELECT * FROM sales ORDER BY date DESC").all() as Sale[]);
+      setCustomers(db.prepare("SELECT * FROM customers ORDER BY name ASC").all() as Customer[]);
+      setExpenses(db.prepare("SELECT * FROM expenses ORDER BY date DESC").all() as Expense[]);
+      
+      const settingsFromDb = db.prepare("SELECT value FROM settings WHERE key = ?").get('appSettings') as { value: string } | undefined;
+      if (settingsFromDb) {
+        setSettings(JSON.parse(settingsFromDb.value));
+      } else {
+        db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)").run('appSettings', JSON.stringify(defaultSettings));
       }
-
-      if (Array.isArray(sales)) {
-        const needsSaleMigration = sales.some(s => s.profit === undefined);
-        if (needsSaleMigration) {
-            console.log("Running data migration for sales...");
-            const migratedSales = sales.map(sale => {
-                if (sale.profit !== undefined) return sale; // Skip if profit already exists
-                
-                const product = currentProducts.find(p => p.id === sale.productId);
-                const profit = product ? (sale.pricePerUnit - product.cost) * sale.quantity : 0;
-                return { ...sale, profit };
-            });
-            setSales(migratedSales);
-        }
-      }
+    } catch (error) {
+        console.error("Failed to load data from database:", error);
+        toast({
+            variant: "destructive",
+            title: "Database Error",
+            description: "Could not load application data.",
+        });
     }
-    setIsInitialized(true);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty array ensures this runs only once on mount.
+  };
 
+  useEffect(() => {
+    // This effect runs only once after the initial render to load data from SQLite.
+    loadData();
+    setIsInitialized(true);
+  }, []); 
 
   const addProduct = (productData: Omit<Product, "id" | "lastUpdatedAt">) => {
-    const newProduct: Product = {
+    const newProduct: Omit<Product, "id"> = {
       ...productData,
-      id: `prod_${Date.now()}`,
       lastUpdatedAt: new Date().toISOString(),
     };
-    setProducts((prev) => [...prev, newProduct]);
-    toast({ title: "Product Added", description: `${newProduct.name} has been added to inventory.` });
+    try {
+        const stmt = db.prepare(`
+            INSERT INTO products (name, description, stock, price, cost, category, supplier, lastUpdatedAt) 
+            VALUES (@name, @description, @stock, @price, @cost, @category, @supplier, @lastUpdatedAt)
+        `);
+        const result = stmt.run(newProduct);
+        const insertedProduct = { ...newProduct, id: result.lastInsertRowid.toString() };
+        setProducts(prev => [...prev, insertedProduct]);
+        toast({ title: "Product Added", description: `${newProduct.name} has been added to inventory.` });
+    } catch (error) {
+        console.error("Failed to add product:", error);
+        toast({ variant: "destructive", title: "Error", description: "Could not add product."});
+    }
   };
   
   const updateProduct = (updatedProduct: Product) => {
-    setProducts((prev) => prev.map((p) => (p.id === updatedProduct.id ? { ...updatedProduct, lastUpdatedAt: new Date().toISOString() } : p)));
-    toast({ title: "Product Updated", description: `${updatedProduct.name} has been updated.` });
+    const productToUpdate = { ...updatedProduct, lastUpdatedAt: new Date().toISOString() };
+    try {
+        const stmt = db.prepare(`
+            UPDATE products SET 
+                name = @name, 
+                description = @description, 
+                stock = @stock, 
+                price = @price, 
+                cost = @cost, 
+                category = @category, 
+                supplier = @supplier, 
+                lastUpdatedAt = @lastUpdatedAt
+            WHERE id = @id
+        `);
+        stmt.run(productToUpdate);
+        setProducts(prev => prev.map(p => p.id === updatedProduct.id ? productToUpdate : p));
+        toast({ title: "Product Updated", description: `${updatedProduct.name} has been updated.` });
+    } catch (error) {
+        console.error("Failed to update product:", error);
+        toast({ variant: "destructive", title: "Error", description: "Could not update product."});
+    }
   };
   
   const receiveStock = (productId: string, quantity: number, costPerUnit: number) => {
@@ -148,15 +111,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Ensure data is numeric
     const currentStock = Number(product.stock) || 0;
     const currentCost = Number(product.cost) || 0;
-    
-    if (quantity <= 0) return; // Should be handled by form validation
+    if (quantity <= 0) return;
 
     const newStock = currentStock + quantity;
-
-    // Calculate new average cost. If current stock is 0, new cost is just the cost of new units.
     const newAverageCost = newStock > 0
       ? ((currentCost * currentStock) + (costPerUnit * quantity)) / newStock
       : costPerUnit;
@@ -164,12 +123,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const updatedProduct: Product = {
       ...product,
       stock: newStock,
-      // Fallback to current cost if calculation results in NaN
       cost: isNaN(newAverageCost) ? currentCost : newAverageCost,
       lastUpdatedAt: new Date().toISOString(),
     };
-
-    setProducts((prev) => prev.map((p) => (p.id === productId ? updatedProduct : p)));
+    updateProduct(updatedProduct);
     toast({ title: "Stock Received", description: `${quantity} units of ${product.name} added.` });
   };
 
@@ -185,75 +142,131 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    let customer: Customer | undefined;
-    let customerName: string;
-
-    if (saleData.customerId) {
-        customer = customers.find(c => c.id === saleData.customerId);
+    let customerName = "Walk-in Customer";
+    if (saleData.customerId && saleData.customerId !== 'walk-in') {
+        const customer = customers.find(c => c.id === saleData.customerId);
+        if(customer) customerName = customer.name;
     }
-    
-    customerName = customer ? customer.name : "Walk-in Customer";
-
 
     const profit = (saleData.pricePerUnit - product.cost) * saleData.quantity;
+    const total = saleData.pricePerUnit * saleData.quantity;
 
-    const newSale: Sale = {
-      id: `sale_${Date.now()}`,
+    const newSaleData: Omit<Sale, "id"> = {
       productId: saleData.productId,
       productName: product.name,
       customerName: customerName,
       customerId: saleData.customerId,
       quantity: saleData.quantity,
       pricePerUnit: saleData.pricePerUnit,
-      total: saleData.pricePerUnit * saleData.quantity,
+      total,
       profit,
       notes: saleData.notes,
       date: new Date().toISOString(),
     };
 
-    setSales((prev) => [newSale, ...prev]);
-    
-    const updatedProduct = { ...product, stock: product.stock - saleData.quantity, lastUpdatedAt: new Date().toISOString() };
-    updateProduct(updatedProduct);
+    try {
+        const stmt = db.prepare(`
+            INSERT INTO sales (productId, customerId, customerName, productName, quantity, pricePerUnit, total, profit, notes, date) 
+            VALUES (@productId, @customerId, @customerName, @productName, @quantity, @pricePerUnit, @total, @profit, @notes, @date)
+        `);
+        const result = stmt.run(newSaleData);
+        const newSale = { ...newSaleData, id: result.lastInsertRowid.toString() };
 
-    toast({ title: "Sale Logged", description: `Sold ${saleData.quantity} of ${product.name}.` });
+        setSales(prev => [newSale, ...prev]);
+        
+        const updatedProduct = { ...product, stock: product.stock - saleData.quantity, lastUpdatedAt: new Date().toISOString() };
+        updateProduct(updatedProduct);
+
+        toast({ title: "Sale Logged", description: `Sold ${saleData.quantity} of ${product.name}.` });
+    } catch (error) {
+        console.error("Failed to add sale:", error);
+        toast({ variant: "destructive", title: "Error", description: "Could not log sale."});
+    }
   };
   
   const addCustomer = (customerData: Omit<Customer, "id" | "createdAt">): Customer => {
-    const newCustomer: Customer = {
+    const newCustomerData = {
       ...customerData,
-      id: `cust_${Date.now()}`,
       createdAt: new Date().toISOString(),
       type: customerData.type || "Regular",
     };
-    setCustomers((prev) => [newCustomer, ...prev]);
-    toast({ title: "Customer Added", description: `${newCustomer.name} has been added.` });
-    return newCustomer;
+    try {
+        const stmt = db.prepare(`
+            INSERT INTO customers (name, phone, createdAt, notes, type) 
+            VALUES (@name, @phone, @createdAt, @notes, @type)
+        `);
+        const result = stmt.run(newCustomerData);
+        const newCustomer = { ...newCustomerData, id: result.lastInsertRowid.toString() };
+        setCustomers(prev => [newCustomer, ...prev]);
+        toast({ title: "Customer Added", description: `${newCustomer.name} has been added.` });
+        return newCustomer;
+    } catch (error) {
+        console.error("Failed to add customer:", error);
+        toast({ variant: "destructive", title: "Error", description: "Could not add customer."});
+        throw error;
+    }
   };
   
   const updateCustomer = (updatedCustomer: Customer) => {
-    setCustomers((prev) => prev.map((c) => (c.id === updatedCustomer.id ? updatedCustomer : c)));
-    toast({ title: "Customer Updated", description: `${updatedCustomer.name}'s details have been updated.` });
+    try {
+        const stmt = db.prepare(`
+            UPDATE customers SET name = @name, phone = @phone, notes = @notes, type = @type
+            WHERE id = @id
+        `);
+        stmt.run(updatedCustomer);
+        setCustomers(prev => prev.map((c) => (c.id === updatedCustomer.id ? updatedCustomer : c)));
+        toast({ title: "Customer Updated", description: `${updatedCustomer.name}'s details have been updated.` });
+    } catch(error) {
+        console.error("Failed to update customer:", error);
+        toast({ variant: "destructive", title: "Error", description: "Could not update customer."});
+    }
   };
 
   const addExpense = (expenseData: Omit<Expense, "id" | "date">) => {
-    const newExpense: Expense = {
+    const newExpenseData: Omit<Expense, "id"> = {
       ...expenseData,
-      id: `exp_${Date.now()}`,
       date: new Date().toISOString(),
     };
-    setExpenses((prev) => [newExpense, ...prev]);
-    toast({ title: "Expense Logged", description: `${expenseData.description} for ${formatCurrency(expenseData.amount)} has been logged.` });
+    try {
+        const stmt = db.prepare(`
+            INSERT INTO expenses (description, category, amount, date, notes) 
+            VALUES (@description, @category, @amount, @date, @notes)
+        `);
+        const result = stmt.run(newExpenseData);
+        const newExpense = { ...newExpenseData, id: result.lastInsertRowid.toString() };
+        setExpenses(prev => [newExpense, ...prev]);
+        toast({ title: "Expense Logged", description: `${expenseData.description} for ${formatCurrency(expenseData.amount)} has been logged.` });
+    } catch (error) {
+        console.error("Failed to add expense:", error);
+        toast({ variant: "destructive", title: "Error", description: "Could not log expense."});
+    }
   };
   
   const updateExpense = (updatedExpense: Expense) => {
-    setExpenses((prev) => prev.map((e) => (e.id === updatedExpense.id ? { ...updatedExpense, date: new Date().toISOString() } : e)));
-    toast({ title: "Expense Updated", description: `${updatedExpense.description} has been updated.` });
+    const expenseToUpdate = { ...updatedExpense, date: new Date().toISOString() };
+    try {
+        const stmt = db.prepare(`
+            UPDATE expenses SET description = @description, category = @category, amount = @amount, date = @date, notes = @notes
+            WHERE id = @id
+        `);
+        stmt.run(expenseToUpdate);
+        setExpenses(prev => prev.map((e) => (e.id === updatedExpense.id ? expenseToUpdate : e)));
+        toast({ title: "Expense Updated", description: `${updatedExpense.description} has been updated.` });
+    } catch(error) {
+        console.error("Failed to update expense:", error);
+        toast({ variant: "destructive", title: "Error", description: "Could not update expense."});
+    }
   };
 
   const deleteExpense = (id: string) => {
-    setExpenses((prev) => prev.filter((e) => e.id !== id));
-    toast({ title: "Expense Deleted", description: "The expense has been removed." });
+    try {
+        db.prepare("DELETE FROM expenses WHERE id = ?").run(id);
+        setExpenses((prev) => prev.filter((e) => e.id !== id));
+        toast({ title: "Expense Deleted", description: "The expense has been removed." });
+    } catch (error) {
+        console.error("Failed to delete expense:", error);
+        toast({ variant: "destructive", title: "Error", description: "Could not delete expense."});
+    }
   };
 
   const findCustomerByName = (name: string): Customer | undefined => {
@@ -261,11 +274,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const updateSettings = (newSettings: Settings) => {
-    setSettings(newSettings);
-    toast({
-      title: "Settings Saved",
-      description: "Your changes have been successfully saved.",
-    });
+    try {
+        db.prepare("UPDATE settings SET value = ? WHERE key = ?").run(JSON.stringify(newSettings), 'appSettings');
+        setSettings(newSettings);
+        toast({
+            title: "Settings Saved",
+            description: "Your changes have been successfully saved.",
+        });
+    } catch (error) {
+        console.error("Failed to update settings:", error);
+        toast({ variant: "destructive", title: "Error", description: "Could not save settings."});
+    }
   };
 
   if (!isInitialized) return null;

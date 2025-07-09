@@ -2,12 +2,12 @@
 import type { Product, Customer, Sale, Expense } from "./types";
 
 export const MOCK_PRODUCTS: Product[] = [
-  { id: "prod_1", name: "Classic Leather Wallet", stock: 25, price: 49.99, cost: 15.5, lastUpdatedAt: new Date().toISOString() },
-  { id: "prod_2", name: "Stainless Steel Watch", stock: 15, price: 129.99, cost: 45.0, lastUpdatedAt: new Date().toISOString() },
-  { id: "prod_3", name: "Canvas Messenger Bag", stock: 30, price: 79.99, cost: 25.0, lastUpdatedAt: new Date().toISOString() },
-  { id: "prod_4", name: "Silk Tie", stock: 50, price: 29.99, cost: 8.0, lastUpdatedAt: new Date().toISOString() },
-  { id: "prod_5", name: "Wool Scarf", stock: 8, price: 39.99, cost: 12.5, lastUpdatedAt: new Date().toISOString() },
-  { id: "prod_6", name: "Cat Food", stock: 100, price: 19.99, cost: 5.0, lastUpdatedAt: new Date().toISOString() },
+  { id: "prod_1", name: "Classic Leather Wallet", stock: 25, price: 49.99, cost: 15.5, lastUpdatedAt: new Date().toISOString(), description: "A timeless wallet.", category: "Accessories", supplier: "Leather Co." },
+  { id: "prod_2", name: "Stainless Steel Watch", stock: 15, price: 129.99, cost: 45.0, lastUpdatedAt: new Date().toISOString(), description: "Elegant and durable.", category: "Watches", supplier: "Timepiece Inc." },
+  { id: "prod_3", name: "Canvas Messenger Bag", stock: 30, price: 79.99, cost: 25.0, lastUpdatedAt: new Date().toISOString(), description: "Perfect for daily use.", category: "Bags", supplier: "Urban Gear" },
+  { id: "prod_4", name: "Silk Tie", stock: 50, price: 29.99, cost: 8.0, lastUpdatedAt: new Date().toISOString(), description: "A touch of class.", category: "Accessories", supplier: "Gentlemen's Attire" },
+  { id: "prod_5", name: "Wool Scarf", stock: 8, price: 39.99, cost: 12.5, lastUpdatedAt: new Date().toISOString(), description: "Warm and stylish.", category: "Accessories", supplier: "Winter Wears" },
+  { id: "prod_6", name: "Cat Food", stock: 100, price: 19.99, cost: 5.0, lastUpdatedAt: new Date().toISOString(), description: "Nutritious and delicious.", category: "Pet Supplies", supplier: "Happy Paws" },
 ];
 
 export const MOCK_CUSTOMERS: Customer[] = [
@@ -19,7 +19,7 @@ export const MOCK_CUSTOMERS: Customer[] = [
 const now = new Date();
 const day = 24 * 60 * 60 * 1000;
 
-export const MOCK_SALES: Sale[] = [
+export const MOCK_SALES: Omit<Sale, 'id'>[] = [
   // Day -6
   { id: "sale_d6_1", productId: "prod_5", customerName: "Walk-in Customer", productName: "Wool Scarf", quantity: 1, pricePerUnit: 39.99, total: 39.99, profit: 27.49, date: new Date(now.getTime() - 6 * day).toISOString() },
   
@@ -43,7 +43,7 @@ export const MOCK_SALES: Sale[] = [
   { id: "sale_d0_1", productId: "prod_6", customerId: "cust_1", customerName: "Alice Johnson", productName: "Cat Food", quantity: 50, pricePerUnit: 19.99, total: 999.50, profit: 749.50, date: new Date(now.getTime() - 1 * 1000).toISOString() },
 ];
 
-export const MOCK_EXPENSES: Expense[] = [
+export const MOCK_EXPENSES: Omit<Expense, 'id'>[] = [
     { id: "exp_1", description: "Office rent", category: "Rent", amount: 500, date: new Date(new Date().setDate(new Date().getDate() - 15)).toISOString(), notes: "Monthly rent payment." },
     { id: "exp_2", description: "Fuel for delivery", category: "Transportation", amount: 50, date: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString() },
     { id: "exp_3", description: "Packing materials", category: "Supplies", amount: 25, date: new Date().toISOString(), notes: "Boxes and tape." },
