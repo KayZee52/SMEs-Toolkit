@@ -17,7 +17,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['Alegreya', 'serif'],
+        body: ['Inter', 'sans-serif'],
         headline: ['Belleza', 'sans-serif'],
         futuristic: ['Orbitron', 'sans-serif'],
         code: ['monospace'],
