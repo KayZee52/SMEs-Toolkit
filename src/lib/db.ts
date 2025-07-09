@@ -1,30 +1,21 @@
 
 import Database from 'better-sqlite3';
-import { MOCK_PRODUCTS, MOCK_SALES, MOCK_CUSTOMERS, MOCK_EXPENSES } from './mock-data';
 
-// In an Electron environment, you might want to save this in the app's user data path.
-// For this web context, we'll use a simple file name.
 const db = new Database('smes-toolkit.db');
 
-// Enable WAL mode for better concurrency.
 db.pragma('journal_mode = WAL');
 
-// Check if the database has been initialized
 const metaTableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='meta'").get();
 
 if (!metaTableExists) {
-    console.log("Database not initialized. Setting up schema and seeding data...");
+    console.log("Database not initialized. Setting up schema...");
 
-    // Create meta table to track initialization
     db.exec(`
         CREATE TABLE meta (
             key TEXT PRIMARY KEY,
             value TEXT
         );
-    `);
 
-    // Create main application tables
-    db.exec(`
         CREATE TABLE products (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -77,52 +68,25 @@ if (!metaTableExists) {
         );
     `);
     
-    // Seed data using transactions for performance
-    const insertProduct = db.prepare('INSERT INTO products (id, name, stock, price, cost, lastUpdatedAt, description, category, supplier) VALUES (@id, @name, @stock, @price, @cost, @lastUpdatedAt, @description, @category, @supplier)');
-    const insertCustomer = db.prepare('INSERT INTO customers (id, name, phone, createdAt, type, notes) VALUES (@id, @name, @phone, @createdAt, @type, @notes)');
-    const insertSale = db.prepare('INSERT INTO sales (id, productId, customerId, customerName, productName, quantity, pricePerUnit, total, profit, date) VALUES (@id, @productId, @customerId, @customerName, @productName, @quantity, @pricePerUnit, @total, @profit, @date)');
-    const insertExpense = db.prepare('INSERT INTO expenses (id, description, category, amount, date, notes) VALUES (@id, @description, @category, @amount, @date, @notes)');
-
-    const seedData = db.transaction(() => {
-        // Must convert mock IDs from string to integer for foreign keys
-        const productIdMap = new Map<string, number>();
-        MOCK_PRODUCTS.forEach((p, index) => {
-            const newId = index + 1;
-            productIdMap.set(p.id, newId);
-            insertProduct.run({ ...p, id: newId });
-        });
-
-        const customerIdMap = new Map<string, number>();
-        MOCK_CUSTOMERS.forEach((c, index) => {
-            const newId = index + 1;
-            customerIdMap.set(c.id, newId);
-            insertCustomer.run({ ...c, id: newId });
-        });
-
-        MOCK_SALES.forEach((s, index) => {
-            const newId = index + 1;
-            const newProductId = s.productId ? productIdMap.get(s.productId) : null;
-            const newCustomerId = s.customerId ? customerIdMap.get(s.customerId) : null;
-            insertSale.run({ ...s, id: newId, productId: newProductId, customerId: newCustomerId });
-        });
-        
-        MOCK_EXPENSES.forEach((e, index) => {
-            const newId = index + 1;
-            insertExpense.run({ ...e, id: newId });
-        });
-
+    const initializeSettings = db.transaction(() => {
+        const defaultSettings = {
+            businessName: "My Business",
+            currency: "USD",
+            enableAssistant: true,
+            autoSuggestions: true,
+            language: "en",
+        };
+        db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)").run('appSettings', JSON.stringify(defaultSettings));
         db.prepare('INSERT INTO meta (key, value) VALUES (?, ?)').run('initialized', 'true');
-        console.log("Database initialized and seeded successfully.");
+        console.log("Database initialized with empty tables and default settings.");
     });
 
-    seedData();
+    initializeSettings();
 } else {
     console.log("Database already initialized.");
 }
 
 
-// Close the database connection when the app closes
-// In a real Electron app, you'd hook into 'app.on('will-quit', ...)'
 process.on('exit', () => db.close());
 
 

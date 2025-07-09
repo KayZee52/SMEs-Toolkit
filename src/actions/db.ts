@@ -25,7 +25,7 @@ export async function getExpenses(): Promise<Expense[]> {
 
 export async function getSettings(): Promise<Settings> {
     const defaultSettings: Settings = {
-        businessName: "Ma-D",
+        businessName: "My Business",
         currency: "USD",
         enableAssistant: true,
         autoSuggestions: true,
