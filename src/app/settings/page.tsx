@@ -13,6 +13,7 @@ import { Building, BrainCircuit, Cloud, Languages, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useApp } from "@/contexts/app-context";
 import type { Settings } from "@/lib/types";
+import { MaDIcon } from "@/components/ui/icons";
 
 export default function SettingsPage() {
   const { settings: globalSettings, updateSettings } = useApp();
@@ -94,7 +95,7 @@ export default function SettingsPage() {
         {/* AI Assistant Settings Card */}
         <Card>
           <CardHeader className="flex flex-row items-center gap-4">
-            <BrainCircuit className="h-6 w-6" />
+            <MaDIcon className="w-6 h-6 text-primary" />
             <div>
               <CardTitle className="font-futuristic text-xl tracking-wider">
                 Ma-D <span className="text-primary font-normal">AI Assistant</span>

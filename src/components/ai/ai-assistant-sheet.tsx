@@ -121,10 +121,10 @@ export function AIAssistant() {
               >
                 <Button
                   onClick={() => setIsOpen(true)}
-                  className="rounded-full w-16 h-16 shadow-lg shadow-primary/40 bg-accent text-accent-foreground hover:bg-accent/90"
+                  className="rounded-full w-16 h-16 p-3 shadow-lg shadow-primary/40 bg-accent text-accent-foreground hover:bg-accent/90 flex items-center justify-center"
                   size="icon"
                 >
-                  <MaDIcon className="w-8 h-8" />
+                  <MaDIcon className="w-full h-full" />
                 </Button>
               </motion.div>
             )}
@@ -178,8 +178,8 @@ export function AIAssistant() {
                   >
                     {message.role === "assistant" && (
                       <Avatar className="h-8 w-8 border">
-                        <AvatarFallback className="bg-primary/20 text-primary">
-                          <MaDIcon className="w-5 h-5" />
+                        <AvatarFallback className="bg-primary/20 text-primary p-1">
+                          <MaDIcon className="w-full h-full" />
                         </AvatarFallback>
                       </Avatar>
                     )}
@@ -205,8 +205,8 @@ export function AIAssistant() {
                 {isLoading && (
                   <div className="flex items-start gap-3">
                     <Avatar className="h-8 w-8 border">
-                      <AvatarFallback className="bg-primary/20 text-primary">
-                        <MaDIcon className="w-5 h-5" />
+                      <AvatarFallback className="bg-primary/20 text-primary p-1">
+                        <MaDIcon className="w-full h-full" />
                       </AvatarFallback>
                     </Avatar>
                     <div className="rounded-lg px-4 py-2 bg-muted flex items-center">
