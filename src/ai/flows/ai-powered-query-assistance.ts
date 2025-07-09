@@ -119,15 +119,68 @@ const aiAssistedQueryFlow = ai.defineFlow(
                 .sort((a, b) => b.totalProfit - a.totalProfit);
         }
     );
+    
+    const getInventoryForecast = ai.defineTool(
+      {
+        name: 'getInventoryForecast',
+        description: 'Forecasts inventory levels based on recent sales velocity to predict when products might run out of stock.',
+        inputSchema: z.object({ productName: z.string().optional().describe("The specific product to forecast. If omitted, forecasts for all products with recent sales.") }),
+        outputSchema: z.array(z.object({
+            productName: z.string(),
+            stock: z.number(),
+            thirtyDaySales: z.number(),
+            dailyVelocity: z.number().describe("Average units sold per day over the last 30 days."),
+            daysUntilEmpty: z.string().describe("Estimated days until stock runs out. 'N/A' if no recent sales."),
+        })),
+      },
+      async ({ productName }) => {
+        const relevantProducts = productName 
+            ? flowInput.products.filter(p => p.name.toLowerCase() === productName.toLowerCase())
+            : flowInput.products;
+
+        const thirtyDaysAgo = subDays(new Date(), 30);
+        const recentSales = flowInput.sales.filter(s => new Date(s.date) >= thirtyDaysAgo);
+
+        const forecasts = relevantProducts.map(product => {
+            const productSales = recentSales.filter(s => s.productId === product.id);
+            const thirtyDaySales = productSales.reduce((sum, s) => sum + s.quantity, 0);
+            const dailyVelocity = thirtyDaySales / 30;
+            
+            let daysUntilEmpty = 'N/A';
+            if (dailyVelocity > 0) {
+                const days = Math.floor(product.stock / dailyVelocity);
+                daysUntilEmpty = days.toString();
+            }
+
+            return {
+                productName: product.name,
+                stock: product.stock,
+                thirtyDaySales,
+                dailyVelocity: parseFloat(dailyVelocity.toFixed(2)),
+                daysUntilEmpty,
+            };
+        });
+
+        // If a specific product was requested, return only that. Otherwise, return all forecasts with recent sales.
+        if (productName) {
+            return forecasts;
+        }
+        return forecasts.filter(f => f.thirtyDaySales > 0);
+      }
+    );
 
     const prompt = ai.definePrompt({
       name: 'aiAssistedQueryPromptWithTools',
       model: 'googleai/gemini-1.5-flash-latest',
-      tools: [getInventoryStatus, getSalesSummary, getProductProfitability],
-      system: `You are a helpful AI assistant for a small business owner. Your goal is to answer questions about sales data and inventory.
-      Use the available tools to find the information needed to answer the user's query.
-      When presenting currency, format it with a dollar sign and two decimal places (e.g., $1,234.56).
-      Be concise and friendly in your response.`,
+      tools: [getInventoryStatus, getSalesSummary, getProductProfitability, getInventoryForecast],
+      system: `You are a helpful AI assistant for a small business owner. Your goal is to answer questions about sales data, provide predictive insights, and help with marketing.
+
+- Use the available tools to find the information needed to answer the user's query.
+- You can perform comparisons, like comparing sales this month vs. last month, by calling the necessary tools multiple times with different parameters.
+- When presenting currency, format it with a dollar sign and two decimal places (e.g., $1,234.56).
+- If asked to create marketing content, like an email, use the product information available to you to write a compelling draft.
+- Use the getInventoryForecast tool to predict when items might run out of stock.
+- Be concise and friendly in your response.`,
       output: {schema: AiAssistedQueryOutputSchema},
     });
 
