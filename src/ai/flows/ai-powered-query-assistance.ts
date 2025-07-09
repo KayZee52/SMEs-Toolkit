@@ -23,7 +23,7 @@ const ProductSchema = z.object({
     cost: z.number(),
     category: z.string().optional(),
     supplier: z.string().optional(),
-    lastUpdatedAt: z.string(),
+    lastUpdatedAt: z.string().optional(), // Made optional to handle old data
 });
 
 const SaleSchema = z.object({
@@ -83,9 +83,9 @@ const aiAssistedQueryFlow = ai.defineFlow(
     const getSalesSummary = ai.defineTool(
         {
             name: 'getSalesSummary',
-            description: "Get a summary of sales totals over a given period of days.",
+            description: "Get a summary of sales totals over a given period of days. Use this for questions about revenue or profit for specific timeframes.",
             inputSchema: z.object({
-                periodInDays: z.number().describe("The number of past days to summarize. For 'today', use 1. For 'this week' or 'last 7 days', use 7.")
+                periodInDays: z.number().describe("The number of past days to summarize. For 'today', use 1. For 'this week' or 'last 7 days', use 7. For 'this month' use 30.")
             }),
             outputSchema: z.object({ totalRevenue: z.number(), totalProfit: z.number(), itemsSold: z.number() })
         },
@@ -104,7 +104,7 @@ const aiAssistedQueryFlow = ai.defineFlow(
     const getProductProfitability = ai.defineTool(
         {
             name: 'getProductProfitability',
-            description: 'Get a list of products ranked by their total profitability. Can be used to find the most or least profitable product.',
+            description: 'Get a list of products ranked by their total profitability. Use this to find the most or least profitable product.',
             inputSchema: z.object({}), // No input needed, uses data from the flow's context.
             outputSchema: z.array(z.object({ name: z.string(), totalProfit: z.number() }))
         },
@@ -123,7 +123,7 @@ const aiAssistedQueryFlow = ai.defineFlow(
     const getTopSellingProducts = ai.defineTool(
         {
             name: 'getTopSellingProducts',
-            description: 'Get a list of products ranked by total sales revenue. Can be used to find the best-selling products.',
+            description: 'Get a list of products ranked by total sales revenue. Use this to find the best-selling or top-selling products.',
             inputSchema: z.object({}),
             outputSchema: z.array(z.object({ name: z.string(), totalRevenue: z.number() }))
         },
@@ -190,7 +190,7 @@ const aiAssistedQueryFlow = ai.defineFlow(
 
     const prompt = ai.definePrompt({
       name: 'aiAssistedQueryPromptWithTools',
-      model: 'googleai/gemini-1.5-flash-latest',
+      model: 'googleai/gemini-pro',
       tools: [getInventoryStatus, getSalesSummary, getProductProfitability, getTopSellingProducts, getInventoryForecast],
       system: `You are a helpful AI assistant for a small business owner. Your goal is to answer questions about sales data, provide predictive insights, and help with marketing.
 
