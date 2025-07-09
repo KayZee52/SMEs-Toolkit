@@ -6,73 +6,47 @@ import type { Product, Sale, Customer, Expense, Settings, AppContextType, LogSal
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 import { getTranslations } from "@/lib/i18n";
-import { db } from "@/lib/db";
+import {
+    addProduct as addProductAction,
+    updateProduct as updateProductAction,
+    receiveStock as receiveStockAction,
+    addSale as addSaleAction,
+    addCustomer as addCustomerAction,
+    updateCustomer as updateCustomerAction,
+    addExpense as addExpenseAction,
+    updateExpense as updateExpenseAction,
+    deleteExpense as deleteExpenseAction,
+    updateSettings as updateSettingsAction,
+} from "@/actions/db";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const defaultSettings: Settings = {
-  businessName: "Ma-D",
-  currency: "USD",
-  enableAssistant: true,
-  autoSuggestions: true,
-  language: "en",
-};
+interface AppProviderProps {
+    initialData: {
+        products: Product[];
+        sales: Sale[];
+        customers: Customer[];
+        expenses: Expense[];
+        settings: Settings;
+    };
+    children: ReactNode;
+}
 
-export const AppProvider = ({ children }: { children: ReactNode }) => {
+export const AppProvider = ({ children, initialData }: AppProviderProps) => {
   const { toast } = useToast();
   
-  const [products, setProducts] = useState<Product[]>([]);
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [settings, setSettings] = useState<Settings>(defaultSettings);
-
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [products, setProducts] = useState<Product[]>(initialData.products);
+  const [sales, setSales] = useState<Sale[]>(initialData.sales);
+  const [customers, setCustomers] = useState<Customer[]>(initialData.customers);
+  const [expenses, setExpenses] = useState<Expense[]>(initialData.expenses);
+  const [settings, setSettings] = useState<Settings>(initialData.settings);
   
   const translations = getTranslations(settings.language);
 
-  const loadData = () => {
+  const addProduct = async (productData: Omit<Product, "id" | "lastUpdatedAt">) => {
     try {
-      setProducts(db.prepare("SELECT * FROM products ORDER BY name ASC").all() as Product[]);
-      setSales(db.prepare("SELECT * FROM sales ORDER BY date DESC").all() as Sale[]);
-      setCustomers(db.prepare("SELECT * FROM customers ORDER BY name ASC").all() as Customer[]);
-      setExpenses(db.prepare("SELECT * FROM expenses ORDER BY date DESC").all() as Expense[]);
-      
-      const settingsFromDb = db.prepare("SELECT value FROM settings WHERE key = ?").get('appSettings') as { value: string } | undefined;
-      if (settingsFromDb) {
-        setSettings(JSON.parse(settingsFromDb.value));
-      } else {
-        db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)").run('appSettings', JSON.stringify(defaultSettings));
-      }
-    } catch (error) {
-        console.error("Failed to load data from database:", error);
-        toast({
-            variant: "destructive",
-            title: "Database Error",
-            description: "Could not load application data.",
-        });
-    }
-  };
-
-  useEffect(() => {
-    // This effect runs only once after the initial render to load data from SQLite.
-    loadData();
-    setIsInitialized(true);
-  }, []); 
-
-  const addProduct = (productData: Omit<Product, "id" | "lastUpdatedAt">) => {
-    const newProduct: Omit<Product, "id"> = {
-      ...productData,
-      lastUpdatedAt: new Date().toISOString(),
-    };
-    try {
-        const stmt = db.prepare(`
-            INSERT INTO products (name, description, stock, price, cost, category, supplier, lastUpdatedAt) 
-            VALUES (@name, @description, @stock, @price, @cost, @category, @supplier, @lastUpdatedAt)
-        `);
-        const result = stmt.run(newProduct);
-        const insertedProduct = { ...newProduct, id: result.lastInsertRowid.toString() };
-        setProducts(prev => [...prev, insertedProduct]);
+        const newProduct = await addProductAction(productData);
+        setProducts(prev => [...prev, newProduct].sort((a,b) => a.name.localeCompare(b.name)));
         toast({ title: "Product Added", description: `${newProduct.name} has been added to inventory.` });
     } catch (error) {
         console.error("Failed to add product:", error);
@@ -80,22 +54,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  const updateProduct = (updatedProduct: Product) => {
-    const productToUpdate = { ...updatedProduct, lastUpdatedAt: new Date().toISOString() };
+  const updateProduct = async (updatedProduct: Product) => {
     try {
-        const stmt = db.prepare(`
-            UPDATE products SET 
-                name = @name, 
-                description = @description, 
-                stock = @stock, 
-                price = @price, 
-                cost = @cost, 
-                category = @category, 
-                supplier = @supplier, 
-                lastUpdatedAt = @lastUpdatedAt
-            WHERE id = @id
-        `);
-        stmt.run(productToUpdate);
+        const productToUpdate = await updateProductAction(updatedProduct);
         setProducts(prev => prev.map(p => p.id === updatedProduct.id ? productToUpdate : p));
         toast({ title: "Product Updated", description: `${updatedProduct.name} has been updated.` });
     } catch (error) {
@@ -104,100 +65,35 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  const receiveStock = (productId: string, quantity: number, costPerUnit: number) => {
-    const product = products.find((p) => p.id === productId);
-    if (!product) {
-      toast({ variant: "destructive", title: "Error", description: "Product not found." });
-      return;
+  const receiveStock = async (productId: string, quantity: number, costPerUnit: number) => {
+    try {
+        const updatedProduct = await receiveStockAction(productId, quantity, costPerUnit);
+        setProducts(prev => prev.map(p => p.id === productId ? updatedProduct : p));
+        toast({ title: "Stock Received", description: `${quantity} units of ${updatedProduct.name} added.` });
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+        toast({ variant: "destructive", title: "Error", description: errorMessage });
     }
-
-    const currentStock = Number(product.stock) || 0;
-    const currentCost = Number(product.cost) || 0;
-    if (quantity <= 0) return;
-
-    const newStock = currentStock + quantity;
-    const newAverageCost = newStock > 0
-      ? ((currentCost * currentStock) + (costPerUnit * quantity)) / newStock
-      : costPerUnit;
-
-    const updatedProduct: Product = {
-      ...product,
-      stock: newStock,
-      cost: isNaN(newAverageCost) ? currentCost : newAverageCost,
-      lastUpdatedAt: new Date().toISOString(),
-    };
-    updateProduct(updatedProduct);
-    toast({ title: "Stock Received", description: `${quantity} units of ${product.name} added.` });
   };
 
 
-  const addSale = (saleData: LogSaleFormValues) => {
-    const product = products.find((p) => p.id === saleData.productId);
-    if (!product) {
-      toast({ variant: "destructive", title: "Error", description: "Product not found." });
-      return;
-    }
-    if (product.stock < saleData.quantity) {
-      toast({ variant: "destructive", title: "Error", description: "Not enough stock." });
-      return;
-    }
-
-    let customerName = "Walk-in Customer";
-    if (saleData.customerId && saleData.customerId !== 'walk-in') {
-        const customer = customers.find(c => c.id === saleData.customerId);
-        if(customer) customerName = customer.name;
-    }
-
-    const profit = (saleData.pricePerUnit - product.cost) * saleData.quantity;
-    const total = saleData.pricePerUnit * saleData.quantity;
-
-    const newSaleData: Omit<Sale, "id"> = {
-      productId: saleData.productId,
-      productName: product.name,
-      customerName: customerName,
-      customerId: saleData.customerId,
-      quantity: saleData.quantity,
-      pricePerUnit: saleData.pricePerUnit,
-      total,
-      profit,
-      notes: saleData.notes,
-      date: new Date().toISOString(),
-    };
-
+  const addSale = async (saleData: LogSaleFormValues) => {
     try {
-        const stmt = db.prepare(`
-            INSERT INTO sales (productId, customerId, customerName, productName, quantity, pricePerUnit, total, profit, notes, date) 
-            VALUES (@productId, @customerId, @customerName, @productName, @quantity, @pricePerUnit, @total, @profit, @notes, @date)
-        `);
-        const result = stmt.run(newSaleData);
-        const newSale = { ...newSaleData, id: result.lastInsertRowid.toString() };
-
+        const { newSale, updatedProduct } = await addSaleAction(saleData);
         setSales(prev => [newSale, ...prev]);
-        
-        const updatedProduct = { ...product, stock: product.stock - saleData.quantity, lastUpdatedAt: new Date().toISOString() };
-        updateProduct(updatedProduct);
-
-        toast({ title: "Sale Logged", description: `Sold ${saleData.quantity} of ${product.name}.` });
+        setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+        toast({ title: "Sale Logged", description: `Sold ${saleData.quantity} of ${newSale.productName}.` });
     } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
         console.error("Failed to add sale:", error);
-        toast({ variant: "destructive", title: "Error", description: "Could not log sale."});
+        toast({ variant: "destructive", title: "Error", description: errorMessage});
     }
   };
   
-  const addCustomer = (customerData: Omit<Customer, "id" | "createdAt">): Customer => {
-    const newCustomerData = {
-      ...customerData,
-      createdAt: new Date().toISOString(),
-      type: customerData.type || "Regular",
-    };
+  const addCustomer = async (customerData: Omit<Customer, "id" | "createdAt">): Promise<Customer> => {
     try {
-        const stmt = db.prepare(`
-            INSERT INTO customers (name, phone, createdAt, notes, type) 
-            VALUES (@name, @phone, @createdAt, @notes, @type)
-        `);
-        const result = stmt.run(newCustomerData);
-        const newCustomer = { ...newCustomerData, id: result.lastInsertRowid.toString() };
-        setCustomers(prev => [newCustomer, ...prev]);
+        const newCustomer = await addCustomerAction(customerData);
+        setCustomers(prev => [...prev, newCustomer].sort((a,b) => a.name.localeCompare(b.name)));
         toast({ title: "Customer Added", description: `${newCustomer.name} has been added.` });
         return newCustomer;
     } catch (error) {
@@ -207,33 +103,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  const updateCustomer = (updatedCustomer: Customer) => {
+  const updateCustomer = async (updatedCustomer: Customer) => {
     try {
-        const stmt = db.prepare(`
-            UPDATE customers SET name = @name, phone = @phone, notes = @notes, type = @type
-            WHERE id = @id
-        `);
-        stmt.run(updatedCustomer);
-        setCustomers(prev => prev.map((c) => (c.id === updatedCustomer.id ? updatedCustomer : c)));
-        toast({ title: "Customer Updated", description: `${updatedCustomer.name}'s details have been updated.` });
+        const customer = await updateCustomerAction(updatedCustomer);
+        setCustomers(prev => prev.map((c) => (c.id === customer.id ? customer : c)));
+        toast({ title: "Customer Updated", description: `${customer.name}'s details have been updated.` });
     } catch(error) {
         console.error("Failed to update customer:", error);
         toast({ variant: "destructive", title: "Error", description: "Could not update customer."});
     }
   };
 
-  const addExpense = (expenseData: Omit<Expense, "id" | "date">) => {
-    const newExpenseData: Omit<Expense, "id"> = {
-      ...expenseData,
-      date: new Date().toISOString(),
-    };
+  const addExpense = async (expenseData: Omit<Expense, "id" | "date">) => {
     try {
-        const stmt = db.prepare(`
-            INSERT INTO expenses (description, category, amount, date, notes) 
-            VALUES (@description, @category, @amount, @date, @notes)
-        `);
-        const result = stmt.run(newExpenseData);
-        const newExpense = { ...newExpenseData, id: result.lastInsertRowid.toString() };
+        const newExpense = await addExpenseAction(expenseData);
         setExpenses(prev => [newExpense, ...prev]);
         toast({ title: "Expense Logged", description: `${expenseData.description} for ${formatCurrency(expenseData.amount)} has been logged.` });
     } catch (error) {
@@ -242,25 +125,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  const updateExpense = (updatedExpense: Expense) => {
-    const expenseToUpdate = { ...updatedExpense, date: new Date().toISOString() };
+  const updateExpense = async (updatedExpense: Expense) => {
     try {
-        const stmt = db.prepare(`
-            UPDATE expenses SET description = @description, category = @category, amount = @amount, date = @date, notes = @notes
-            WHERE id = @id
-        `);
-        stmt.run(expenseToUpdate);
-        setExpenses(prev => prev.map((e) => (e.id === updatedExpense.id ? expenseToUpdate : e)));
-        toast({ title: "Expense Updated", description: `${updatedExpense.description} has been updated.` });
+        const expense = await updateExpenseAction(updatedExpense);
+        setExpenses(prev => prev.map((e) => (e.id === expense.id ? expense : e)));
+        toast({ title: "Expense Updated", description: `${expense.description} has been updated.` });
     } catch(error) {
         console.error("Failed to update expense:", error);
         toast({ variant: "destructive", title: "Error", description: "Could not update expense."});
     }
   };
 
-  const deleteExpense = (id: string) => {
+  const deleteExpense = async (id: string) => {
     try {
-        db.prepare("DELETE FROM expenses WHERE id = ?").run(id);
+        await deleteExpenseAction(id);
         setExpenses((prev) => prev.filter((e) => e.id !== id));
         toast({ title: "Expense Deleted", description: "The expense has been removed." });
     } catch (error) {
@@ -273,10 +151,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return customers.find(c => c.name.toLowerCase() === name.toLowerCase());
   }
 
-  const updateSettings = (newSettings: Settings) => {
+  const updateSettings = async (newSettings: Settings) => {
     try {
-        db.prepare("UPDATE settings SET value = ? WHERE key = ?").run(JSON.stringify(newSettings), 'appSettings');
-        setSettings(newSettings);
+        const settings = await updateSettingsAction(newSettings);
+        setSettings(settings);
         toast({
             title: "Settings Saved",
             description: "Your changes have been successfully saved.",
@@ -286,8 +164,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         toast({ variant: "destructive", title: "Error", description: "Could not save settings."});
     }
   };
-
-  if (!isInitialized) return null;
 
   const value: AppContextType = {
     products,

@@ -6,6 +6,7 @@ import SidebarNav from "@/components/layout/sidebar-nav";
 import Header from "@/components/layout/header";
 import { AIAssistant } from "@/components/ai/ai-assistant-sheet";
 import { ThemeProvider } from "@/components/layout/theme-provider";
+import { getInitialData } from "@/actions/db";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,11 +14,13 @@ export const metadata: Metadata = {
   description: "Smart tools for your business.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialData = await getInitialData();
+  
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -39,7 +42,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AppProvider>
+          <AppProvider initialData={initialData}>
             <SidebarProvider>
               <Sidebar>
                 <SidebarNav />

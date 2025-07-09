@@ -1,4 +1,3 @@
-
 import type { Translation } from "./i18n";
 
 export type Product = {
@@ -67,16 +66,16 @@ export interface AppContextType {
   customers: Customer[];
   expenses: Expense[];
   settings: Settings;
-  addProduct: (product: Omit<Product, "id" | "lastUpdatedAt">) => void;
-  updateProduct: (product: Product) => void;
-  receiveStock: (productId: string, quantity: number, costPerUnit: number) => void;
-  addSale: (sale: LogSaleFormValues) => void;
-  addCustomer: (customer: Omit<Customer, "id" | "createdAt">) => Customer;
-  updateCustomer: (customer: Customer) => void;
-  addExpense: (expense: Omit<Expense, "id" | "date">) => void;
-  updateExpense: (expense: Expense) => void;
-  deleteExpense: (id: string) => void;
+  addProduct: (product: Omit<Product, "id" | "lastUpdatedAt">) => Promise<void>;
+  updateProduct: (product: Product) => Promise<void>;
+  receiveStock: (productId: string, quantity: number, costPerUnit: number) => Promise<void>;
+  addSale: (sale: LogSaleFormValues) => Promise<void>;
+  addCustomer: (customer: Omit<Customer, "id" | "createdAt">) => Promise<Customer>;
+  updateCustomer: (customer: Customer) => Promise<void>;
+  addExpense: (expense: Omit<Expense, "id" | "date">) => Promise<void>;
+  updateExpense: (expense: Expense) => Promise<void>;
+  deleteExpense: (id: string) => Promise<void>;
   findCustomerByName: (name: string) => Customer | undefined;
-  updateSettings: (settings: Settings) => void;
+  updateSettings: (settings: Settings) => Promise<void>;
   translations: Translation;
 }
