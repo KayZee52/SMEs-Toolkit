@@ -135,7 +135,7 @@ export function AIAssistant() {
         <SheetContent className="flex flex-col p-0">
           <SheetHeader className="p-4 flex flex-row justify-between items-center text-left border-b">
             <SheetTitle className="font-headline text-lg">
-              {settings.assistantName || "AI Assistant"}
+              Ma-D
             </SheetTitle>
             <SheetClose asChild>
               <Button variant="ghost" size="icon">

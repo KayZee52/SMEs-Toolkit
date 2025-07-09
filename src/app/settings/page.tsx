@@ -96,19 +96,11 @@ export default function SettingsPage() {
           <CardHeader className="flex flex-row items-center gap-4">
             <BrainCircuit className="h-6 w-6" />
             <div>
-              <CardTitle className="font-headline">{globalSettings.assistantName || "AI Assistant"}</CardTitle>
+              <CardTitle className="font-headline">Ma-D</CardTitle>
               <CardDescription>Customize the behavior of the assistant.</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="assistant-name">Assistant Name</Label>
-              <Input 
-                id="assistant-name" 
-                value={settings.assistantName || ""}
-                onChange={(e) => handleInputChange('assistantName', e.target.value)}
-              />
-            </div>
             <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
                 <Label>Enable Assistant</Label>

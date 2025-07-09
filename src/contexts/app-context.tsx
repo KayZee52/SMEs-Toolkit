@@ -23,6 +23,7 @@ const useLocalStorage = <T,>(key: string, initialValue: T): [T, React.Dispatch<R
         // Guard against data corruption: if we expect an array but don't get one, reset.
         if (Array.isArray(initialValue) && !Array.isArray(parsedItem)) {
           console.warn(`LocalStorage Corruption: Resetting "${key}" because an array was expected.`);
+          window.localStorage.setItem("dataInitialized", "false"); // Force re-seed
           return initialValue;
         }
 
@@ -58,7 +59,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   
   const defaultSettings: Settings = {
     businessName: "SMEs Toolkit",
-    assistantName: "Ma-D",
     currency: "USD",
     enableAssistant: true,
     autoSuggestions: true,
