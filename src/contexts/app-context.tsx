@@ -19,11 +19,18 @@ const useLocalStorage = <T,>(key: string, initialValue: T): [T, React.Dispatch<R
       const item = window.localStorage.getItem(key);
       if (item) {
         const parsedItem = JSON.parse(item);
+
+        // Guard against data corruption: if we expect an array but don't get one, reset.
+        if (Array.isArray(initialValue) && !Array.isArray(parsedItem)) {
+          console.warn(`LocalStorage Corruption: Resetting "${key}" because an array was expected.`);
+          return initialValue;
+        }
+
         // The merging logic is only intended for objects (like settings) to be forward-compatible.
         if (typeof initialValue === 'object' && !Array.isArray(initialValue) && initialValue !== null) {
           return { ...initialValue, ...parsedItem };
         }
-        // For arrays and primitives, return the parsed value directly.
+        
         return parsedItem;
       }
       return initialValue;
