@@ -175,9 +175,9 @@ export function LogSaleDialog() {
                         <CommandEmpty>No customer found.</CommandEmpty>
                         <CommandGroup>
                             <CommandItem
-                                value=""
+                                value="walk-in"
                                 onSelect={() => {
-                                    form.setValue("customerName", "");
+                                    field.onChange("");
                                     setPopoverOpen(false);
                                 }}
                             >
@@ -194,7 +194,7 @@ export function LogSaleDialog() {
                               key={customer.id}
                               value={customer.name}
                               onSelect={() => {
-                                form.setValue("customerName", customer.name);
+                                field.onChange(customer.name);
                                 setPopoverOpen(false);
                               }}
                             >
@@ -215,7 +215,7 @@ export function LogSaleDialog() {
                                     <CommandItem
                                         value={customerSearch.trim()}
                                         onSelect={() => {
-                                            form.setValue("customerName", customerSearch.trim());
+                                            field.onChange(customerSearch.trim());
                                             setPopoverOpen(false);
                                         }}
                                     >
