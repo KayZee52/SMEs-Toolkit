@@ -11,7 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {subDays} from 'date-fns';
+import {subDays, startOfDay} from 'date-fns';
 
 // Zod schemas for data types, mirroring src/lib/types.ts
 const ProductSchema = z.object({
@@ -83,14 +83,14 @@ const aiAssistedQueryFlow = ai.defineFlow(
     const getSalesSummary = ai.defineTool(
         {
             name: 'getSalesSummary',
-            description: "Get a summary of sales totals over a given period. Default is today (1 day).",
+            description: "Get a summary of sales totals over a given period of days.",
             inputSchema: z.object({
-                periodInDays: z.number().optional().describe("The number of past days to summarize. e.g., 1 for today, 7 for the last week.")
+                periodInDays: z.number().describe("The number of past days to summarize. For 'today', use 1. For 'this week' or 'last 7 days', use 7.")
             }),
             outputSchema: z.object({ totalRevenue: z.number(), totalProfit: z.number(), itemsSold: z.number() })
         },
         async ({ periodInDays = 1 }) => {
-            const fromDate = subDays(new Date(), periodInDays);
+            const fromDate = startOfDay(subDays(new Date(), periodInDays - 1));
             const filteredSales = flowInput.sales.filter(s => new Date(s.date) >= fromDate);
 
             const totalRevenue = filteredSales.reduce((sum, s) => sum + s.total, 0);
@@ -157,7 +157,7 @@ const aiAssistedQueryFlow = ai.defineFlow(
             ? flowInput.products.filter(p => p.name.toLowerCase() === productName.toLowerCase())
             : flowInput.products;
 
-        const thirtyDaysAgo = subDays(new Date(), 30);
+        const thirtyDaysAgo = startOfDay(subDays(new Date(), 30));
         const recentSales = flowInput.sales.filter(s => new Date(s.date) >= thirtyDaysAgo);
 
         const forecasts = relevantProducts.map(product => {
@@ -195,25 +195,22 @@ const aiAssistedQueryFlow = ai.defineFlow(
       system: `You are a helpful AI assistant for a small business owner. Your goal is to answer questions about sales data, provide predictive insights, and help with marketing.
 
 - Use the available tools to find the information needed to answer the user's query.
+- For questions about specific time periods (e.g., "today", "this week", "last 7 days"), use the 'getSalesSummary' tool with the appropriate 'periodInDays' value (e.g., for "today", use periodInDays: 1. for "this week" or "last 7 days", use periodInDays: 7).
 - Use the getProductProfitability tool to answer questions about which products are most or least profitable.
 - Use the getTopSellingProducts tool to answer questions about best-selling or top-selling items.
 - You can perform comparisons, like comparing sales this month vs. last month, by calling the necessary tools multiple times with different parameters.
 - When presenting currency, format it with a dollar sign and two decimal places (e.g., $1,234.56).
 - If asked to create marketing content, like an email, use the product information available to you to write a compelling draft.
 - Use the getInventoryForecast tool to predict when items might run out of stock.
-- Be concise and friendly in your response.`,
-      output: {schema: AiAssistedQueryOutputSchema},
+- Be concise and friendly in your response.
+- IMPORTANT: Always respond with just the final, user-facing text answer. Do not output JSON.`,
     });
 
     const response = await prompt({ query: flowInput.query });
+    const answer = response.text;
     
-    if (response.output) {
-      return response.output;
-    }
-
-    const textResponse = response.text;
-    if (textResponse) {
-      return { answer: textResponse };
+    if (answer) {
+      return { answer };
     }
     
     throw new Error("AI failed to generate a valid response.");
