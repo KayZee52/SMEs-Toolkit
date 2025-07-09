@@ -38,6 +38,7 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import type { LogSaleFormValues } from "@/lib/types";
 
 const saleSchema = z.object({
   productId: z.string().min(1, "Product is required"),
@@ -47,7 +48,6 @@ const saleSchema = z.object({
   notes: z.string().optional(),
 });
 
-type SaleFormValues = z.infer<typeof saleSchema>;
 
 export function LogSaleDialog() {
   const { products, customers, addSale } = useApp();
@@ -55,12 +55,14 @@ export function LogSaleDialog() {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [customerSearch, setCustomerSearch] = useState("");
 
-  const form = useForm<SaleFormValues>({
+  const form = useForm<LogSaleFormValues>({
     resolver: zodResolver(saleSchema),
     defaultValues: {
       quantity: 1,
       notes: "",
       customerName: "",
+      productId: "",
+      pricePerUnit: 0,
     },
   });
 
@@ -75,31 +77,35 @@ export function LogSaleDialog() {
     }
   }, [selectedProductId, products, form]);
 
-  const onSubmit = (data: SaleFormValues) => {
+  useEffect(() => {
+    if (!open) {
+        form.reset({
+            productId: "",
+            customerName: "",
+            quantity: 1,
+            notes: "",
+            pricePerUnit: 0,
+        });
+        setCustomerSearch("");
+    }
+  }, [open, form]);
+
+  const onSubmit = (data: LogSaleFormValues) => {
     addSale(data);
-    form.reset({ productId: "", customerName: "", quantity: 1, notes: "" });
-    setCustomerSearch("");
     setOpen(false);
   };
   
   const filteredCustomers = useMemo(() => {
-    if (!customerSearch) return customers;
-    return customers.filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase()));
+    const lowercasedSearch = customerSearch.toLowerCase();
+    if (!lowercasedSearch) return customers;
+    return customers.filter(c => c.name.toLowerCase().includes(lowercasedSearch));
   }, [customerSearch, customers]);
 
   const showAddNewCustomer = useMemo(() => {
-    if (!customerSearch.trim()) return false;
-    // Check if the exact typed name exists
-    return !customers.some(c => c.name.toLowerCase() === customerSearch.trim().toLowerCase());
+    const trimmedSearch = customerSearch.trim();
+    if (!trimmedSearch) return false;
+    return !customers.some(c => c.name.toLowerCase() === trimmedSearch.toLowerCase());
   }, [customerSearch, customers]);
-
-  // Reset search when popover closes
-  useEffect(() => {
-    if (!popoverOpen) {
-      setCustomerSearch("");
-    }
-  }, [popoverOpen]);
-
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -175,16 +181,16 @@ export function LogSaleDialog() {
                         <CommandEmpty>No customer found.</CommandEmpty>
                         <CommandGroup>
                             <CommandItem
-                                value="walk-in"
-                                onSelect={() => {
-                                    field.onChange("");
+                                value=""
+                                onSelect={(currentValue) => {
+                                    field.onChange(currentValue);
                                     setPopoverOpen(false);
                                 }}
                             >
                                 <Check
                                     className={cn(
                                     "mr-2 h-4 w-4",
-                                    !field.value ? "opacity-100" : "opacity-0"
+                                    field.value === "" ? "opacity-100" : "opacity-0"
                                     )}
                                 />
                                 Walk-in Customer
@@ -193,8 +199,8 @@ export function LogSaleDialog() {
                             <CommandItem
                               key={customer.id}
                               value={customer.name}
-                              onSelect={() => {
-                                field.onChange(customer.name);
+                              onSelect={(currentValue) => {
+                                field.onChange(currentValue);
                                 setPopoverOpen(false);
                               }}
                             >
@@ -214,8 +220,8 @@ export function LogSaleDialog() {
                                 <CommandGroup>
                                     <CommandItem
                                         value={customerSearch.trim()}
-                                        onSelect={() => {
-                                            field.onChange(customerSearch.trim());
+                                        onSelect={(currentValue) => {
+                                            field.onChange(currentValue);
                                             setPopoverOpen(false);
                                         }}
                                     >
