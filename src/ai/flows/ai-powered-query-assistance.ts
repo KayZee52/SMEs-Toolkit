@@ -23,7 +23,7 @@ const ProductSchema = z.object({
     cost: z.number(),
     category: z.string().optional(),
     supplier: z.string().optional(),
-    lastUpdatedAt: z.string().optional(), // Made optional to handle old data
+    lastUpdatedAt: z.string(), // Now required due to data migration
 });
 
 const SaleSchema = z.object({
@@ -190,7 +190,7 @@ const aiAssistedQueryFlow = ai.defineFlow(
 
     const prompt = ai.definePrompt({
       name: 'aiAssistedQueryPromptWithTools',
-      model: 'googleai/gemini-pro',
+      model: 'googleai/gemini-2.0-flash',
       tools: [getInventoryStatus, getSalesSummary, getProductProfitability, getTopSellingProducts, getInventoryForecast],
       system: `You are a helpful AI assistant for a small business owner. Your goal is to answer questions about sales data, provide predictive insights, and help with marketing.
 

@@ -28,7 +28,7 @@ export async function generateProductDescription(input: GenerateProductDescripti
 
 const prompt = ai.definePrompt({
   name: 'generateProductDescriptionPrompt',
-  model: 'googleai/gemini-pro',
+  model: 'googleai/gemini-2.0-flash',
   input: {schema: GenerateProductDescriptionInputSchema},
   output: {schema: GenerateProductDescriptionOutputSchema},
   prompt: `You are a marketing expert specializing in writing compelling, concise, and attractive product descriptions.

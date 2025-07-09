@@ -68,7 +68,7 @@ export async function summarizeReport(input: SummarizeReportInput): Promise<Summ
 
 const prompt = ai.definePrompt({
   name: 'summarizeReportPrompt',
-  model: 'googleai/gemini-pro',
+  model: 'googleai/gemini-2.0-flash',
   input: {schema: SummarizeReportInputSchema},
   output: {schema: SummarizeReportOutputSchema},
   prompt: `You are a savvy business analyst AI. Your task is to provide a clear and concise summary of business performance based on the provided data for a specific date range.
