@@ -58,7 +58,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   
   const defaultSettings: Settings = {
     businessName: "SMEs Toolkit",
-    assistantName: "AI Assistant",
+    assistantName: "Ma-D",
     currency: "USD",
     enableAssistant: true,
     autoSuggestions: true,
