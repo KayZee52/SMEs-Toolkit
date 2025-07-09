@@ -54,7 +54,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const translations = getTranslations(settings.language);
 
   useEffect(() => {
+    // This effect runs only once after the initial render to seed or migrate data.
     if (localStorage.getItem("dataInitialized") !== "true") {
+      // First run: seed with mock data.
       const salesWithProfit = MOCK_SALES.map(sale => {
         const product = MOCK_PRODUCTS.find(p => p.id === sale.productId);
         const profit = product ? (sale.pricePerUnit - product.cost) * sale.quantity : 0;
@@ -67,9 +69,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setExpenses(MOCK_EXPENSES);
       setSettings(defaultSettings);
       localStorage.setItem("dataInitialized", "true");
+    } else {
+      // For returning users, check if their data needs migration.
+      const productsFromStorage: Product[] = JSON.parse(localStorage.getItem("products") || "[]");
+      const needsMigration = productsFromStorage.some(p => !p.lastUpdatedAt);
+
+      if (needsMigration) {
+        console.log("Running data migration for products...");
+        const migratedProducts = productsFromStorage.map(p => 
+          p.lastUpdatedAt ? p : { ...p, lastUpdatedAt: new Date().toISOString() }
+        );
+        setProducts(migratedProducts);
+      }
     }
     setIsInitialized(true);
-  }, []);
+  }, []); // Empty array ensures this runs only once on mount.
+
 
   const addProduct = (productData: Omit<Product, "id" | "lastUpdatedAt">) => {
     const newProduct: Product = {

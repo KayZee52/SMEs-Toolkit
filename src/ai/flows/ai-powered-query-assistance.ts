@@ -23,7 +23,7 @@ const ProductSchema = z.object({
     cost: z.number(),
     category: z.string().optional(),
     supplier: z.string().optional(),
-    lastUpdatedAt: z.string().optional(),
+    lastUpdatedAt: z.string(),
 });
 
 const SaleSchema = z.object({
