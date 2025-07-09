@@ -130,23 +130,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    let customerId: string | undefined;
+    let customer: Customer | undefined;
     let customerName: string;
 
-    if (saleData.customerName && saleData.customerName.trim() !== "") {
-        const existingCustomer = findCustomerByName(saleData.customerName);
-        if (existingCustomer) {
-            customerId = existingCustomer.id;
-            customerName = existingCustomer.name;
-        } else {
-            // Create a new customer if name is provided but not found
-            const newCustomer = addCustomer({ name: saleData.customerName });
-            customerId = newCustomer.id;
-            customerName = newCustomer.name;
-        }
-    } else {
-         customerName = "Walk-in Customer";
+    if (saleData.customerId) {
+        customer = customers.find(c => c.id === saleData.customerId);
     }
+    
+    customerName = customer ? customer.name : "Walk-in Customer";
+
 
     const profit = (saleData.pricePerUnit - product.cost) * saleData.quantity;
 
@@ -155,7 +147,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       productId: saleData.productId,
       productName: product.name,
       customerName: customerName,
-      customerId: customerId,
+      customerId: saleData.customerId,
       quantity: saleData.quantity,
       pricePerUnit: saleData.pricePerUnit,
       total: saleData.pricePerUnit * saleData.quantity,

@@ -25,24 +25,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useApp } from "@/contexts/app-context";
-import { useState, useEffect, useMemo } from "react";
-import { PlusCircle, ChevronsUpDown, Check } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
-import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import { PlusCircle } from "lucide-react";
 import type { LogSaleFormValues } from "@/lib/types";
 
 const saleSchema = z.object({
   productId: z.string().min(1, "Product is required"),
-  customerName: z.string().optional(),
+  customerId: z.string().optional(),
   quantity: z.coerce.number().int().min(1, "Quantity must be at least 1"),
   pricePerUnit: z.coerce.number().min(0, "Price must be a positive number"),
   notes: z.string().optional(),
@@ -52,15 +41,13 @@ const saleSchema = z.object({
 export function LogSaleDialog() {
   const { products, customers, addSale } = useApp();
   const [open, setOpen] = useState(false);
-  const [popoverOpen, setPopoverOpen] = useState(false);
-  const [customerSearch, setCustomerSearch] = useState("");
 
   const form = useForm<LogSaleFormValues>({
     resolver: zodResolver(saleSchema),
     defaultValues: {
       quantity: 1,
       notes: "",
-      customerName: "",
+      customerId: "",
       productId: "",
       pricePerUnit: 0,
     },
@@ -81,12 +68,11 @@ export function LogSaleDialog() {
     if (!open) {
         form.reset({
             productId: "",
-            customerName: "",
+            customerId: "",
             quantity: 1,
             notes: "",
             pricePerUnit: 0,
         });
-        setCustomerSearch("");
     }
   }, [open, form]);
 
@@ -95,17 +81,6 @@ export function LogSaleDialog() {
     setOpen(false);
   };
   
-  const filteredCustomers = useMemo(() => {
-    if (!customerSearch) return customers;
-    return customers.filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase()));
-  }, [customerSearch, customers]);
-
-  const showAddNewCustomer = useMemo(() => {
-    const trimmedSearch = customerSearch.trim();
-    if (!trimmedSearch) return false;
-    return !customers.some(c => c.name.toLowerCase() === trimmedSearch.toLowerCase());
-  }, [customerSearch, customers]);
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -155,90 +130,21 @@ export function LogSaleDialog() {
             <Label>Customer (Optional)</Label>
             <Controller
               control={form.control}
-              name="customerName"
+              name="customerId"
               render={({ field }) => (
-                <Popover open={popoverOpen} onOpenChange={(isOpen) => {
-                  setPopoverOpen(isOpen);
-                  if(isOpen) {
-                    setCustomerSearch(field.value || "");
-                  }
-                }}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={popoverOpen}
-                      className="w-full justify-between font-normal"
-                    >
-                      {field.value || "Select or type customer..."}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                    <Command shouldFilter={false}>
-                      <CommandInput
-                        placeholder="Search or add customer..."
-                        value={customerSearch}
-                        onValueChange={setCustomerSearch}
-                      />
-                       <CommandList>
-                        <CommandEmpty>No customer found.</CommandEmpty>
-                        <CommandGroup>
-                            <CommandItem
-                                value=""
-                                onSelect={() => {
-                                    field.onChange("");
-                                    setPopoverOpen(false);
-                                }}
-                            >
-                                <Check
-                                    className={cn(
-                                    "mr-2 h-4 w-4",
-                                    !field.value ? "opacity-100" : "opacity-0"
-                                    )}
-                                />
-                                Walk-in Customer
-                            </CommandItem>
-                          {filteredCustomers.map((customer) => (
-                            <CommandItem
-                              key={customer.id}
-                              value={customer.name}
-                              onSelect={() => {
-                                field.onChange(customer.name);
-                                setPopoverOpen(false);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  field.value === customer.name ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {customer.name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                        {showAddNewCustomer && (
-                            <>
-                                <CommandSeparator />
-                                <CommandGroup>
-                                    <CommandItem
-                                        value={customerSearch.trim()}
-                                        onSelect={() => {
-                                            field.onChange(customerSearch.trim());
-                                            setPopoverOpen(false);
-                                        }}
-                                    >
-                                        <PlusCircle className="mr-2 h-4 w-4" />
-                                        <span>Add "{customerSearch.trim()}"</span>
-                                    </CommandItem>
-                                </CommandGroup>
-                            </>
-                        )}
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a customer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Walk-in Customer</SelectItem>
+                    {customers.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
             />
           </div>

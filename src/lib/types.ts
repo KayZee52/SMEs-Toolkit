@@ -55,7 +55,7 @@ export type Settings = {
 
 export type LogSaleFormValues = {
   productId: string;
-  customerName?: string;
+  customerId?: string;
   quantity: number;
   pricePerUnit: number;
   notes?: string;
