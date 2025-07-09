@@ -8,11 +8,12 @@ import { BrainCircuit, AlertTriangle } from "lucide-react";
 import { getReportSummary } from "@/actions/ai";
 import { useApp } from "@/contexts/app-context";
 import type { Sale, Expense } from "@/lib/types";
+import { DateRange } from "react-day-picker";
 
 interface AiSummaryProps {
   filteredSales: Sale[];
   filteredExpenses: Expense[];
-  dateRange: { from: Date; to: Date } | undefined;
+  dateRange: DateRange | undefined;
 }
 
 export function AiSummary({ filteredSales, filteredExpenses, dateRange }: AiSummaryProps) {

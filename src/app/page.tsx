@@ -23,7 +23,6 @@ export default function DashboardPage() {
   const { sales, products } = useApp();
   const salesChartRef = useRef<HTMLDivElement>(null);
   const topProductsChartRef = useRef<HTMLDivElement>(null);
-  const recentActivityRef = useRef<HTMLDivElement>(null);
 
   const handleExportRecentActivityPdf = () => {
     const doc = new jsPDF();

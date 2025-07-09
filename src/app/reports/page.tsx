@@ -15,7 +15,7 @@ import { Download } from "lucide-react";
 import { AiSummary } from "@/components/reports/ai-summary";
 
 export default function ReportsPage() {
-  const { sales, expenses, customers } = useApp();
+  const { sales, expenses, customers, products } = useApp();
   const [date, setDate] = useState<DateRange | undefined>({
     from: subDays(new Date(), 29),
     to: new Date(),
