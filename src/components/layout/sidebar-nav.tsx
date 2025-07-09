@@ -20,8 +20,8 @@ import {
   AreaChart,
   ArrowRightLeft,
   Settings,
-  Bot,
 } from "lucide-react";
+import { MaDIcon } from "@/components/ui/icons";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -42,7 +42,7 @@ export default function SidebarNav() {
       <SidebarHeader>
         <div className="flex items-center gap-2">
             <div className="bg-primary/80 p-2 rounded-lg shadow-md shadow-primary/30">
-                <Bot className="text-primary-foreground" />
+                <MaDIcon className="text-primary-foreground" />
             </div>
             <h1 className="font-headline text-xl font-semibold">SMEs Toolkit</h1>
         </div>

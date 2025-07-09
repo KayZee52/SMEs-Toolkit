@@ -1,6 +1,7 @@
+
 "use client";
 import { useState, useRef, useEffect, type FormEvent } from "react";
-import { Bot, User, Loader, X, Send } from "lucide-react";
+import { User, Loader, X, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -16,6 +17,7 @@ import { useApp } from "@/contexts/app-context";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { MaDIcon } from "@/components/ui/icons";
 
 type Message = {
   role: "user" | "assistant";
@@ -122,7 +124,7 @@ export function AIAssistant() {
                   className="rounded-full w-16 h-16 shadow-lg shadow-primary/40 bg-accent text-accent-foreground hover:bg-accent/90"
                   size="icon"
                 >
-                  <Bot size={32} />
+                  <MaDIcon className="w-8 h-8" />
                 </Button>
               </motion.div>
             )}
@@ -133,7 +135,8 @@ export function AIAssistant() {
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent className="flex flex-col p-0">
           <SheetHeader className="p-4 flex flex-row justify-between items-center text-left border-b">
-            <SheetTitle className="font-futuristic text-lg tracking-wider">
+            <SheetTitle className="font-futuristic text-lg tracking-wider flex items-center gap-2">
+              <MaDIcon className="w-5 h-5 text-primary" />
               Ma-D <span className="text-primary font-normal">AI Assistant</span>
             </SheetTitle>
             <SheetClose asChild>
@@ -176,7 +179,7 @@ export function AIAssistant() {
                     {message.role === "assistant" && (
                       <Avatar className="h-8 w-8 border">
                         <AvatarFallback className="bg-primary/20 text-primary">
-                          <Bot size={20} />
+                          <MaDIcon className="w-5 h-5" />
                         </AvatarFallback>
                       </Avatar>
                     )}
@@ -203,7 +206,7 @@ export function AIAssistant() {
                   <div className="flex items-start gap-3">
                     <Avatar className="h-8 w-8 border">
                       <AvatarFallback className="bg-primary/20 text-primary">
-                        <Bot size={20} />
+                        <MaDIcon className="w-5 h-5" />
                       </AvatarFallback>
                     </Avatar>
                     <div className="rounded-lg px-4 py-2 bg-muted flex items-center">

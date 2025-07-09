@@ -1,7 +1,8 @@
+
 "use client";
 
 import type { Sale } from "@/lib/types";
-import { Bot } from "lucide-react";
+import { MaDIcon } from "@/components/ui/icons";
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -17,7 +18,7 @@ export function PrintableReceipt({ sale }: { sale: Sale }) {
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="bg-gray-800 p-2 rounded-lg">
-              <Bot className="text-white" />
+              <MaDIcon className="text-white" />
             </div>
             <h1 className="font-headline text-2xl font-semibold text-gray-800">SMEs Toolkit</h1>
           </div>
