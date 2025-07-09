@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -16,7 +17,7 @@
     --secondary-foreground: 215 20% 30%;
     --muted: 215 20% 95%;
     --muted-foreground: 215 15% 55%;
-    --accent: 25 95% 53%; /* Vibrant Orange */
+    --accent: 25 91% 61%; /* Vibrant Orange from image */
     --accent-foreground: 210 20% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -44,7 +45,7 @@
     --secondary-foreground: 210 20% 98%;
     --muted: 215 27.9% 16.9%;
     --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 25 95% 60%;
+    --accent: 25 91% 66%; /* Vibrant Orange from image - lighter for dark mode */
     --accent-foreground: 210 20% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 20% 98%;
