@@ -71,15 +71,29 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem("dataInitialized", "true");
     } else {
       // For returning users, check if their data needs migration.
-      const productsFromStorage: Product[] = JSON.parse(localStorage.getItem("products") || "[]");
-      const needsMigration = productsFromStorage.some(p => !p.lastUpdatedAt);
+      let currentProducts = products;
+      const needsProductMigration = products.some(p => !p.lastUpdatedAt);
 
-      if (needsMigration) {
+      if (needsProductMigration) {
         console.log("Running data migration for products...");
-        const migratedProducts = productsFromStorage.map(p => 
+        const migratedProducts = products.map(p => 
           p.lastUpdatedAt ? p : { ...p, lastUpdatedAt: new Date().toISOString() }
         );
         setProducts(migratedProducts);
+        currentProducts = migratedProducts;
+      }
+
+      const needsSaleMigration = sales.some(s => s.profit === undefined);
+      if (needsSaleMigration) {
+          console.log("Running data migration for sales...");
+          const migratedSales = sales.map(sale => {
+              if (sale.profit !== undefined) return sale; // Skip if profit already exists
+              
+              const product = currentProducts.find(p => p.id === sale.productId);
+              const profit = product ? (sale.pricePerUnit - product.cost) * sale.quantity : 0;
+              return { ...sale, profit };
+          });
+          setSales(migratedSales);
       }
     }
     setIsInitialized(true);
