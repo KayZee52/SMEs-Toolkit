@@ -15,7 +15,8 @@ export async function getAiReply(
     return { success: true, data: result };
   } catch (error) {
     console.error(error);
-    return { success: false, error: "Failed to get AI reply." };
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    return { success: false, error: `AI request failed: ${errorMessage}` };
   }
 }
 
@@ -25,7 +26,8 @@ export async function getCustomerInfoFromText(salesLog: string) {
     return { success: true, data: result };
   } catch (error) {
     console.error(error);
-    return { success: false, error: "Failed to extract customer info." };
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    return { success: false, error: `Failed to extract customer info: ${errorMessage}` };
   }
 }
 
@@ -41,6 +43,7 @@ export async function generateDescriptionForProduct(
     return { success: true, data: result };
   } catch (error) {
     console.error(error);
-    return { success: false, error: "Failed to generate description." };
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    return { success: false, error: `Failed to generate description: ${errorMessage}` };
   }
 }

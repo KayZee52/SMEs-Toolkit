@@ -73,9 +73,11 @@ export function AIAssistant() {
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } else {
+      const defaultError = "Sorry, I couldn't process that request. Please try again.";
+      const detailedError = aiReplyRes.error || defaultError;
       const errorMessage: Message = {
         role: "assistant",
-        content: "Sorry, I couldn't process that request. Please try again.",
+        content: detailedError,
       };
       setMessages((prev) => [...prev, errorMessage]);
     }
