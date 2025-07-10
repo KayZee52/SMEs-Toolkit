@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -12,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { createUser, verifyUser } from "@/actions/auth";
 import { Loader2 } from "lucide-react";
+import { useApp } from "@/contexts/app-context";
 
 const loginSchema = z.object({
     username: z.string().min(1, "Username is required"),
@@ -29,8 +29,8 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 
 export function AuthForm({ hasUsers }: { hasUsers: boolean }) {
     const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
     const { toast } = useToast();
+    const { loadInitialData } = useApp();
 
     const formSchema = hasUsers ? loginSchema : signupSchema;
     type FormValues = LoginFormValues | SignupFormValues;
@@ -49,21 +49,20 @@ export function AuthForm({ hasUsers }: { hasUsers: boolean }) {
             result = await createUser(data.username, data.password);
         }
 
-        setIsLoading(false);
-
         if (result.success) {
             toast({
                 title: hasUsers ? "Login Successful" : "Account Created",
-                description: "Welcome to your dashboard!",
+                description: "Welcome! You are now logged in.",
             });
-            router.push('/'); // Redirect to the main app dashboard
-            router.refresh(); // Force a refresh to load user data
+            // Reload the app's data and state without a hard refresh
+            await loadInitialData();
         } else {
             toast({
                 variant: "destructive",
                 title: "Authentication Failed",
                 description: result.error,
             });
+            setIsLoading(false);
         }
     };
     
