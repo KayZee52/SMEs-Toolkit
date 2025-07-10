@@ -41,12 +41,12 @@ export default function SidebarNav() {
     <>
       <SidebarHeader>
         <div className="flex items-center gap-2">
-            <div className="p-1 rounded-lg shadow-md shadow-primary/30 w-8 h-8 flex items-center justify-center overflow-hidden">
+            <div className="p-1 rounded-lg shadow-md shadow-primary/30 w-10 h-10 flex items-center justify-center overflow-hidden">
                 <Image
                   src="/smes-toolkit.png"
                   alt="SMEs Toolkit Logo"
-                  width={32}
-                  height={32}
+                  width={40}
+                  height={40}
                   className="w-full h-full object-contain"
                 />
             </div>
