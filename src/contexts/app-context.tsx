@@ -45,12 +45,10 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
   const loadInitialData = useCallback(async () => {
-    console.log("Loading initial data...");
     setIsLoading(true);
       try {
           const data = await getInitialData();
           if(data) {
-            console.log("Data loaded", data);
             setProducts(data.products);
             setSales(data.sales);
             setCustomers(data.customers);
@@ -58,7 +56,6 @@ export const AppProvider = ({ children }: AppProviderProps) => {
             setSettings(data.settings);
             setIsLoggedIn(true);
           } else {
-            console.log("No initial data, user likely not logged in.");
             setIsLoggedIn(false);
           }
       } catch (error) {
@@ -69,26 +66,9 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       }
   }, []);
 
-  const checkSession = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const session = await getSession();
-      if(session && session.userId) {
-        await loadInitialData();
-      } else {
-        setIsLoggedIn(false);
-      }
-    } catch (e) {
-      setIsLoggedIn(false);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [loadInitialData]);
-
-
   useEffect(() => {
-    checkSession();
-  }, [checkSession]);
+    loadInitialData();
+  }, [loadInitialData]);
   
   const translations = getTranslations(settings.language);
 
@@ -222,7 +202,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     settings,
     isLoggedIn,
     isLoading,
-    loadInitialData: checkSession,
+    loadInitialData,
     addProduct,
     updateProduct,
     receiveStock,
