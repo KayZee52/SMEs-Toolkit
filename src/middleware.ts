@@ -30,8 +30,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - mad-logo.png (the logo file)
-     * - favicon.ico (favicon file)
+     * -favicon.ico (favicon file)
      */
-    '/((?!_next/static|_next/image|mad-logo.png|favicon.ico).*)',
+    '/((?!_next/static|_next/image|mad-logo.png|smes-toolkit.png|favicon.ico).*)',
   ],
 };

@@ -1,4 +1,6 @@
 
+'use server';
+
 import Database from 'better-sqlite3';
 
 const db = new Database('smes-toolkit.db');
