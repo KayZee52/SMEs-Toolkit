@@ -42,7 +42,7 @@ export default function SidebarNav() {
       <SidebarHeader>
         <div className="flex items-center gap-2">
             <div className="p-1 rounded-lg shadow-md shadow-primary/30 w-8 h-8 flex items-center justify-center overflow-hidden">
-                <MaDIcon className="w-full h-full object-cover" />
+                <MaDIcon className="w-full h-full object-contain" />
             </div>
             <h1 className="font-headline text-xl font-semibold">SMEs Toolkit</h1>
         </div>
