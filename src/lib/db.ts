@@ -6,6 +6,16 @@ const db = new Database('smes-toolkit.db');
 
 db.pragma('journal_mode = WAL');
 
+// --- Password Hashing ---
+const saltSize = 16;
+const keylen = 64;
+const iterations = 100000;
+const digest = 'sha512';
+
+export function hashPassword(password: string, salt: string): string {
+    return crypto.pbkdf2Sync(password, salt, iterations, keylen, digest).toString('hex');
+}
+
 const usersTableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").get();
 
 if (!usersTableExists) {
@@ -96,8 +106,8 @@ if (!usersTableExists) {
 
     // Create a default user
     try {
-        const salt = crypto.randomBytes(16).toString('hex');
-        const passwordHash = crypto.pbkdf2Sync('password', salt, 100000, 64, 'sha512').toString('hex');
+        const salt = crypto.randomBytes(saltSize).toString('hex');
+        const passwordHash = hashPassword('password', salt);
         
         db.prepare('INSERT INTO users (username, passwordHash, salt) VALUES (?, ?, ?)')
           .run('admin', passwordHash, salt);
