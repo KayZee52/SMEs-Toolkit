@@ -1,6 +1,4 @@
 
-'use server';
-
 import Database from 'better-sqlite3';
 
 const db = new Database('smes-toolkit.db');
@@ -106,9 +104,5 @@ if (!metaTableExists) {
         console.log("Added userId columns to existing tables for migration.");
     }
 }
-
-
-process.on('exit', () => db.close());
-
 
 export { db };

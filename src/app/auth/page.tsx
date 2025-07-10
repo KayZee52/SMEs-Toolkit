@@ -6,6 +6,7 @@ import { AuthForm } from "@/components/auth/auth-form";
 import { MaDIcon } from "@/components/ui/icons";
 
 export default async function AuthPage() {
+    // This server component determines if any users exist to pass to the client form.
     const userCount = db.prepare("SELECT count(*) as count FROM users").get() as { count: number };
     const hasUsers = userCount.count > 0;
 

@@ -1,13 +1,13 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import type { Product, Sale, Customer, Expense, Settings, AppContextType, LogSaleFormValues } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 import { getTranslations } from "@/lib/i18n";
 import {
-    getInitialData, // We'll call this after login now
+    getInitialData,
     addProduct as addProductAction,
     updateProduct as updateProductAction,
     receiveStock as receiveStockAction,
@@ -19,6 +19,7 @@ import {
     deleteExpense as deleteExpenseAction,
     updateSettings as updateSettingsAction,
 } from "@/actions/db";
+import { getSession } from "@/actions/auth";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -41,27 +42,53 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       language: "en",
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
-  // We no longer get initialData from props, we fetch it on login.
-  const loadInitialData = async () => {
-      setIsLoading(true);
+  const loadInitialData = useCallback(async () => {
+    console.log("Loading initial data...");
+    setIsLoading(true);
       try {
           const data = await getInitialData();
           if(data) {
+            console.log("Data loaded", data);
             setProducts(data.products);
             setSales(data.sales);
             setCustomers(data.customers);
             setExpenses(data.expenses);
             setSettings(data.settings);
             setIsLoggedIn(true);
+          } else {
+            console.log("No initial data, user likely not logged in.");
+            setIsLoggedIn(false);
           }
       } catch (error) {
           console.error("Failed to load initial data", error);
-          // Handle error, maybe redirect to login
+          setIsLoggedIn(false);
+      } finally {
+        setIsLoading(false);
       }
+  }, []);
+
+  const checkSession = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const session = await getSession();
+      if(session && session.userId) {
+        await loadInitialData();
+      } else {
+        setIsLoggedIn(false);
+      }
+    } catch (e) {
+      setIsLoggedIn(false);
+    } finally {
       setIsLoading(false);
-  };
+    }
+  }, [loadInitialData]);
+
+
+  useEffect(() => {
+    checkSession();
+  }, [checkSession]);
   
   const translations = getTranslations(settings.language);
 
@@ -195,7 +222,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     settings,
     isLoggedIn,
     isLoading,
-    loadInitialData,
+    loadInitialData: checkSession,
     addProduct,
     updateProduct,
     receiveStock,

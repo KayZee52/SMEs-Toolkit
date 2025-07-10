@@ -76,7 +76,7 @@ export interface AppContextType {
   customers: Customer[];
   expenses: Expense[];
   settings: Settings;
-  isLoggedIn: boolean;
+  isLoggedIn: boolean | null;
   isLoading: boolean;
   loadInitialData: () => Promise<void>;
   addProduct: (product: Omit<Product, "id" | "lastUpdatedAt" | "userId">) => Promise<void>;

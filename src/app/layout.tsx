@@ -7,11 +7,8 @@ import SidebarNav from "@/components/layout/sidebar-nav";
 import Header from "@/components/layout/header";
 import { AIAssistant } from "@/components/ai/ai-assistant-sheet";
 import { ThemeProvider } from "@/components/layout/theme-provider";
-import { getInitialData } from "@/actions/db";
+import AppContent from "@/components/layout/app-content";
 import "./globals.css";
-
-// This layout is now only for the main app, not the auth page.
-// We will use a different layout approach for authentication.
 
 export const metadata: Metadata = {
   title: "SMEs Toolkit",
@@ -23,9 +20,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // A userId would be needed here, which we don't have yet.
-  // AppProvider will handle loading data after login.
-  // const initialData = await getInitialData(); 
   
   return (
     <html lang="en" suppressHydrationWarning>
@@ -49,16 +43,9 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <AppProvider>
-            <SidebarProvider>
-              <Sidebar>
-                <SidebarNav />
-              </Sidebar>
-              <SidebarInset className="flex flex-col">
-                <Header />
-                <main className="flex-1 p-4 md:p-6">{children}</main>
-              </SidebarInset>
-            </SidebarProvider>
-            <AIAssistant />
+            <AppContent>
+              {children}
+            </AppContent>
             <Toaster />
           </AppProvider>
         </ThemeProvider>

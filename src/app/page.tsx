@@ -18,33 +18,14 @@ import { useApp } from "@/contexts/app-context";
 import { formatCurrency } from "@/lib/utils";
 import { format, formatDistanceToNow, subDays } from "date-fns";
 import type { Sale } from "@/lib/types";
-import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
-  const { sales, products, isLoggedIn, isLoading, loadInitialData } = useApp();
-  const router = useRouter();
+  const { sales, products, isLoading } = useApp();
   const salesChartRef = useRef<HTMLDivElement>(null);
   const topProductsChartRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // This effect runs when the component mounts.
-    // We check if the user is logged in. If not, the context will handle it.
-    // If we are logged in but have no data, we load it.
-    if (!isLoading && isLoggedIn && products.length === 0) {
-        loadInitialData();
-    } else if (!isLoading && !isLoggedIn) {
-        router.push('/auth');
-    }
-  }, [isLoggedIn, isLoading, products, loadInitialData, router]);
-
-  // Immediately try to load data on mount
-  useEffect(() => {
-      loadInitialData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  if (isLoading || !isLoggedIn) {
+  if (isLoading) {
       return (
           <div className="flex flex-col gap-6">
               <div className="flex flex-wrap items-center justify-between gap-4">
