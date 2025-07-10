@@ -39,6 +39,7 @@ export async function deleteSession() {
 export async function verifyUser(username: string, password: string):Promise<{ success: boolean, error?: string }> {
      try {
         const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username) as User | undefined;
+
         if (!user) {
             return { success: false, error: "Invalid username or password." };
         }
