@@ -1,21 +1,26 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getSession } from '@/actions/auth';
 
-export async function middleware(request: NextRequest) {
-  const session = await getSession();
+// This line is crucial to ensure the middleware runs in the Node.js environment,
+// which is required for our database and authentication logic.
+export const runtime = 'nodejs';
+
+const SESSION_COOKIE_NAME = 'app_session';
+
+export function middleware(request: NextRequest) {
+  const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
   const { pathname } = request.nextUrl;
 
-  // If the user is trying to access the auth page but is already logged in,
-  // redirect them to the dashboard.
-  if (session && pathname === '/auth') {
+  // If the user is trying to access the auth page but has a session cookie,
+  // redirect them to the dashboard. The dashboard page will handle full validation.
+  if (sessionCookie && pathname === '/auth') {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  // If the user is not logged in and is trying to access any page other
-  // than the auth page, redirect them to the auth page.
-  if (!session && pathname !== '/auth') {
+  // If the user does not have a session cookie and is trying to access any page
+  // other than the auth page, redirect them to the auth page.
+  if (!sessionCookie && pathname !== '/auth') {
     return NextResponse.redirect(new URL('/auth', request.url));
   }
 
@@ -30,6 +35,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - mad-logo.png (the logo file)
+     * - smes-toolkit.png
      * -favicon.ico (favicon file)
      */
     '/((?!_next/static|_next/image|mad-logo.png|smes-toolkit.png|favicon.ico).*)',
