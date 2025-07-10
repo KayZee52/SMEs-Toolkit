@@ -15,51 +15,30 @@ export default function AppContent({ children }: { children: React.ReactNode }) 
     const router = useRouter();
 
     useEffect(() => {
-        if (isLoading) return; // Don't do anything while loading
+        if (isLoading) return;
 
-        // If user is not logged in and not on the auth page, redirect to auth page
         if (!isLoggedIn && pathname !== '/auth') {
             router.push('/auth');
-        }
-
-        // If user is logged in and on the auth page, redirect to dashboard
-        if (isLoggedIn && pathname === '/auth') {
+        } else if (isLoggedIn && pathname === '/auth') {
             router.push('/');
         }
     }, [isLoggedIn, isLoading, pathname, router]);
 
-    if (isLoading) {
+    // While loading or if a redirect is imminent, show a loading screen.
+    if (isLoading || (!isLoggedIn && pathname !== '/auth') || (isLoggedIn && pathname === '/auth')) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-2xl">Loading...</div>
             </div>
         );
     }
-
-    if (!isLoggedIn && pathname !== '/auth') {
-        // This state is temporary while redirecting
-        return (
-             <div className="flex items-center justify-center min-h-screen">
-                <div className="text-2xl">Redirecting to login...</div>
-            </div>
-        );
-    }
     
-    if (isLoggedIn && pathname === '/auth') {
-        // This state is temporary while redirecting
-        return (
-             <div className="flex items-center justify-center min-h-screen">
-                <div className="text-2xl">Redirecting to dashboard...</div>
-            </div>
-        );
-    }
-
-    // Render auth page if user is not logged in and on the right page
+    // If not logged in and on the auth page, show the auth page.
     if (!isLoggedIn && pathname === '/auth') {
         return <>{children}</>;
     }
 
-    // User is logged in, show the main app layout for any other page
+    // If logged in, show the main application layout.
     if (isLoggedIn) {
         return (
             <SidebarProvider>
@@ -75,5 +54,6 @@ export default function AppContent({ children }: { children: React.ReactNode }) 
         )
     }
 
-    return null; // Should not be reached, but as a fallback
+    // Fallback, should not be reached.
+    return null;
 }
