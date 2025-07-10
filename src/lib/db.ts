@@ -5,17 +5,24 @@ const db = new Database('smes-toolkit.db');
 
 db.pragma('journal_mode = WAL');
 
-const metaTableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='meta'").get();
+// More robust check: check for a core table like 'users' instead of 'meta'.
+const usersTableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").get();
 
-if (!metaTableExists) {
-    console.log("Database not initialized. Setting up schema...");
+if (!usersTableExists) {
+    console.log("Core tables not found. Re-initializing database schema...");
+
+    // Drop existing tables to start fresh, in case of partial initialization
+    db.exec(`
+        DROP TABLE IF EXISTS settings;
+        DROP TABLE IF EXISTS expenses;
+        DROP TABLE IF EXISTS sales;
+        DROP TABLE IF EXISTS customers;
+        DROP TABLE IF EXISTS products;
+        DROP TABLE IF EXISTS users;
+        DROP TABLE IF EXISTS meta;
+    `);
 
     db.exec(`
-        CREATE TABLE meta (
-            key TEXT PRIMARY KEY,
-            value TEXT
-        );
-
         CREATE TABLE users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL UNIQUE,
@@ -34,7 +41,7 @@ if (!metaTableExists) {
             category TEXT,
             supplier TEXT,
             lastUpdatedAt TEXT NOT NULL,
-            FOREIGN KEY (userId) REFERENCES users(id)
+            FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
         );
 
         CREATE TABLE customers (
@@ -45,7 +52,7 @@ if (!metaTableExists) {
             createdAt TEXT NOT NULL,
             notes TEXT,
             type TEXT,
-            FOREIGN KEY (userId) REFERENCES users(id)
+            FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
         );
 
         CREATE TABLE sales (
@@ -61,9 +68,9 @@ if (!metaTableExists) {
             profit REAL NOT NULL,
             notes TEXT,
             date TEXT NOT NULL,
-            FOREIGN KEY (userId) REFERENCES users(id),
-            FOREIGN KEY (productId) REFERENCES products(id),
-            FOREIGN KEY (customerId) REFERENCES customers(id)
+            FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (productId) REFERENCES products(id) ON DELETE SET NULL,
+            FOREIGN KEY (customerId) REFERENCES customers(id) ON DELETE SET NULL
         );
 
         CREATE TABLE expenses (
@@ -74,35 +81,20 @@ if (!metaTableExists) {
             amount REAL NOT NULL,
             date TEXT NOT NULL,
             notes TEXT,
-            FOREIGN KEY (userId) REFERENCES users(id)
+            FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
         );
 
         CREATE TABLE settings (
-            key TEXT PRIMARY KEY,
-            userId INTEGER,
+            key TEXT NOT NULL,
+            userId INTEGER NOT NULL,
             value TEXT NOT NULL,
-            FOREIGN KEY (userId) REFERENCES users(id)
+            PRIMARY KEY (key, userId),
+            FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
         );
     `);
     
-    // Default settings are now handled per-user, not globally on init
-    db.prepare('INSERT INTO meta (key, value) VALUES (?, ?)').run('initialized', 'true');
-    console.log("Database initialized with empty tables.");
+    console.log("Database schema initialized successfully.");
 
-} else {
-    // Migration for existing users: Add userId columns if they don't exist.
-    // This is a simplified migration. A real-world scenario would be more robust.
-    const productColumns = db.prepare("PRAGMA table_info(products)").all();
-    if (!productColumns.some(col => col.name === 'userId')) {
-        db.exec(`
-            ALTER TABLE products ADD COLUMN userId INTEGER;
-            ALTER TABLE customers ADD COLUMN userId INTEGER;
-            ALTER TABLE sales ADD COLUMN userId INTEGER;
-            ALTER TABLE expenses ADD COLUMN userId INTEGER;
-            ALTER TABLE settings ADD COLUMN userId INTEGER;
-        `);
-        console.log("Added userId columns to existing tables for migration.");
-    }
 }
 
 export { db };
