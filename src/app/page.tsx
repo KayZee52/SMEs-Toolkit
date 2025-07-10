@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatsCards } from "@/components/dashboard/stats-cards";
@@ -18,11 +18,58 @@ import { useApp } from "@/contexts/app-context";
 import { formatCurrency } from "@/lib/utils";
 import { format, formatDistanceToNow, subDays } from "date-fns";
 import type { Sale } from "@/lib/types";
+import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
-  const { sales, products } = useApp();
+  const { sales, products, isLoggedIn, isLoading, loadInitialData } = useApp();
+  const router = useRouter();
   const salesChartRef = useRef<HTMLDivElement>(null);
   const topProductsChartRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // This effect runs when the component mounts.
+    // We check if the user is logged in. If not, the context will handle it.
+    // If we are logged in but have no data, we load it.
+    if (!isLoading && isLoggedIn && products.length === 0) {
+        loadInitialData();
+    } else if (!isLoading && !isLoggedIn) {
+        router.push('/auth');
+    }
+  }, [isLoggedIn, isLoading, products, loadInitialData, router]);
+
+  // Immediately try to load data on mount
+  useEffect(() => {
+      loadInitialData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (isLoading || !isLoggedIn) {
+      return (
+          <div className="flex flex-col gap-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                      <Skeleton className="h-9 w-48" />
+                      <Skeleton className="h-5 w-64 mt-2" />
+                  </div>
+                  <div className="flex gap-2">
+                      <Skeleton className="h-10 w-28" />
+                      <Skeleton className="h-10 w-32" />
+                  </div>
+              </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <Skeleton className="h-28" />
+                  <Skeleton className="h-28" />
+                  <Skeleton className="h-28" />
+                  <Skeleton className="h-28" />
+              </div>
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+                <Skeleton className="h-[350px] lg:col-span-3" />
+                <Skeleton className="h-[350px] lg:col-span-2" />
+              </div>
+          </div>
+      )
+  }
 
   const handleExportRecentActivityPdf = () => {
     const doc = new jsPDF();

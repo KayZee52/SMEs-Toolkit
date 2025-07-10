@@ -1,7 +1,14 @@
+
 import type { Translation } from "./i18n";
+
+export type User = {
+    id: number;
+    username: string;
+};
 
 export type Product = {
   id: string;
+  userId: number;
   name: string;
   description?: string;
   stock: number;
@@ -14,6 +21,7 @@ export type Product = {
 
 export type Sale = {
   id: string;
+  userId: number;
   productId: string;
   customerId?: string;
   customerName: string;
@@ -28,6 +36,7 @@ export type Sale = {
 
 export type Customer = {
   id:string;
+  userId: number;
   name: string;
   phone?: string;
   createdAt: string;
@@ -37,6 +46,7 @@ export type Customer = {
 
 export type Expense = {
   id: string;
+  userId: number;
   description: string;
   category: string;
   amount: number;
@@ -66,13 +76,16 @@ export interface AppContextType {
   customers: Customer[];
   expenses: Expense[];
   settings: Settings;
-  addProduct: (product: Omit<Product, "id" | "lastUpdatedAt">) => Promise<void>;
+  isLoggedIn: boolean;
+  isLoading: boolean;
+  loadInitialData: () => Promise<void>;
+  addProduct: (product: Omit<Product, "id" | "lastUpdatedAt" | "userId">) => Promise<void>;
   updateProduct: (product: Product) => Promise<void>;
   receiveStock: (productId: string, quantity: number, costPerUnit: number) => Promise<void>;
   addSale: (sale: LogSaleFormValues) => Promise<void>;
-  addCustomer: (customer: Omit<Customer, "id" | "createdAt">) => Promise<Customer>;
+  addCustomer: (customer: Omit<Customer, "id" | "createdAt" | "userId">) => Promise<Customer>;
   updateCustomer: (customer: Customer) => Promise<void>;
-  addExpense: (expense: Omit<Expense, "id" | "date">) => Promise<void>;
+  addExpense: (expense: Omit<Expense, "id" | "date" | "userId">) => Promise<void>;
   updateExpense: (expense: Expense) => Promise<void>;
   deleteExpense: (id: string) => Promise<void>;
   findCustomerByName: (name: string) => Customer | undefined;

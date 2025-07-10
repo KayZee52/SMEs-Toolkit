@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 import { getTranslations } from "@/lib/i18n";
 import {
+    getInitialData, // We'll call this after login now
     addProduct as addProductAction,
     updateProduct as updateProductAction,
     receiveStock as receiveStockAction,
@@ -22,28 +23,49 @@ import {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 interface AppProviderProps {
-    initialData: {
-        products: Product[];
-        sales: Sale[];
-        customers: Customer[];
-        expenses: Expense[];
-        settings: Settings;
-    };
     children: ReactNode;
 }
 
-export const AppProvider = ({ children, initialData }: AppProviderProps) => {
+export const AppProvider = ({ children }: AppProviderProps) => {
   const { toast } = useToast();
   
-  const [products, setProducts] = useState<Product[]>(initialData.products);
-  const [sales, setSales] = useState<Sale[]>(initialData.sales);
-  const [customers, setCustomers] = useState<Customer[]>(initialData.customers);
-  const [expenses, setExpenses] = useState<Expense[]>(initialData.expenses);
-  const [settings, setSettings] = useState<Settings>(initialData.settings);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [settings, setSettings] = useState<Settings>({
+      businessName: "My Business",
+      currency: "USD",
+      enableAssistant: true,
+      autoSuggestions: true,
+      language: "en",
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // We no longer get initialData from props, we fetch it on login.
+  const loadInitialData = async () => {
+      setIsLoading(true);
+      try {
+          const data = await getInitialData();
+          if(data) {
+            setProducts(data.products);
+            setSales(data.sales);
+            setCustomers(data.customers);
+            setExpenses(data.expenses);
+            setSettings(data.settings);
+            setIsLoggedIn(true);
+          }
+      } catch (error) {
+          console.error("Failed to load initial data", error);
+          // Handle error, maybe redirect to login
+      }
+      setIsLoading(false);
+  };
   
   const translations = getTranslations(settings.language);
 
-  const addProduct = async (productData: Omit<Product, "id" | "lastUpdatedAt">) => {
+  const addProduct = async (productData: Omit<Product, "id" | "lastUpdatedAt" | "userId">) => {
     try {
         const newProduct = await addProductAction(productData);
         setProducts(prev => [...prev, newProduct].sort((a,b) => a.name.localeCompare(b.name)));
@@ -90,7 +112,7 @@ export const AppProvider = ({ children, initialData }: AppProviderProps) => {
     }
   };
   
-  const addCustomer = async (customerData: Omit<Customer, "id" | "createdAt">): Promise<Customer> => {
+  const addCustomer = async (customerData: Omit<Customer, "id" | "createdAt" | "userId">): Promise<Customer> => {
     try {
         const newCustomer = await addCustomerAction(customerData);
         setCustomers(prev => [...prev, newCustomer].sort((a,b) => a.name.localeCompare(b.name)));
@@ -114,7 +136,7 @@ export const AppProvider = ({ children, initialData }: AppProviderProps) => {
     }
   };
 
-  const addExpense = async (expenseData: Omit<Expense, "id" | "date">) => {
+  const addExpense = async (expenseData: Omit<Expense, "id" | "date" | "userId">) => {
     try {
         const newExpense = await addExpenseAction(expenseData);
         setExpenses(prev => [newExpense, ...prev]);
@@ -171,6 +193,9 @@ export const AppProvider = ({ children, initialData }: AppProviderProps) => {
     customers,
     expenses,
     settings,
+    isLoggedIn,
+    isLoading,
+    loadInitialData,
     addProduct,
     updateProduct,
     receiveStock,
