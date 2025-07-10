@@ -1,31 +1,19 @@
 
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useApp } from "@/contexts/app-context";
 import { Sidebar, SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import SidebarNav from "@/components/layout/sidebar-nav";
 import Header from "@/components/layout/header";
 import { AIAssistant } from "@/components/ai/ai-assistant-sheet";
-import { useEffect } from "react";
 
 export default function AppContent({ children }: { children: React.ReactNode }) {
     const { isLoggedIn, isLoading } = useApp();
     const pathname = usePathname();
-    const router = useRouter();
 
-    useEffect(() => {
-        if (isLoading) return;
-
-        if (!isLoggedIn && pathname !== '/auth') {
-            router.push('/auth');
-        } else if (isLoggedIn && pathname === '/auth') {
-            router.push('/');
-        }
-    }, [isLoggedIn, isLoading, pathname, router]);
-
-    // While loading or if a redirect is imminent, show a loading screen.
-    if (isLoading || (!isLoggedIn && pathname !== '/auth') || (isLoggedIn && pathname === '/auth')) {
+    // While the session is being checked, show a loading screen.
+    if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-2xl">Loading...</div>
@@ -33,12 +21,12 @@ export default function AppContent({ children }: { children: React.ReactNode }) 
         );
     }
     
-    // If not logged in and on the auth page, show the auth page.
-    if (!isLoggedIn && pathname === '/auth') {
+    // If on the auth page, just render the auth form. Middleware handles redirects.
+    if (pathname === '/auth') {
         return <>{children}</>;
     }
 
-    // If logged in, show the main application layout.
+    // If logged in, show the main application layout with sidebar and header.
     if (isLoggedIn) {
         return (
             <SidebarProvider>
@@ -54,6 +42,11 @@ export default function AppContent({ children }: { children: React.ReactNode }) 
         )
     }
 
-    // Fallback, should not be reached.
-    return null;
+    // If not logged in and not on the auth page, middleware will redirect.
+    // Show a loading screen in the meantime.
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+            <div className="text-2xl">Loading...</div>
+        </div>
+    );
 }

@@ -56,6 +56,7 @@ export function AuthForm({ hasUsers }: { hasUsers: boolean }) {
             });
             // router.refresh() is the key. It re-fetches server data and re-renders
             // Server Components, which will update the session state across the app.
+            // The middleware will then handle the redirect.
             router.refresh();
         } else {
             toast({
