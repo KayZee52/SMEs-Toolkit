@@ -3,6 +3,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   SidebarHeader,
   SidebarMenu,
@@ -21,7 +22,6 @@ import {
   ArrowRightLeft,
   Settings,
 } from "lucide-react";
-import { MaDIcon } from "@/components/ui/icons";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -42,7 +42,13 @@ export default function SidebarNav() {
       <SidebarHeader>
         <div className="flex items-center gap-2">
             <div className="p-1 rounded-lg shadow-md shadow-primary/30 w-8 h-8 flex items-center justify-center overflow-hidden">
-                <MaDIcon className="w-full h-full object-contain" />
+                <Image
+                  src="/smes-toolkit.png"
+                  alt="SMEs Toolkit Logo"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-contain"
+                />
             </div>
             <h1 className="font-headline text-xl font-semibold">SMEs Toolkit</h1>
         </div>
