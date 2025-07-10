@@ -15,7 +15,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { getAiReply, getCustomerInfoFromText } from "@/actions/ai";
 import { useApp } from "@/contexts/app-context";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { MaDIcon } from "@/components/ui/icons";
 
@@ -111,14 +110,7 @@ export function AIAssistant() {
     <>
       {settings.enableAssistant && (
         <div className="fixed bottom-6 right-6 z-50">
-          <AnimatePresence>
             {!isOpen && (
-              <motion.div
-                initial={{ scale: 0, y: 50 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0, y: 50 }}
-                transition={{ type: "spring", stiffness: 260, damping: 20 }}
-              >
                 <Button
                   onClick={() => setIsOpen(true)}
                   className="rounded-full w-16 h-16 p-2 shadow-lg shadow-primary/40 bg-accent text-accent-foreground hover:bg-accent/90 flex items-center justify-center overflow-hidden"
@@ -126,9 +118,7 @@ export function AIAssistant() {
                 >
                   <MaDIcon className="w-full h-full object-contain" />
                 </Button>
-              </motion.div>
             )}
-          </AnimatePresence>
         </div>
       )}
 

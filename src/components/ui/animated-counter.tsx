@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { motion, useSpring, useTransform } from "framer-motion";
+import { useEffect, useState } from "react";
 
 export function AnimatedCounter({
   value,
@@ -10,21 +9,22 @@ export function AnimatedCounter({
   value: number;
   isCurrency?: boolean;
 }) {
-  const spring = useSpring(0, { damping: 50, stiffness: 200 });
-
-  const display = useTransform(spring, (current) => {
-    if (isCurrency) {
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(current);
-    }
-    return Math.round(current).toLocaleString();
-  });
+  // Framer motion is removed, so we'll just display the value directly.
+  // A simple animation can be added back with CSS if needed.
+  const [displayValue, setDisplayValue] = useState("");
 
   useEffect(() => {
-    spring.set(value);
-  }, [spring, value]);
+    let formattedValue;
+    if (isCurrency) {
+      formattedValue = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(value);
+    } else {
+      formattedValue = value.toLocaleString();
+    }
+    setDisplayValue(formattedValue);
+  }, [value, isCurrency]);
 
-  return <motion.span>{display}</motion.span>;
+  return <span>{displayValue}</span>;
 }
