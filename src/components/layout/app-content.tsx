@@ -39,6 +39,7 @@ export default function AppContent({ children }: { children: React.ReactNode }) 
     }
 
     if (!isLoggedIn && pathname !== '/auth') {
+        // This state is temporary while redirecting
         return (
              <div className="flex items-center justify-center min-h-screen">
                 <div className="text-2xl">Redirecting to login...</div>
@@ -47,6 +48,7 @@ export default function AppContent({ children }: { children: React.ReactNode }) 
     }
     
     if (isLoggedIn && pathname === '/auth') {
+        // This state is temporary while redirecting
         return (
              <div className="flex items-center justify-center min-h-screen">
                 <div className="text-2xl">Redirecting to dashboard...</div>
@@ -54,7 +56,7 @@ export default function AppContent({ children }: { children: React.ReactNode }) 
         );
     }
 
-    // Render auth page if user is not logged in
+    // Render auth page if user is not logged in and on the right page
     if (!isLoggedIn && pathname === '/auth') {
         return <>{children}</>;
     }
