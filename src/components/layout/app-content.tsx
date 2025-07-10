@@ -3,12 +3,10 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useApp } from "@/contexts/app-context";
-import { AuthForm } from "@/components/auth/auth-form";
 import { Sidebar, SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import SidebarNav from "@/components/layout/sidebar-nav";
 import Header from "@/components/layout/header";
 import { AIAssistant } from "@/components/ai/ai-assistant-sheet";
-import { MaDIcon } from "@/components/ui/icons";
 import { useEffect } from "react";
 
 export default function AppContent({ children }: { children: React.ReactNode }) {

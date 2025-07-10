@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { createUser, verifyUser } from "@/actions/auth";
 import { Loader2 } from "lucide-react";
-import { useApp } from "@/contexts/app-context";
 import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
@@ -31,7 +30,6 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 export function AuthForm({ hasUsers }: { hasUsers: boolean }) {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { loadInitialData } = useApp();
     const router = useRouter();
 
     const formSchema = hasUsers ? loginSchema : signupSchema;
@@ -56,12 +54,9 @@ export function AuthForm({ hasUsers }: { hasUsers: boolean }) {
                 title: hasUsers ? "Login Successful" : "Account Created",
                 description: "Welcome! Redirecting you to the dashboard.",
             });
-            // We successfully logged in. The cookie is set.
-            // The AppContent component's useEffect will now handle the redirect.
-            // We just need to trigger a re-render/navigation check.
-            // A simple refresh of the page is the most robust way.
-             router.refresh();
-             await loadInitialData(); // Reload data to update context
+            // router.refresh() is the key. It re-fetches server data and re-renders
+            // Server Components, which will update the session state across the app.
+            router.refresh();
         } else {
             toast({
                 variant: "destructive",
