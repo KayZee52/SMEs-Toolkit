@@ -45,7 +45,7 @@ export async function getSettings(): Promise<Settings> {
         language: "en",
     };
     
-    const settingsFromDb = db.prepare("SELECT value FROM settings WHERE userId = ?").get(userId) as { value: string } | undefined;
+    const settingsFromDb = db.prepare("SELECT value FROM settings WHERE userId = ? AND key = 'appSettings'").get(userId) as { value: string } | undefined;
     
     if (settingsFromDb) {
         return JSON.parse(settingsFromDb.value);
@@ -153,8 +153,8 @@ export async function addSale(saleData: LogSaleFormValues): Promise<{ newSale: S
     
     const result = db.prepare(`
         INSERT INTO sales (productId, customerId, customerName, productName, quantity, pricePerUnit, total, profit, notes, date, userId) 
-        VALUES (@productId, @customerId, @customerName, @productName, @quantity, @pricePerUnit, @total, @profit, @notes, @date, ${userId})
-    `).run(newSaleData);
+        VALUES (@productId, @customerId, @customerName, @productName, @quantity, @pricePerUnit, @total, @profit, @notes, @date, @userId)
+    `).run({ ...newSaleData, userId });
     const newSale = { ...newSaleData, id: result.lastInsertRowid.toString(), userId };
     
     const updatedProductData = { ...product, stock: product.stock - saleData.quantity, lastUpdatedAt: new Date().toISOString() };
@@ -197,8 +197,8 @@ export async function addExpense(expenseData: Omit<Expense, "id" | "date" | "use
     const newExpenseData: Omit<Expense, "id" | "userId"> = { ...expenseData, date: new Date().toISOString() };
     const result = db.prepare(`
         INSERT INTO expenses (description, category, amount, date, notes, userId) 
-        VALUES (@description, @category, @amount, @date, @notes, ${userId})
-    `).run(newExpenseData);
+        VALUES (@description, @category, @amount, @date, @notes, @userId)
+    `).run({ ...newExpenseData, userId });
     return { ...newExpenseData, id: result.lastInsertRowid.toString(), userId };
 }
 
@@ -223,6 +223,6 @@ export async function deleteExpense(id: string): Promise<{ success: boolean }> {
 
 export async function updateSettings(newSettings: Settings): Promise<Settings> {
     const userId = await getUserId();
-    db.prepare("UPDATE settings SET value = ? WHERE userId = ?").run(JSON.stringify(newSettings), userId);
+    db.prepare("UPDATE settings SET value = ? WHERE userId = ? AND key = 'appSettings'").run(JSON.stringify(newSettings), userId);
     return newSettings;
 }

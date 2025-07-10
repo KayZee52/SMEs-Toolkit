@@ -2,13 +2,15 @@
 import type { Translation } from "./i18n";
 
 export type User = {
-    id: number;
+    id: string;
     username: string;
+    passwordHash: string;
+    salt: string;
 };
 
 export type Product = {
   id: string;
-  userId: number;
+  userId: string;
   name: string;
   description?: string;
   stock: number;
@@ -21,7 +23,7 @@ export type Product = {
 
 export type Sale = {
   id: string;
-  userId: number;
+  userId: string;
   productId: string;
   customerId?: string;
   customerName: string;
@@ -36,7 +38,7 @@ export type Sale = {
 
 export type Customer = {
   id:string;
-  userId: number;
+  userId: string;
   name: string;
   phone?: string;
   createdAt: string;
@@ -46,7 +48,7 @@ export type Customer = {
 
 export type Expense = {
   id: string;
-  userId: number;
+  userId: string;
   description: string;
   category: string;
   amount: number;

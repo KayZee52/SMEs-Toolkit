@@ -9,7 +9,7 @@ const SESSION_COOKIE_NAME = 'app_session';
 
 
 // --- Session Management (using simple signed cookies for offline) ---
-async function createSession(userId: number) {
+async function createSession(userId: string) {
     const sessionData = { userId, loggedInAt: Date.now() };
     cookies().set(SESSION_COOKIE_NAME, JSON.stringify(sessionData), {
         httpOnly: true,
@@ -25,7 +25,7 @@ export async function getSession() {
     try {
         const session = JSON.parse(cookie.value);
         // In a real app, you might re-validate the user here
-        return session as { userId: number };
+        return session as { userId: string };
     } catch {
         return null;
     }

@@ -33,7 +33,7 @@ if (!usersTableExists) {
 
     db.exec(`
         CREATE TABLE users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id TEXT PRIMARY KEY,
             username TEXT NOT NULL UNIQUE,
             passwordHash TEXT NOT NULL,
             salt TEXT NOT NULL
@@ -41,7 +41,7 @@ if (!usersTableExists) {
 
         CREATE TABLE products (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            userId INTEGER NOT NULL,
+            userId TEXT NOT NULL,
             name TEXT NOT NULL,
             description TEXT,
             stock INTEGER NOT NULL,
@@ -55,7 +55,7 @@ if (!usersTableExists) {
 
         CREATE TABLE customers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            userId INTEGER NOT NULL,
+            userId TEXT NOT NULL,
             name TEXT NOT NULL,
             phone TEXT,
             createdAt TEXT NOT NULL,
@@ -66,7 +66,7 @@ if (!usersTableExists) {
 
         CREATE TABLE sales (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            userId INTEGER NOT NULL,
+            userId TEXT NOT NULL,
             productId INTEGER,
             customerId INTEGER,
             customerName TEXT NOT NULL,
@@ -84,7 +84,7 @@ if (!usersTableExists) {
 
         CREATE TABLE expenses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            userId INTEGER NOT NULL,
+            userId TEXT NOT NULL,
             description TEXT NOT NULL,
             category TEXT NOT NULL,
             amount REAL NOT NULL,
@@ -95,7 +95,7 @@ if (!usersTableExists) {
 
         CREATE TABLE settings (
             key TEXT NOT NULL,
-            userId INTEGER NOT NULL,
+            userId TEXT NOT NULL,
             value TEXT NOT NULL,
             PRIMARY KEY (key, userId),
             FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
@@ -104,15 +104,27 @@ if (!usersTableExists) {
     
     console.log("Database schema initialized successfully.");
 
-    // Create a default user
+    // Create a default user and their settings
     try {
         const salt = crypto.randomBytes(saltSize).toString('hex');
         const passwordHash = hashPassword('password', salt);
+        const adminId = 'user_admin';
         
-        db.prepare('INSERT INTO users (username, passwordHash, salt) VALUES (?, ?, ?)')
-          .run('admin', passwordHash, salt);
+        db.prepare('INSERT INTO users (id, username, passwordHash, salt) VALUES (?, ?, ?, ?)')
+          .run(adminId, 'admin', passwordHash, salt);
+        
+        const defaultSettings = {
+            businessName: "My Business",
+            currency: "USD",
+            enableAssistant: true,
+            autoSuggestions: true,
+            language: "en",
+        };
 
-        console.log("Default user 'admin' created successfully.");
+        db.prepare("INSERT INTO settings (key, userId, value) VALUES (?, ?, ?)")
+            .run('appSettings', adminId, JSON.stringify(defaultSettings));
+
+        console.log("Default user 'admin' and settings created successfully.");
     } catch (e) {
         console.error("Failed to create default user", e);
     }
