@@ -1,11 +1,11 @@
 
 import Database from 'better-sqlite3';
+import crypto from 'crypto';
 
 const db = new Database('smes-toolkit.db');
 
 db.pragma('journal_mode = WAL');
 
-// More robust check: check for a core table like 'users' instead of 'meta'.
 const usersTableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").get();
 
 if (!usersTableExists) {
@@ -19,7 +19,6 @@ if (!usersTableExists) {
         DROP TABLE IF EXISTS customers;
         DROP TABLE IF EXISTS products;
         DROP TABLE IF EXISTS users;
-        DROP TABLE IF EXISTS meta;
     `);
 
     db.exec(`
@@ -95,6 +94,18 @@ if (!usersTableExists) {
     
     console.log("Database schema initialized successfully.");
 
+    // Create a default user
+    try {
+        const salt = crypto.randomBytes(16).toString('hex');
+        const passwordHash = crypto.pbkdf2Sync('password', salt, 100000, 64, 'sha512').toString('hex');
+        
+        db.prepare('INSERT INTO users (username, passwordHash, salt) VALUES (?, ?, ?)')
+          .run('admin', passwordHash, salt);
+
+        console.log("Default user 'admin' created successfully.");
+    } catch (e) {
+        console.error("Failed to create default user", e);
+    }
 }
 
 export { db };

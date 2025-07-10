@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { createUser, verifyUser } from "@/actions/auth";
+import { verifyUser } from "@/actions/auth";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -18,45 +18,27 @@ const loginSchema = z.object({
     password: z.string().min(1, "Password is required"),
 });
 
-const signupSchema = z.object({
-    username: z.string().min(3, "Username must be at least 3 characters"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
 type LoginFormValues = z.infer<typeof loginSchema>;
-type SignupFormValues = z.infer<typeof signupSchema>;
 
-
-export function AuthForm({ hasUsers }: { hasUsers: boolean }) {
+export function AuthForm() {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
 
-    const formSchema = hasUsers ? loginSchema : signupSchema;
-    type FormValues = LoginFormValues | SignupFormValues;
-
-    const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema),
-        defaultValues: { username: "", password: "" },
+    const form = useForm<LoginFormValues>({
+        resolver: zodResolver(loginSchema),
+        defaultValues: { username: "admin", password: "" },
     });
     
-    const onSubmit = async (data: FormValues) => {
+    const onSubmit = async (data: LoginFormValues) => {
         setIsLoading(true);
-        let result;
-        if (hasUsers) {
-            result = await verifyUser(data.username, data.password);
-        } else {
-            result = await createUser(data.username, data.password);
-        }
+        const result = await verifyUser(data.username, data.password);
 
         if (result.success) {
             toast({
-                title: hasUsers ? "Login Successful" : "Account Created",
+                title: "Login Successful",
                 description: "Welcome! Redirecting you to the dashboard.",
             });
-            // router.refresh() is the key. It re-fetches server data and re-renders
-            // Server Components, which will update the session state across the app.
-            // The middleware will then handle the redirect.
             router.refresh();
         } else {
             toast({
@@ -90,7 +72,7 @@ export function AuthForm({ hasUsers }: { hasUsers: boolean }) {
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {hasUsers ? "Log In" : "Create Account"}
+                Log In
             </Button>
         </form>
     );

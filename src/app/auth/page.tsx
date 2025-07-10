@@ -1,15 +1,10 @@
 
 "use server"
 
-import { db } from "@/lib/db";
 import { AuthForm } from "@/components/auth/auth-form";
 import { MaDIcon } from "@/components/ui/icons";
 
 export default async function AuthPage() {
-    // This server component determines if any users exist to pass to the client form.
-    const userCount = db.prepare("SELECT count(*) as count FROM users").get() as { count: number };
-    const hasUsers = userCount.count > 0;
-
     return (
         <div className="flex items-center justify-center min-h-screen bg-background">
             <div className="w-full max-w-sm p-8 space-y-6">
@@ -17,10 +12,13 @@ export default async function AuthPage() {
                     <MaDIcon className="w-16 h-16 mb-4" />
                     <h1 className="text-3xl font-bold font-headline">SMEs Toolkit</h1>
                     <p className="text-muted-foreground">
-                        {hasUsers ? "Welcome back! Please log in to continue." : "Welcome! Create the first admin account."}
+                        Welcome! Please log in to continue.
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                        (Default: <span className="font-mono">admin</span> / <span className="font-mono">password</span>)
                     </p>
                 </div>
-                <AuthForm hasUsers={hasUsers} />
+                <AuthForm />
             </div>
         </div>
     );
