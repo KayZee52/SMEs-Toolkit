@@ -38,23 +38,30 @@ export async function deleteSession() {
 // --- User Actions ---
 export async function verifyUser(username: string, password: string):Promise<{ success: boolean, error?: string }> {
      try {
+        // 1. Retrieve the user from the database
         const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username) as User | undefined;
 
         if (!user) {
+            console.error(`Verification failed: User '${username}' not found.`);
             return { success: false, error: "Invalid username or password." };
         }
 
-        const passwordHash = hashPassword(password, user.salt);
+        // 2. Hash the provided password with the user's stored salt
+        const providedPasswordHash = hashPassword(password, user.salt);
 
-        if (passwordHash !== user.passwordHash) {
+        // 3. Compare the newly generated hash with the one stored in the database
+        if (providedPasswordHash !== user.passwordHash) {
+             console.error(`Verification failed for user '${username}': Password mismatch.`);
              return { success: false, error: "Invalid username or password." };
         }
         
+        // 4. If passwords match, create a session
         await createSession(user.id);
         
+        console.log(`User '${username}' verified successfully.`);
         return { success: true };
     } catch (e: any) {
-        console.error("User verification failed", e);
-        return { success: false, error: e.message };
+        console.error("User verification failed with exception:", e);
+        return { success: false, error: "An unexpected error occurred during login." };
     }
 }
