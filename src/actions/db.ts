@@ -35,6 +35,15 @@ export async function getExpenses(): Promise<Expense[]> {
 
 export async function getSettings(): Promise<Settings> {
     const userId = await getUserId();
+    
+    const settingsFromDb = db.prepare("SELECT value FROM settings WHERE userId = ? AND key = 'appSettings'").get(userId) as { value: string } | undefined;
+    
+    if (settingsFromDb) {
+        return JSON.parse(settingsFromDb.value);
+    } 
+    
+    // Fallback if settings are not in the DB for some reason.
+    // This should ideally not be reached if the DB is seeded correctly.
     const defaultSettings: Settings = {
         businessName: "My Business",
         currency: "USD",
@@ -42,21 +51,19 @@ export async function getSettings(): Promise<Settings> {
         autoSuggestions: true,
         language: "en",
     };
-    
-    const settingsFromDb = db.prepare("SELECT value FROM settings WHERE userId = ? AND key = 'appSettings'").get(userId) as { value: string } | undefined;
-    
-    if (settingsFromDb) {
-        return JSON.parse(settingsFromDb.value);
-    } else {
-        // This ensures settings are created for the default user if they don't exist
-        db.prepare("INSERT INTO settings (key, userId, value) VALUES (?, ?, ?)").run('appSettings', userId, JSON.stringify(defaultSettings));
-        return defaultSettings;
-    }
+    return defaultSettings;
 }
 
 export async function getInitialData() {
     const userId = await getUserId();
     if (!userId) return null;
+
+    // A check to ensure the db has been seeded.
+    const productCount = db.prepare('SELECT COUNT(*) as count FROM products').get() as { count: number };
+    if (productCount.count === 0) {
+        // This is a failsafe. The user should be instructed to run the seed script.
+        throw new Error("Database not seeded. Please run `npm run db:seed` to initialize the database.");
+    }
 
     return {
         products: await getProducts(),
@@ -197,16 +204,17 @@ export async function updateCustomer(updatedCustomer: Customer): Promise<Custome
 
 export async function addExpense(expenseData: Omit<Expense, "id" | "date" | "userId">): Promise<Expense> {
     const userId = await getUserId();
-    const newExpenseData: Omit<Expense, "id" | "userId"> = { 
+    const newExpenseData: Omit<Expense, "id" | "userId"> & { id: string; userId: string; } = { 
         ...expenseData, 
         id: `exp_${new Date().getTime()}`,
-        date: new Date().toISOString() 
+        date: new Date().toISOString(),
+        userId
     };
     db.prepare(`
         INSERT INTO expenses (id, description, category, amount, date, notes, userId) 
         VALUES (@id, @description, @category, @amount, @date, @notes, @userId)
-    `).run({ ...newExpenseData, userId });
-    return { ...newExpenseData, userId };
+    `).run(newExpenseData);
+    return newExpenseData;
 }
 
 export async function updateExpense(updatedExpense: Expense): Promise<Expense> {
