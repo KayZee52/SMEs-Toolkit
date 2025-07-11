@@ -3,14 +3,12 @@
 
 import { db } from '@/lib/db';
 import type { Product, Sale, Customer, Expense, Settings, LogSaleFormValues } from "@/lib/types";
-import { getSession } from './auth';
+
+// Hardcoded user ID for single-user mode
+const USER_ID = 'user_admin';
 
 async function getUserId() {
-    const session = await getSession();
-    if (!session?.userId) {
-        throw new Error("User not authenticated");
-    }
-    return session.userId;
+    return USER_ID;
 }
 
 // === READ OPERATIONS ===
@@ -50,14 +48,15 @@ export async function getSettings(): Promise<Settings> {
     if (settingsFromDb) {
         return JSON.parse(settingsFromDb.value);
     } else {
+        // This ensures settings are created for the default user if they don't exist
         db.prepare("INSERT INTO settings (key, userId, value) VALUES (?, ?, ?)").run('appSettings', userId, JSON.stringify(defaultSettings));
         return defaultSettings;
     }
 }
 
 export async function getInitialData() {
-    const session = await getSession();
-    if (!session) return null; // Return null if not logged in
+    const userId = await getUserId();
+    if (!userId) return null;
 
     return {
         products: await getProducts(),
@@ -75,14 +74,15 @@ export async function addProduct(productData: Omit<Product, "id" | "lastUpdatedA
     const userId = await getUserId();
     const newProduct = {
       ...productData,
+      id: `prod_${new Date().getTime()}`,
       userId,
       lastUpdatedAt: new Date().toISOString(),
     };
-    const result = db.prepare(`
-        INSERT INTO products (name, description, stock, price, cost, category, supplier, lastUpdatedAt, userId) 
-        VALUES (@name, @description, @stock, @price, @cost, @category, @supplier, @lastUpdatedAt, @userId)
+    db.prepare(`
+        INSERT INTO products (id, name, description, stock, price, cost, category, supplier, lastUpdatedAt, userId) 
+        VALUES (@id, @name, @description, @stock, @price, @cost, @category, @supplier, @lastUpdatedAt, @userId)
     `).run(newProduct);
-    return { ...newProduct, id: result.lastInsertRowid.toString() };
+    return newProduct;
 }
 
 export async function updateProduct(updatedProduct: Product): Promise<Product> {
@@ -130,8 +130,10 @@ export async function addSale(saleData: LogSaleFormValues): Promise<{ newSale: S
     if (product.stock < saleData.quantity) throw new Error("Not enough stock");
 
     let customerName = "Walk-in Customer";
-    if (saleData.customerId && saleData.customerId !== 'walk-in') {
-        const customer = db.prepare("SELECT * FROM customers WHERE id = ? AND userId = ?").get(saleData.customerId, userId) as Customer | undefined;
+    let customerId = saleData.customerId || "walk-in";
+
+    if (customerId !== 'walk-in') {
+        const customer = db.prepare("SELECT * FROM customers WHERE id = ? AND userId = ?").get(customerId, userId) as Customer | undefined;
         if(customer) customerName = customer.name;
     }
 
@@ -142,7 +144,7 @@ export async function addSale(saleData: LogSaleFormValues): Promise<{ newSale: S
       productId: saleData.productId,
       productName: product.name,
       customerName,
-      customerId: saleData.customerId,
+      customerId,
       quantity: saleData.quantity,
       pricePerUnit: saleData.pricePerUnit,
       total,
@@ -151,11 +153,12 @@ export async function addSale(saleData: LogSaleFormValues): Promise<{ newSale: S
       date: new Date().toISOString(),
     };
     
-    const result = db.prepare(`
-        INSERT INTO sales (productId, customerId, customerName, productName, quantity, pricePerUnit, total, profit, notes, date, userId) 
-        VALUES (@productId, @customerId, @customerName, @productName, @quantity, @pricePerUnit, @total, @profit, @notes, @date, @userId)
-    `).run({ ...newSaleData, userId });
-    const newSale = { ...newSaleData, id: result.lastInsertRowid.toString(), userId };
+    const id = `sale_${new Date().getTime()}`;
+    db.prepare(`
+        INSERT INTO sales (id, productId, customerId, customerName, productName, quantity, pricePerUnit, total, profit, notes, date, userId) 
+        VALUES (@id, @productId, @customerId, @customerName, @productName, @quantity, @pricePerUnit, @total, @profit, @notes, @date, @userId)
+    `).run({ ...newSaleData, id, userId });
+    const newSale = { ...newSaleData, id, userId };
     
     const updatedProductData = { ...product, stock: product.stock - saleData.quantity, lastUpdatedAt: new Date().toISOString() };
     const updatedProduct = await updateProduct(updatedProductData);
@@ -168,17 +171,17 @@ export async function addCustomer(customerData: Omit<Customer, "id" | "createdAt
     const userId = await getUserId();
     const newCustomerData = {
       ...customerData,
+      id: `cust_${new Date().getTime()}`,
       userId,
       createdAt: new Date().toISOString(),
       type: customerData.type || "Regular",
       notes: customerData.notes || null,
     };
-    const result = db.prepare(`
-        INSERT INTO customers (name, phone, createdAt, notes, type, userId) 
-        VALUES (@name, @phone, @createdAt, @notes, @type, @userId)
+    db.prepare(`
+        INSERT INTO customers (id, name, phone, createdAt, notes, type, userId) 
+        VALUES (@id, @name, @phone, @createdAt, @notes, @type, @userId)
     `).run(newCustomerData);
-    const newCustomer = { ...newCustomerData, id: result.lastInsertRowid.toString() };
-    return newCustomer;
+    return newCustomerData;
 }
 
 
@@ -194,12 +197,16 @@ export async function updateCustomer(updatedCustomer: Customer): Promise<Custome
 
 export async function addExpense(expenseData: Omit<Expense, "id" | "date" | "userId">): Promise<Expense> {
     const userId = await getUserId();
-    const newExpenseData: Omit<Expense, "id" | "userId"> = { ...expenseData, date: new Date().toISOString() };
-    const result = db.prepare(`
-        INSERT INTO expenses (description, category, amount, date, notes, userId) 
-        VALUES (@description, @category, @amount, @date, @notes, @userId)
+    const newExpenseData: Omit<Expense, "id" | "userId"> = { 
+        ...expenseData, 
+        id: `exp_${new Date().getTime()}`,
+        date: new Date().toISOString() 
+    };
+    db.prepare(`
+        INSERT INTO expenses (id, description, category, amount, date, notes, userId) 
+        VALUES (@id, @description, @category, @amount, @date, @notes, @userId)
     `).run({ ...newExpenseData, userId });
-    return { ...newExpenseData, id: result.lastInsertRowid.toString(), userId };
+    return { ...newExpenseData, userId };
 }
 
 export async function updateExpense(updatedExpense: Expense): Promise<Expense> {

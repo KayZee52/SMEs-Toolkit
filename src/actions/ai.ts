@@ -6,23 +6,11 @@ import { generateProductDescription } from "@/ai/flows/generate-product-descript
 import { extractCustomerInfo } from "@/ai/flows/extract-customer-info";
 import { summarizeReport } from "@/ai/flows/summarize-report-flow";
 import type { Product, Sale, Expense } from "@/lib/types";
-import { getSession } from "./auth";
-
-// Helper to ensure all actions are authenticated
-async function checkAuth() {
-    const session = await getSession();
-    if (!session) {
-        throw new Error("User not authenticated");
-    }
-    return session;
-}
-
 
 export async function getAiReply(
   query: string,
   context: { products: Product[]; sales: Sale[] }
 ) {
-  await checkAuth();
   try {
     const result = await aiAssistedQuery({ query, ...context });
     return { success: true, data: result };
@@ -34,7 +22,6 @@ export async function getAiReply(
 }
 
 export async function getCustomerInfoFromText(salesLog: string) {
-  await checkAuth();
   try {
     const result = await extractCustomerInfo({ salesLog });
     return { success: true, data: result };
@@ -49,7 +36,6 @@ export async function generateDescriptionForProduct(
   productName: string,
   category?: string
 ) {
-  await checkAuth();
   try {
     const result = await generateProductDescription({
       productName,
@@ -69,7 +55,6 @@ export async function getReportSummary(context: {
   products: Product[];
   dateRange: { from: string; to: string };
 }) {
-  await checkAuth();
   try {
     const result = await summarizeReport(context);
     return { success: true, data: result };

@@ -19,7 +19,6 @@ import {
     deleteExpense as deleteExpenseAction,
     updateSettings as updateSettingsAction,
 } from "@/actions/db";
-import { getSession } from "@/actions/auth";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -42,7 +41,6 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       language: "en",
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
   const loadInitialData = useCallback(async () => {
     setIsLoading(true);
@@ -54,13 +52,9 @@ export const AppProvider = ({ children }: AppProviderProps) => {
             setCustomers(data.customers);
             setExpenses(data.expenses);
             setSettings(data.settings);
-            setIsLoggedIn(true);
-          } else {
-            setIsLoggedIn(false);
           }
       } catch (error) {
           console.error("Failed to load initial data", error);
-          setIsLoggedIn(false);
       } finally {
         setIsLoading(false);
       }
@@ -200,7 +194,6 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     customers,
     expenses,
     settings,
-    isLoggedIn,
     isLoading,
     loadInitialData,
     addProduct,

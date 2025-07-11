@@ -1,13 +1,6 @@
 
 import type { Translation } from "./i18n";
 
-export type User = {
-    id: string;
-    username: string;
-    passwordHash: string;
-    salt: string;
-};
-
 export type Product = {
   id: string;
   userId: string;
@@ -25,7 +18,7 @@ export type Sale = {
   id: string;
   userId: string;
   productId: string;
-  customerId?: string;
+  customerId: string; // Made mandatory
   customerName: string;
   productName: string;
   quantity: number;
@@ -66,7 +59,7 @@ export type Settings = {
 
 export type LogSaleFormValues = {
   productId: string;
-  customerId?: string;
+  customerId: string; // Made mandatory
   quantity: number;
   pricePerUnit: number;
   notes?: string;
@@ -78,7 +71,6 @@ export interface AppContextType {
   customers: Customer[];
   expenses: Expense[];
   settings: Settings;
-  isLoggedIn: boolean | null;
   isLoading: boolean;
   loadInitialData: () => Promise<void>;
   addProduct: (product: Omit<Product, "id" | "lastUpdatedAt" | "userId">) => Promise<void>;
