@@ -88,44 +88,47 @@ db.exec(`
     );
 `);
 
-// Create a default user and their settings if they don't exist
-try {
-    const salt = crypto.randomBytes(saltSize).toString('hex');
-    const passwordHash = hashPassword('password', salt);
-    const adminId = 'user_admin';
-    
-    // Use INSERT OR IGNORE to prevent errors on subsequent runs
-    db.prepare(`
-        INSERT OR IGNORE INTO users (id, username, passwordHash, salt) 
-        VALUES (@id, @username, @passwordHash, @salt)
-    `).run({
-        id: adminId,
-        username: 'admin',
-        passwordHash: passwordHash,
-        salt: salt
-    });
-    
-    const defaultSettings = {
-        businessName: "My Business",
-        currency: "USD",
-        enableAssistant: true,
-        autoSuggestions: true,
-        language: "en",
-    };
+// --- Default User Creation ---
+const createDefaultUser = (id: string, username: string, password: string) => {
+    try {
+        const existingUser = db.prepare('SELECT id FROM users WHERE id = ?').get(id);
+        if (existingUser) return; // User already exists
 
-    // Use INSERT OR IGNORE for settings as well
-    db.prepare(`
-        INSERT OR IGNORE INTO settings (key, userId, value) 
-        VALUES (@key, @userId, @value)
-    `).run({
-        key: 'appSettings',
-        userId: adminId,
-        value: JSON.stringify(defaultSettings)
-    });
+        const salt = crypto.randomBytes(saltSize).toString('hex');
+        const passwordHash = hashPassword(password, salt);
+        
+        db.prepare(`
+            INSERT INTO users (id, username, passwordHash, salt) 
+            VALUES (@id, @username, @passwordHash, @salt)
+        `).run({ id, username, passwordHash, salt });
+        
+        const defaultSettings = {
+            businessName: `${username}'s Business`,
+            currency: "USD",
+            enableAssistant: true,
+            autoSuggestions: true,
+            language: "en",
+        };
 
-} catch (e) {
-    console.error("Failed to create default user, it might already exist.", e);
-}
+        db.prepare(`
+            INSERT OR IGNORE INTO settings (key, userId, value) 
+            VALUES (@key, @userId, @value)
+        `).run({
+            key: 'appSettings',
+            userId: id,
+            value: JSON.stringify(defaultSettings)
+        });
+        console.log(`Default user '${username}' created successfully.`);
+    } catch (e) {
+        console.error(`Failed to create default user '${username}'.`, e);
+    }
+};
+
+// Create admin user
+createDefaultUser('user_admin', 'admin', 'password');
+
+// Create test user
+createDefaultUser('user_test', 'testuser', 'test');
 
 
 export { db };
