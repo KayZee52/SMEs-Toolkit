@@ -6,7 +6,6 @@ export const MOCK_PRODUCTS: Product[] = [
   { id: "prod_3", name: "Canvas Messenger Bag", stock: 30, price: 79.99, cost: 25.0, lastUpdatedAt: new Date().toISOString(), description: "Perfect for daily use.", category: "Bags", supplier: "Urban Gear" },
   { id: "prod_4", name: "Silk Tie", stock: 50, price: 29.99, cost: 8.0, lastUpdatedAt: new Date().toISOString(), description: "A touch of class.", category: "Accessories", supplier: "Gentlemen's Attire" },
   { id: "prod_5", name: "Wool Scarf", stock: 8, price: 39.99, cost: 12.5, lastUpdatedAt: new Date().toISOString(), description: "Warm and stylish.", category: "Accessories", supplier: "Winter Wears" },
-  { id: "prod_6", name: "Cat Food", stock: 100, price: 19.99, cost: 5.0, lastUpdatedAt: new Date().toISOString(), description: "Nutritious and delicious.", category: "Pet Supplies", supplier: "Happy Paws" },
 ];
 
 export const MOCK_CUSTOMERS: Customer[] = [
@@ -32,14 +31,14 @@ export const MOCK_SALES: Sale[] = [
   { id: "sale_d3_1", productId: "prod_2", customerId: "cust_1", customerName: "Alice Johnson", productName: "Stainless Steel Watch", quantity: 1, pricePerUnit: 129.99, total: 129.99, profit: 84.99, date: new Date(now.getTime() - 3 * day).toISOString() },
 
   // Day -2
-  { id: "sale_d2_1", productId: "prod_6", customerId: "cust_2", customerName: "Bob Williams", productName: "Cat Food", quantity: 5, pricePerUnit: 19.99, total: 99.95, profit: 74.95, date: new Date(now.getTime() - 2 * day).toISOString() },
+  { id: "sale_d2_1", productId: "prod_1", customerId: "cust_2", customerName: "Bob Williams", productName: "Classic Leather Wallet", quantity: 1, pricePerUnit: 49.99, total: 49.99, profit: 34.49, date: new Date(now.getTime() - 2 * day).toISOString() },
   { id: "sale_d2_2", productId: "prod_3", customerName: "Walk-in Customer", productName: "Canvas Messenger Bag", quantity: 1, pricePerUnit: 79.99, total: 79.99, profit: 54.99, date: new Date(now.getTime() - 2 * day).toISOString(), customerId: null },
 
   // Day -1
-  { id: "sale_d1_1", productId: "prod_6", customerName: "Walk-in Customer", productName: "Cat Food", quantity: 15, pricePerUnit: 19.99, total: 299.85, profit: 224.85, date: new Date(now.getTime() - 1 * day).toISOString(), customerId: null },
+  { id: "sale_d1_1", productId: "prod_4", customerName: "Walk-in Customer", productName: "Silk Tie", quantity: 2, pricePerUnit: 29.99, total: 59.98, profit: 43.98, date: new Date(now.getTime() - 1 * day).toISOString(), customerId: null },
 
   // Today
-  { id: "sale_d0_1", productId: "prod_6", customerId: "cust_1", customerName: "Alice Johnson", productName: "Cat Food", quantity: 50, pricePerUnit: 19.99, total: 999.50, profit: 749.50, date: new Date(now.getTime() - 1 * 1000).toISOString() },
+  { id: "sale_d0_1", productId: "prod_1", customerId: "cust_1", customerName: "Alice Johnson", productName: "Classic Leather Wallet", quantity: 2, pricePerUnit: 45.00, total: 90.00, profit: 59.00, date: new Date(now.getTime() - 1 * 1000).toISOString() },
 ];
 
 export const MOCK_EXPENSES: Expense[] = [
