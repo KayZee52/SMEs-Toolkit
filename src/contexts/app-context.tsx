@@ -29,7 +29,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadInitialData = useCallback(async () => {
+  const loadInitialData = useCallback(async (isRetry = false) => {
     setIsLoading(true);
     try {
       const data = await db.getInitialData();
@@ -40,13 +40,36 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       setSettings(data.settings);
     } catch (error) {
       console.error("Failed to load initial data", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load data from the database.",
-      });
+      
+      if (!isRetry) {
+        console.log("Attempting to recreate database and retrying...");
+        try {
+          await db.recreateDatabase();
+          // After recreating, we need to force a reload of the app to re-establish db connection
+          // A simple window reload is the most effective way in this architecture.
+          window.location.reload();
+        } catch (recreateError) {
+          console.error("Failed to recreate database", recreateError);
+           toast({
+            variant: "destructive",
+            title: "Fatal Error",
+            description: "Could not create or load the database. Please restart the application.",
+            duration: Infinity,
+          });
+        }
+      } else {
+         toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load data even after a retry. Please check console logs.",
+          duration: Infinity,
+        });
+      }
     } finally {
-      setIsLoading(false);
+      // Only set loading to false if we didn't trigger a reload
+      if (isRetry || !('reload' in window)) {
+        setIsLoading(false);
+      }
     }
   }, [toast]);
 

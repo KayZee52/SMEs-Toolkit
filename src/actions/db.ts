@@ -10,6 +10,8 @@ import type {
   Settings,
   LogSaleFormValues,
 } from '@/lib/types';
+import fs from 'fs';
+import path from 'path';
 
 // --- Get Functions ---
 
@@ -218,4 +220,27 @@ export async function updateSettings(newSettings: Settings): Promise<Settings> {
     const stmt = db.prepare("INSERT OR REPLACE INTO settings (key, data) VALUES ('appSettings', ?)");
     stmt.run(JSON.stringify(newSettings));
     return newSettings;
+}
+
+
+export async function recreateDatabase(): Promise<void> {
+  // This is a server-only function.
+  // It closes the current DB connection, deletes the file, and the app will restart the connection.
+  const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
+  db.close(); // Close the connection before deleting
+  try {
+    if (fs.existsSync(dbPath)) {
+      fs.unlinkSync(dbPath);
+    }
+     if (fs.existsSync(`${dbPath}-shm`)) {
+      fs.unlinkSync(`${dbPath}-shm`);
+    }
+    if (fs.existsSync(`${dbPath}-wal`)) {
+      fs.unlinkSync(`${dbPath}-wal`);
+    }
+    console.log("Database file deleted successfully. The app will re-initialize it.");
+  } catch (error) {
+    console.error("Error deleting database file:", error);
+    throw new Error("Could not recreate the database.");
+  }
 }
