@@ -66,7 +66,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   
   const translations = getTranslations(settings.language);
 
-  const addProduct = async (productData: Omit<Product, "id" | "lastUpdatedAt" | "userId">) => {
+  const addProduct = async (productData: Omit<Product, "id" | "lastUpdatedAt">) => {
     try {
         const newProduct = await addProductAction(productData);
         setProducts(prev => [...prev, newProduct].sort((a,b) => a.name.localeCompare(b.name)));
@@ -113,7 +113,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     }
   };
   
-  const addCustomer = async (customerData: Omit<Customer, "id" | "createdAt" | "userId">): Promise<Customer> => {
+  const addCustomer = async (customerData: Omit<Customer, "id" | "createdAt">): Promise<Customer> => {
     try {
         const newCustomer = await addCustomerAction(customerData);
         setCustomers(prev => [...prev, newCustomer].sort((a,b) => a.name.localeCompare(b.name)));
@@ -137,7 +137,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     }
   };
 
-  const addExpense = async (expenseData: Omit<Expense, "id" | "date" | "userId">) => {
+  const addExpense = async (expenseData: Omit<Expense, "id" | "date">) => {
     try {
         const newExpense = await addExpenseAction(expenseData);
         setExpenses(prev => [newExpense, ...prev]);

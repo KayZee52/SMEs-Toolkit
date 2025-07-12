@@ -1,9 +1,7 @@
-
 import type { Translation } from "./i18n";
 
 export type Product = {
   id: string;
-  userId: string;
   name: string;
   description?: string;
   stock: number;
@@ -16,9 +14,8 @@ export type Product = {
 
 export type Sale = {
   id: string;
-  userId: string;
   productId: string;
-  customerId: string | null; // Can be null for walk-in customers
+  customerId: string | null;
   customerName: string;
   productName: string;
   quantity: number;
@@ -31,7 +28,6 @@ export type Sale = {
 
 export type Customer = {
   id:string;
-  userId: string;
   name: string;
   phone?: string;
   createdAt: string;
@@ -41,7 +37,6 @@ export type Customer = {
 
 export type Expense = {
   id: string;
-  userId: string;
   description: string;
   category: string;
   amount: number;
@@ -73,13 +68,13 @@ export interface AppContextType {
   settings: Settings;
   isLoading: boolean;
   loadInitialData: () => Promise<void>;
-  addProduct: (product: Omit<Product, "id" | "lastUpdatedAt" | "userId">) => Promise<void>;
+  addProduct: (product: Omit<Product, "id" | "lastUpdatedAt">) => Promise<void>;
   updateProduct: (product: Product) => Promise<void>;
   receiveStock: (productId: string, quantity: number, costPerUnit: number) => Promise<void>;
   addSale: (sale: LogSaleFormValues) => Promise<void>;
-  addCustomer: (customer: Omit<Customer, "id" | "createdAt" | "userId">) => Promise<Customer>;
+  addCustomer: (customer: Omit<Customer, "id" | "createdAt">) => Promise<Customer>;
   updateCustomer: (customer: Customer) => Promise<void>;
-  addExpense: (expense: Omit<Expense, "id" | "date" | "userId">) => Promise<void>;
+  addExpense: (expense: Omit<Expense, "id" | "date">) => Promise<void>;
   updateExpense: (expense: Expense) => Promise<void>;
   deleteExpense: (id: string) => Promise<void>;
   findCustomerByName: (name: string) => Customer | undefined;

@@ -4,46 +4,32 @@
 import { db } from '@/lib/db';
 import type { Product, Sale, Customer, Expense, Settings, LogSaleFormValues } from "@/lib/types";
 
-// Hardcoded user ID for single-user mode
-const USER_ID = 'user_admin';
-
-async function getUserId() {
-    return USER_ID;
-}
-
 // === READ OPERATIONS ===
 
 export async function getProducts(): Promise<Product[]> {
-    const userId = await getUserId();
-    return db.prepare("SELECT * FROM products WHERE userId = ? ORDER BY name ASC").all(userId) as Product[];
+    return db.prepare("SELECT * FROM products ORDER BY name ASC").all() as Product[];
 }
 
 export async function getSales(): Promise<Sale[]> {
-    const userId = await getUserId();
-    return db.prepare("SELECT * FROM sales WHERE userId = ? ORDER BY date DESC").all(userId) as Sale[];
+    return db.prepare("SELECT * FROM sales ORDER BY date DESC").all() as Sale[];
 }
 
 export async function getCustomers(): Promise<Customer[]> {
-    const userId = await getUserId();
-    return db.prepare("SELECT * FROM customers WHERE userId = ? ORDER BY name ASC").all(userId) as Customer[];
+    return db.prepare("SELECT * FROM customers ORDER BY name ASC").all() as Customer[];
 }
 
 export async function getExpenses(): Promise<Expense[]> {
-    const userId = await getUserId();
-    return db.prepare("SELECT * FROM expenses WHERE userId = ? ORDER BY date DESC").all(userId) as Expense[];
+    return db.prepare("SELECT * FROM expenses ORDER BY date DESC").all() as Expense[];
 }
 
 export async function getSettings(): Promise<Settings> {
-    const userId = await getUserId();
-    
-    const settingsFromDb = db.prepare("SELECT value FROM settings WHERE userId = ? AND key = 'appSettings'").get(userId) as { value: string } | undefined;
+    const settingsFromDb = db.prepare("SELECT value FROM settings WHERE key = 'appSettings'").get() as { value: string } | undefined;
     
     if (settingsFromDb) {
         return JSON.parse(settingsFromDb.value);
     } 
     
-    // Fallback if settings are not in the DB for some reason.
-    // This should ideally not be reached if the DB is seeded correctly.
+    // This case should ideally not be hit if the DB is seeded correctly.
     const defaultSettings: Settings = {
         businessName: "My Business",
         currency: "USD",
@@ -55,9 +41,6 @@ export async function getSettings(): Promise<Settings> {
 }
 
 export async function getInitialData() {
-    const userId = await getUserId();
-    if (!userId) return null;
-
     // A check to ensure the db has been seeded.
     const productCount = db.prepare('SELECT COUNT(*) as count FROM products').get() as { count: number };
     if (productCount.count === 0) {
@@ -91,37 +74,32 @@ export async function getInitialData() {
 
 // === WRITE OPERATIONS ===
 
-export async function addProduct(productData: Omit<Product, "id" | "lastUpdatedAt" | "userId">): Promise<Product> {
-    const userId = await getUserId();
+export async function addProduct(productData: Omit<Product, "id" | "lastUpdatedAt">): Promise<Product> {
     const newProduct = {
       ...productData,
       id: `prod_${new Date().getTime()}`,
-      userId,
       lastUpdatedAt: new Date().toISOString(),
     };
     db.prepare(`
-        INSERT INTO products (id, name, description, stock, price, cost, category, supplier, lastUpdatedAt, userId) 
-        VALUES (@id, @name, @description, @stock, @price, @cost, @category, @supplier, @lastUpdatedAt, @userId)
+        INSERT INTO products (id, name, description, stock, price, cost, category, supplier, lastUpdatedAt) 
+        VALUES (@id, @name, @description, @stock, @price, @cost, @category, @supplier, @lastUpdatedAt)
     `).run(newProduct);
     return newProduct;
 }
 
 export async function updateProduct(updatedProduct: Product): Promise<Product> {
-    const userId = await getUserId();
-    if (updatedProduct.userId !== userId) throw new Error("Permission denied");
     const productToUpdate = { ...updatedProduct, lastUpdatedAt: new Date().toISOString() };
     db.prepare(`
         UPDATE products SET 
             name = @name, description = @description, stock = @stock, price = @price, cost = @cost, 
             category = @category, supplier = @supplier, lastUpdatedAt = @lastUpdatedAt
-        WHERE id = @id AND userId = @userId
+        WHERE id = @id
     `).run(productToUpdate);
     return productToUpdate;
 }
 
 export async function receiveStock(productId: string, quantity: number, costPerUnit: number): Promise<Product> {
-    const userId = await getUserId();
-    const product = db.prepare("SELECT * FROM products WHERE id = ? AND userId = ?").get(productId, userId) as Product | undefined;
+    const product = db.prepare("SELECT * FROM products WHERE id = ?").get(productId) as Product | undefined;
     if (!product) throw new Error("Product not found");
 
     const currentStock = Number(product.stock) || 0;
@@ -145,27 +123,28 @@ export async function receiveStock(productId: string, quantity: number, costPerU
 
 
 export async function addSale(saleData: LogSaleFormValues): Promise<{ newSale: Sale, updatedProduct: Product }> {
-    const userId = await getUserId();
-    const product = db.prepare("SELECT * FROM products WHERE id = ? AND userId = ?").get(saleData.productId, userId) as Product | undefined;
+    const product = db.prepare("SELECT * FROM products WHERE id = ?").get(saleData.productId) as Product | undefined;
     if (!product) throw new Error("Product not found");
     if (product.stock < saleData.quantity) throw new Error("Not enough stock");
 
     let customerName = "Walk-in Customer";
-    let customerId = saleData.customerId || "walk-in";
+    let customerId = saleData.customerId || null;
 
-    if (customerId !== 'walk-in') {
-        const customer = db.prepare("SELECT * FROM customers WHERE id = ? AND userId = ?").get(customerId, userId) as Customer | undefined;
+    if (customerId && customerId !== 'walk-in') {
+        const customer = db.prepare("SELECT * FROM customers WHERE id = ?").get(customerId) as Customer | undefined;
         if(customer) customerName = customer.name;
+    } else {
+        customerId = null; // Ensure walk-in is stored as NULL
     }
 
     const profit = (saleData.pricePerUnit - product.cost) * saleData.quantity;
     const total = saleData.pricePerUnit * saleData.quantity;
 
-    const newSaleData: Omit<Sale, "id" | "userId"> = {
+    const newSaleData: Omit<Sale, "id"> = {
       productId: saleData.productId,
       productName: product.name,
       customerName,
-      customerId,
+      customerId: customerId,
       quantity: saleData.quantity,
       pricePerUnit: saleData.pricePerUnit,
       total,
@@ -176,10 +155,10 @@ export async function addSale(saleData: LogSaleFormValues): Promise<{ newSale: S
     
     const id = `sale_${new Date().getTime()}`;
     db.prepare(`
-        INSERT INTO sales (id, productId, customerId, customerName, productName, quantity, pricePerUnit, total, profit, notes, date, userId) 
-        VALUES (@id, @productId, @customerId, @customerName, @productName, @quantity, @pricePerUnit, @total, @profit, @notes, @date, @userId)
-    `).run({ ...newSaleData, id, userId });
-    const newSale = { ...newSaleData, id, userId };
+        INSERT INTO sales (id, productId, customerId, customerName, productName, quantity, pricePerUnit, total, profit, notes, date) 
+        VALUES (@id, @productId, @customerId, @customerName, @productName, @quantity, @pricePerUnit, @total, @profit, @notes, @date)
+    `).run({ ...newSaleData, id });
+    const newSale = { ...newSaleData, id };
     
     const updatedProductData = { ...product, stock: product.stock - saleData.quantity, lastUpdatedAt: new Date().toISOString() };
     const updatedProduct = await updateProduct(updatedProductData);
@@ -188,70 +167,60 @@ export async function addSale(saleData: LogSaleFormValues): Promise<{ newSale: S
 }
 
 
-export async function addCustomer(customerData: Omit<Customer, "id" | "createdAt" | "userId">): Promise<Customer> {
-    const userId = await getUserId();
+export async function addCustomer(customerData: Omit<Customer, "id" | "createdAt">): Promise<Customer> {
     const newCustomerData = {
       ...customerData,
       id: `cust_${new Date().getTime()}`,
-      userId,
       createdAt: new Date().toISOString(),
       type: customerData.type || "Regular",
       notes: customerData.notes || null,
     };
     db.prepare(`
-        INSERT INTO customers (id, name, phone, createdAt, notes, type, userId) 
-        VALUES (@id, @name, @phone, @createdAt, @notes, @type, @userId)
+        INSERT INTO customers (id, name, phone, createdAt, notes, type) 
+        VALUES (@id, @name, @phone, @createdAt, @notes, @type)
     `).run(newCustomerData);
     return newCustomerData;
 }
 
 
 export async function updateCustomer(updatedCustomer: Customer): Promise<Customer> {
-    const userId = await getUserId();
-    if (updatedCustomer.userId !== userId) throw new Error("Permission denied");
     db.prepare(`
         UPDATE customers SET name = @name, phone = @phone, notes = @notes, type = @type
-        WHERE id = @id AND userId = @userId
+        WHERE id = @id
     `).run(updatedCustomer);
     return updatedCustomer;
 }
 
-export async function addExpense(expenseData: Omit<Expense, "id" | "date" | "userId">): Promise<Expense> {
-    const userId = await getUserId();
-    const newExpenseData: Omit<Expense, "id" | "userId"> & { id: string; userId: string; } = { 
+export async function addExpense(expenseData: Omit<Expense, "id" | "date">): Promise<Expense> {
+    const newExpenseData: Omit<Expense, "id"> & { id: string; date: string; } = { 
         ...expenseData, 
         id: `exp_${new Date().getTime()}`,
         date: new Date().toISOString(),
-        userId
     };
     db.prepare(`
-        INSERT INTO expenses (id, description, category, amount, date, notes, userId) 
-        VALUES (@id, @description, @category, @amount, @date, @notes, @userId)
+        INSERT INTO expenses (id, description, category, amount, date, notes) 
+        VALUES (@id, @description, @category, @amount, @date, @notes)
     `).run(newExpenseData);
     return newExpenseData;
 }
 
 export async function updateExpense(updatedExpense: Expense): Promise<Expense> {
-    const userId = await getUserId();
-    if (updatedExpense.userId !== userId) throw new Error("Permission denied");
     const expenseToUpdate = { ...updatedExpense, date: new Date().toISOString() };
     db.prepare(`
         UPDATE expenses SET description = @description, category = @category, amount = @amount, date = @date, notes = @notes
-        WHERE id = @id AND userId = @userId
+        WHERE id = @id
     `).run(expenseToUpdate);
     return expenseToUpdate;
 }
 
 
 export async function deleteExpense(id: string): Promise<{ success: boolean }> {
-    const userId = await getUserId();
-    db.prepare("DELETE FROM expenses WHERE id = ? AND userId = ?").run(id, userId);
+    db.prepare("DELETE FROM expenses WHERE id = ?").run(id);
     return { success: true };
 }
 
 
 export async function updateSettings(newSettings: Settings): Promise<Settings> {
-    const userId = await getUserId();
-    db.prepare("UPDATE settings SET value = ? WHERE userId = ? AND key = 'appSettings'").run(JSON.stringify(newSettings), userId);
+    db.prepare("UPDATE settings SET value = ? WHERE key = 'appSettings'").run(JSON.stringify(newSettings));
     return newSettings;
 }
