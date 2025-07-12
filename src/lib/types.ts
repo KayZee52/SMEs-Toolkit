@@ -18,7 +18,7 @@ export type Sale = {
   id: string;
   userId: string;
   productId: string;
-  customerId: string; // Made mandatory
+  customerId: string | null; // Can be null for walk-in customers
   customerName: string;
   productName: string;
   quantity: number;
@@ -59,7 +59,7 @@ export type Settings = {
 
 export type LogSaleFormValues = {
   productId: string;
-  customerId: string; // Made mandatory
+  customerId: string; 
   quantity: number;
   pricePerUnit: number;
   notes?: string;

@@ -7,12 +7,12 @@ const db = new Database('smes-toolkit.db');
 
 db.pragma('journal_mode = WAL');
 
-// --- Hashing function (re-added for self-contained setup) ---
+// --- Hashing function ---
 function hashPassword(password: string, salt: string): string {
   return crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
 }
 
-// Create tables if they don't exist
+// --- Schema Definition ---
 db.exec(`
     CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
