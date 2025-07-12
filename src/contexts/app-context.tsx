@@ -29,7 +29,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadInitialData = useCallback(async (isRetry = false) => {
+  const loadInitialData = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await db.getInitialData();
@@ -39,38 +39,18 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       setExpenses(data.expenses);
       setSettings(data.settings);
     } catch (error) {
-      console.error("Failed to load initial data", error);
-      
-      if (!isRetry) {
-        console.log("Attempting to recreate database and retrying...");
-        try {
-          await db.recreateDatabase();
-          // After recreating, we need to force a reload of the app to re-establish db connection
-          // A simple window reload is the most effective way in this architecture.
-          window.location.reload();
-        } catch (recreateError) {
-          console.error("Failed to recreate database", recreateError);
-           toast({
-            variant: "destructive",
-            title: "Fatal Error",
-            description: "Could not create or load the database. Please restart the application.",
-            duration: Infinity,
-          });
-        }
-      } else {
-         toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load data even after a retry. Please check console logs.",
-          duration: Infinity,
-        });
-      }
-    } finally {
-      // Only set loading to false if we didn't trigger a reload
-      if (isRetry || !('reload' in window)) {
-        setIsLoading(false);
-      }
+      console.error("Fatal: Failed to load initial data from database.", error);
+      toast({
+        variant: "destructive",
+        title: "Fatal Error",
+        description: "Could not load data from the database. The application cannot start. Please check the console for details.",
+        duration: Infinity,
+      });
+      // We stop loading here to prevent the app from running in a broken state.
+      // The isLoading flag will remain true, showing the loading screen.
+      return;
     }
+    setIsLoading(false);
   }, [toast]);
 
   useEffect(() => {
