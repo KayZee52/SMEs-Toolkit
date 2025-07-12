@@ -61,8 +61,22 @@ export async function getInitialData() {
     // A check to ensure the db has been seeded.
     const productCount = db.prepare('SELECT COUNT(*) as count FROM products').get() as { count: number };
     if (productCount.count === 0) {
-        // This is a failsafe. The user should be instructed to run the seed script.
-        throw new Error("Database not seeded. Please run `npm run db:seed` to initialize the database.");
+        // This should now be a very rare case, but it's a good safeguard.
+        console.error("Database is not seeded. The automatic seeding might have failed.");
+        // We will return empty arrays to prevent a crash, allowing the app to load.
+        return {
+            products: [],
+            sales: [],
+            customers: [],
+            expenses: [],
+            settings: {
+                businessName: "My Business",
+                currency: "USD",
+                enableAssistant: true,
+                autoSuggestions: true,
+                language: "en",
+            }
+        }
     }
 
     return {
