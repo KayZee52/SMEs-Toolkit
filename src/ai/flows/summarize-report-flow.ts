@@ -26,14 +26,14 @@ const ProductSchema = z.object({
 const SaleSchema = z.object({
     id: z.string(),
     productId: z.string(),
-    customerId: z.string().optional(),
+    customerId: z.string().nullable().optional(),
     customerName: z.string(),
     productName: z.string(),
     quantity: z.number(),
     pricePerUnit: z.number(),
     total: z.number(),
     profit: z.number(),
-    notes: z.string().optional(),
+    notes: z.string().nullable().optional(),
     date: z.string(),
 });
 
@@ -43,7 +43,7 @@ const ExpenseSchema = z.object({
   category: z.string(),
   amount: z.number(),
   date: z.string(),
-  notes: z.string().optional(),
+  notes: z.string().nullable().optional(),
 });
 
 const SummarizeReportInputSchema = z.object({

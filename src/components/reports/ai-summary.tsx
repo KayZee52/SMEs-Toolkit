@@ -26,6 +26,7 @@ export function AiSummary({ filteredSales, filteredExpenses, dateRange }: AiSumm
     if (!dateRange?.from || !dateRange?.to) return;
 
     const generateSummary = async () => {
+      if (!dateRange?.from || !dateRange?.to) return;
       setIsLoading(true);
       setError("");
       setSummary("");

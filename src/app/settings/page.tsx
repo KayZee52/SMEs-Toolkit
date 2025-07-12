@@ -161,7 +161,7 @@ export default function SettingsPage() {
             <Languages className="h-6 w-6" />
             <div>
               <CardTitle className="font-headline">Appearance</CardTitle>
-              <CardDescription>Adjust the app's look and feel.</CardDescription>
+              <CardDescription>Adjust the app&apos;s look and feel.</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">

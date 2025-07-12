@@ -22,7 +22,7 @@ export type Sale = {
   pricePerUnit: number;
   total: number;
   profit: number;
-  notes?: string;
+  notes?: string | null;
   date: string;
 };
 
@@ -31,7 +31,7 @@ export type Customer = {
   name: string;
   phone?: string;
   createdAt: string;
-  notes?: string;
+  notes?: string | null;
   type?: "Regular" | "VIP" | "Debtor";
 };
 
@@ -41,7 +41,7 @@ export type Expense = {
   category: string;
   amount: number;
   date: string;
-  notes?: string;
+  notes?: string | null;
 };
 
 export type Settings = {
@@ -54,7 +54,7 @@ export type Settings = {
 
 export type LogSaleFormValues = {
   productId: string;
-  customerId: string; 
+  customerId?: string; 
   quantity: number;
   pricePerUnit: number;
   notes?: string;

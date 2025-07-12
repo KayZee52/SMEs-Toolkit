@@ -58,7 +58,7 @@ export function ExpenseDialog({ expense }: ExpenseDialogProps) {
 
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseSchema),
-    defaultValues: expense || {
+    defaultValues: expense ? { ...expense, notes: expense.notes || "" } : {
       description: "",
       category: "",
       amount: 0,
@@ -69,7 +69,7 @@ export function ExpenseDialog({ expense }: ExpenseDialogProps) {
   useEffect(() => {
     if (open) {
       form.reset(
-        expense || { description: "", category: "", amount: 0, notes: "" }
+        expense ? { ...expense, notes: expense.notes || "" } : { description: "", category: "", amount: 0, notes: "" }
       );
     }
   }, [open, expense, form]);

@@ -34,12 +34,12 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [settings, setSettings] = useState<Settings>({
-      businessName: "My Business",
-      currency: "USD",
-      enableAssistant: true,
-      autoSuggestions: true,
-      language: "en",
-  });
+                businessName: "My Business",
+                currency: "USD",
+                enableAssistant: true,
+                autoSuggestions: true,
+                language: "en",
+            });
   const [isLoading, setIsLoading] = useState(true);
 
   const loadInitialData = useCallback(async () => {

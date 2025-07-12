@@ -49,7 +49,7 @@ export function CustomerDialog({ customer, onSave }: CustomerDialogProps) {
 
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
-    defaultValues: customer || {
+    defaultValues: customer ? { ...customer, notes: customer.notes || "" } : {
       name: "",
       phone: "",
       notes: "",
@@ -58,7 +58,7 @@ export function CustomerDialog({ customer, onSave }: CustomerDialogProps) {
   });
 
   useState(() => {
-    form.reset(customer || { name: "", phone: "", notes: "", type: "Regular" });
+    form.reset(customer ? { ...customer, notes: customer.notes || "" } : { name: "", phone: "", notes: "", type: "Regular" });
   });
 
   const onSubmit = (data: CustomerFormValues) => {

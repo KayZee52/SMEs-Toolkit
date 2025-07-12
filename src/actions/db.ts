@@ -54,10 +54,10 @@ export async function getInitialData() {
             expenses: [],
             settings: {
                 businessName: "My Business",
-                currency: "USD",
+                currency: "USD" as "USD" | "LRD" | "NGN",
                 enableAssistant: true,
                 autoSuggestions: true,
-                language: "en",
+                language: "en" as "en" | "en-lr" | "fr",
             }
         }
     }
