@@ -52,25 +52,25 @@ interface ExpenseDialogProps {
   expense?: Expense;
 }
 
+const defaultValues = {
+  description: "",
+  category: "",
+  amount: 0,
+  notes: "",
+};
+
 export function ExpenseDialog({ expense }: ExpenseDialogProps) {
   const { addExpense, updateExpense } = useApp();
   const [open, setOpen] = useState(false);
 
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseSchema),
-    defaultValues: expense ? { ...expense, notes: expense.notes || "" } : {
-      description: "",
-      category: "",
-      amount: 0,
-      notes: "",
-    },
+    defaultValues: expense || defaultValues,
   });
 
   useEffect(() => {
     if (open) {
-      form.reset(
-        expense ? { ...expense, notes: expense.notes || "" } : { description: "", category: "", amount: 0, notes: "" }
-      );
+      form.reset(expense ? { ...expense, notes: expense.notes || "" } : defaultValues);
     }
   }, [open, expense, form]);
 
@@ -80,7 +80,6 @@ export function ExpenseDialog({ expense }: ExpenseDialogProps) {
     } else {
       addExpense(data);
     }
-    form.reset();
     setOpen(false);
   };
 

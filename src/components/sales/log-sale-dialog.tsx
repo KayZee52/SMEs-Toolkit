@@ -37,6 +37,13 @@ const saleSchema = z.object({
   notes: z.string().optional(),
 });
 
+const defaultValues = {
+  productId: "",
+  customerId: "walk-in",
+  quantity: 1,
+  pricePerUnit: 0,
+  notes: "",
+};
 
 export function LogSaleDialog() {
   const { products, customers, addSale } = useApp();
@@ -44,13 +51,7 @@ export function LogSaleDialog() {
 
   const form = useForm<LogSaleFormValues>({
     resolver: zodResolver(saleSchema),
-    defaultValues: {
-      quantity: 1,
-      notes: "",
-      customerId: "walk-in",
-      productId: "",
-      pricePerUnit: 0,
-    },
+    defaultValues: defaultValues,
   });
 
   const selectedProductId = form.watch("productId");
@@ -61,18 +62,14 @@ export function LogSaleDialog() {
       if (product) {
         form.setValue("pricePerUnit", product.price);
       }
+    } else {
+      form.setValue("pricePerUnit", 0);
     }
   }, [selectedProductId, products, form]);
 
   useEffect(() => {
-    if (!open) {
-        form.reset({
-            productId: "",
-            customerId: "walk-in",
-            quantity: 1,
-            notes: "",
-            pricePerUnit: 0,
-        });
+    if (open) {
+      form.reset(defaultValues);
     }
   }, [open, form]);
 

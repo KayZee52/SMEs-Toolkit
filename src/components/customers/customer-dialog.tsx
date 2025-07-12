@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { useApp } from "@/contexts/app-context";
 import type { Customer } from "@/lib/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit, UserPlus } from "lucide-react";
 
 const customerSchema = z.object({
@@ -43,23 +43,27 @@ interface CustomerDialogProps {
   onSave?: (data: Customer) => void;
 }
 
+const defaultValues = {
+  name: "",
+  phone: "",
+  notes: "",
+  type: "Regular" as const,
+};
+
 export function CustomerDialog({ customer, onSave }: CustomerDialogProps) {
   const { addCustomer, updateCustomer, translations } = useApp();
   const [open, setOpen] = useState(false);
 
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
-    defaultValues: customer ? { ...customer, notes: customer.notes || "" } : {
-      name: "",
-      phone: "",
-      notes: "",
-      type: "Regular",
-    },
+    defaultValues: customer || defaultValues,
   });
 
-  useState(() => {
-    form.reset(customer ? { ...customer, notes: customer.notes || "" } : { name: "", phone: "", notes: "", type: "Regular" });
-  });
+  useEffect(() => {
+    if (open) {
+      form.reset(customer ? { ...customer, notes: customer.notes || "" } : defaultValues);
+    }
+  }, [open, customer, form]);
 
   const onSubmit = (data: CustomerFormValues) => {
     if (customer) {
@@ -72,7 +76,6 @@ export function CustomerDialog({ customer, onSave }: CustomerDialogProps) {
     } else {
       addCustomer(data);
     }
-    form.reset();
     setOpen(false);
   };
 

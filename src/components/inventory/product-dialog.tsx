@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/contexts/app-context";
 import type { Product } from "@/lib/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit, PlusCircle, Sparkles } from "lucide-react";
 import { generateDescriptionForProduct } from "@/actions/ai";
 import { useToast } from "@/hooks/use-toast";
@@ -40,6 +40,16 @@ interface ProductDialogProps {
   product?: Product;
 }
 
+const defaultValues = {
+  name: "",
+  description: "",
+  stock: 0,
+  price: 0,
+  cost: 0,
+  category: "",
+  supplier: "",
+};
+
 export function ProductDialog({ product }: ProductDialogProps) {
   const { addProduct, updateProduct } = useApp();
   const { toast } = useToast();
@@ -48,25 +58,18 @@ export function ProductDialog({ product }: ProductDialogProps) {
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
-    defaultValues: product || {
-      name: "",
-      description: "",
-      stock: 0,
-      price: 0,
-      cost: 0,
-      category: "",
-      supplier: "",
-    },
+    defaultValues: product || defaultValues,
   });
 
   const { watch, setValue } = form;
   const productName = watch("name");
   const productCategory = watch("category");
 
-  // Reset form when dialog opens/closes or product changes
-  useState(() => {
-    form.reset(product);
-  });
+  useEffect(() => {
+    if (open) {
+      form.reset(product || defaultValues);
+    }
+  }, [open, product, form]);
 
   const handleGenerateDescription = async () => {
     if (!productName) {
@@ -105,7 +108,6 @@ export function ProductDialog({ product }: ProductDialogProps) {
     } else {
       addProduct(data);
     }
-    form.reset();
     setOpen(false);
   };
 

@@ -96,7 +96,12 @@ export async function receiveStock(productId: string, quantity: number, costPerU
     }
 
     const newStock = product.stock + quantity;
-    const newCost = ((product.cost * product.stock) + (costPerUnit * quantity)) / newStock;
+    // Prevent division by zero if current stock is negative or zero, but new quantity is added.
+    const totalOldStockValue = product.stock > 0 ? product.cost * product.stock : 0;
+    const totalNewStockValue = costPerUnit * quantity;
+    const totalStock = product.stock + quantity;
+    const newCost = totalStock > 0 ? (totalOldStockValue + totalNewStockValue) / totalStock : costPerUnit;
+
 
     const updatedProductData = {
         ...product,
@@ -210,7 +215,7 @@ export async function deleteExpense(id: string): Promise<{ id: string }> {
 }
 
 export async function updateSettings(newSettings: Settings): Promise<Settings> {
-    const stmt = db.prepare("UPDATE settings SET data = ? WHERE key = 'appSettings'");
+    const stmt = db.prepare("INSERT OR REPLACE INTO settings (key, data) VALUES ('appSettings', ?)");
     stmt.run(JSON.stringify(newSettings));
     return newSettings;
 }
