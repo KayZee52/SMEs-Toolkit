@@ -46,6 +46,15 @@ export const columns: ColumnDef<Product>[] = [
       );
     },
   },
+   {
+    accessorKey: "description",
+    header: "Description",
+    cell: ({ row }) => (
+        <div className="text-sm text-muted-foreground truncate max-w-xs">
+            {row.original.description || "N/A"}
+        </div>
+    )
+  },
   {
     accessorKey: "stock",
     header: ({ column }) => {
