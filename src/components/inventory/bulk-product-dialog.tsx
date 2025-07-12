@@ -98,8 +98,8 @@ export function BulkProductDialog() {
                 <TableRow>
                   <TableHead className="w-[25%]">Name</TableHead>
                   <TableHead>Stock</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Cost</TableHead>
+                  <TableHead>Sell Price</TableHead>
+                  <TableHead>Buy Cost</TableHead>
                   <TableHead className="w-[10%]"></TableHead>
                 </TableRow>
               </TableHeader>

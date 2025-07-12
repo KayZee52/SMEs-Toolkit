@@ -186,6 +186,9 @@ export function ProductDialog({ product }: ProductDialogProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="price">Price</Label>
+              <p className="text-xs text-muted-foreground -mt-1">
+                How much you sell this for.
+              </p>
               <Input
                 id="price"
                 type="number"
@@ -200,6 +203,9 @@ export function ProductDialog({ product }: ProductDialogProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="cost">Cost</Label>
+              <p className="text-xs text-muted-foreground -mt-1">
+                What it costs you to buy.
+              </p>
               <Input
                 id="cost"
                 type="number"
