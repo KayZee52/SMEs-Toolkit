@@ -6,7 +6,6 @@ const db = new Database('smes-toolkit.db');
 db.pragma('journal_mode = WAL');
 
 // --- Schema Definition ---
-// All user-related tables are removed for single-user mode.
 db.exec(`
     CREATE TABLE IF NOT EXISTS products (
         id TEXT PRIMARY KEY,
