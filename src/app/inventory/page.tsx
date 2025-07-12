@@ -30,18 +30,46 @@ export default function InventoryPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h1 className="font-headline text-3xl font-bold tracking-tight">
-          Inventory
-        </h1>
-        <div className="flex flex-col md:flex-row items-center gap-2">
-           <Input
+      <div className="flex flex-col gap-4">
+        {/* Row 1: Title and Filters */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <h1 className="font-headline text-3xl font-bold tracking-tight">
+            Inventory
+          </h1>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={filter === "all" ? "default" : "outline"}
+              onClick={() => setFilter("all")}
+              className="w-full md:w-auto"
+            >
+              All
+            </Button>
+            <Button
+              variant={filter === "low" ? "default" : "outline"}
+              onClick={() => setFilter("low")}
+               className="w-full md:w-auto"
+            >
+              Low Stock
+            </Button>
+            <Button
+              variant={filter === "out" ? "default" : "outline"}
+              onClick={() => setFilter("out")}
+               className="w-full md:w-auto"
+            >
+              Out of Stock
+            </Button>
+          </div>
+        </div>
+
+        {/* Row 2: Search and Actions */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+          <Input
             placeholder="Search products..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full md:w-64"
+            className="w-full md:max-w-sm"
           />
-          <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="flex items-center gap-2">
             <BulkProductDialog />
             <ProductDialog />
           </div>
@@ -49,29 +77,6 @@ export default function InventoryPage() {
       </div>
 
       <InventorySummaryCards />
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-            <Button
-            variant={filter === "all" ? "default" : "outline"}
-            onClick={() => setFilter("all")}
-            >
-            All
-            </Button>
-            <Button
-            variant={filter === "low" ? "default" : "outline"}
-            onClick={() => setFilter("low")}
-            >
-            Low Stock
-            </Button>
-            <Button
-            variant={filter === "out" ? "default" : "outline"}
-            onClick={() => setFilter("out")}
-            >
-            Out of Stock
-            </Button>
-        </div>
-      </div>
 
       <DataTable columns={columns} data={filteredProducts} />
     </div>
