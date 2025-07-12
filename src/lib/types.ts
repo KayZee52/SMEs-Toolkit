@@ -61,6 +61,8 @@ export type LogSaleFormValues = {
   notes?: string;
 };
 
+export type BulkAddProductFormValues = Omit<Product, "id" | "lastUpdatedAt">;
+
 export interface AppContextType {
   products: Product[];
   sales: Sale[];
@@ -70,6 +72,7 @@ export interface AppContextType {
   isLoading: boolean;
   loadInitialData: () => Promise<void>;
   addProduct: (product: Omit<Product, "id" | "lastUpdatedAt">) => Promise<void>;
+  addMultipleProducts: (products: Omit<Product, "id" | "lastUpdatedAt">[]) => Promise<void>;
   updateProduct: (product: Product) => Promise<void>;
   receiveStock: (productId: string, quantity: number, costPerUnit: number) => Promise<void>;
   addSale: (sale: LogSaleFormValues) => Promise<void>;

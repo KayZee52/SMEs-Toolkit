@@ -16,7 +16,7 @@ import path from 'path';
 // --- Get Functions ---
 
 export async function getProducts(): Promise<Product[]> {
-  const stmt = db.prepare('SELECT * FROM products');
+  const stmt = db.prepare('SELECT * FROM products ORDER BY name ASC');
   return stmt.all() as Product[];
 }
 
@@ -77,6 +77,29 @@ export async function addProduct(productData: Omit<Product, 'id' | 'lastUpdatedA
   );
   stmt.run(newProduct);
   return newProduct;
+}
+
+export async function addMultipleProducts(productsData: Omit<Product, 'id' | 'lastUpdatedAt'>[]): Promise<Product[]> {
+    const insertStmt = db.prepare(
+        'INSERT INTO products (id, name, description, stock, price, cost, category, supplier, lastUpdatedAt) VALUES (@id, @name, @description, @stock, @price, @cost, @category, @supplier, @lastUpdatedAt)'
+    );
+
+    const newProducts: Product[] = [];
+
+    const insertMany = db.transaction((products) => {
+        for (const productData of products) {
+            const newProduct: Product = {
+                ...productData,
+                id: `prod_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+                lastUpdatedAt: new Date().toISOString(),
+            };
+            insertStmt.run(newProduct);
+            newProducts.push(newProduct);
+        }
+    });
+
+    insertMany(productsData);
+    return newProducts;
 }
 
 export async function updateProduct(updatedProduct: Product): Promise<Product> {
@@ -222,12 +245,9 @@ export async function updateSettings(newSettings: Settings): Promise<Settings> {
     return newSettings;
 }
 
-
 export async function recreateDatabase(): Promise<void> {
-  // This is a server-only function.
-  // It closes the current DB connection, deletes the file, and the app will restart the connection.
   const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
-  db.close(); // Close the connection before deleting
+  db.close(); 
   try {
     if (fs.existsSync(dbPath)) {
       fs.unlinkSync(dbPath);

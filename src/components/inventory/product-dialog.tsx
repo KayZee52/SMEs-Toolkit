@@ -61,15 +61,15 @@ export function ProductDialog({ product }: ProductDialogProps) {
     defaultValues: product || defaultValues,
   });
 
-  const { watch, setValue } = form;
+  const { watch, setValue, reset, handleSubmit } = form;
   const productName = watch("name");
   const productCategory = watch("category");
 
   useEffect(() => {
     if (open) {
-      form.reset(product || defaultValues);
+      reset(product || defaultValues);
     }
-  }, [open, product, form]);
+  }, [open, product, reset]);
 
   const handleGenerateDescription = async () => {
     if (!productName) {
@@ -102,14 +102,23 @@ export function ProductDialog({ product }: ProductDialogProps) {
     setIsGenerating(false);
   };
 
-  const onSubmit = (data: ProductFormValues) => {
+  const processSubmit = (data: ProductFormValues, andClose: boolean) => {
     if (product) {
       updateProduct({ ...product, ...data });
     } else {
       addProduct(data);
     }
-    setOpen(false);
+    
+    if (andClose) {
+        setOpen(false);
+    } else {
+        reset(defaultValues);
+    }
   };
+
+  const onSaveAndClose = (data: ProductFormValues) => processSubmit(data, true);
+  const onSaveAndAddAnother = (data: ProductFormValues) => processSubmit(data, false);
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -135,7 +144,7 @@ export function ProductDialog({ product }: ProductDialogProps) {
               : "Enter the details for the new product."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Product Name</Label>
             <Input id="name" {...form.register("name")} />
@@ -215,7 +224,10 @@ export function ProductDialog({ product }: ProductDialogProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">Save changes</Button>
+             {!product && (
+                <Button type="button" variant="secondary" onClick={handleSubmit(onSaveAndAddAnother)}>Save & Add Another</Button>
+            )}
+            <Button type="button" onClick={handleSubmit(onSaveAndClose)}>{product ? "Save Changes" : "Save & Close"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

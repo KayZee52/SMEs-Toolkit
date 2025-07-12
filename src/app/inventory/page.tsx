@@ -6,6 +6,7 @@ import { useApp } from "@/contexts/app-context";
 import { DataTable } from "@/components/inventory/data-table";
 import { columns } from "@/components/inventory/columns";
 import { ProductDialog } from "@/components/inventory/product-dialog";
+import { BulkProductDialog } from "@/components/inventory/bulk-product-dialog";
 import { InventorySummaryCards } from "@/components/inventory/inventory-summary-cards";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,10 @@ export default function InventoryPage() {
             className="w-full md:w-64"
           />
         </div>
-        <ProductDialog />
+        <div className="flex items-center gap-2">
+            <BulkProductDialog />
+            <ProductDialog />
+        </div>
       </div>
 
       <InventorySummaryCards />

@@ -61,8 +61,14 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 
   const addProduct = async (productData: Omit<Product, "id" | "lastUpdatedAt">) => {
     const newProduct = await db.addProduct(productData);
-    setProducts(prev => [...prev, newProduct]);
+    setProducts(prev => [...prev, newProduct].sort((a, b) => a.name.localeCompare(b.name)));
     toast({ title: "Product Added", description: `${newProduct.name} has been added.` });
+  };
+
+  const addMultipleProducts = async (productsData: Omit<Product, 'id' | 'lastUpdatedAt'>[]) => {
+    const newProducts = await db.addMultipleProducts(productsData);
+    setProducts(prev => [...prev, ...newProducts].sort((a, b) => a.name.localeCompare(b.name)));
+    toast({ title: "Products Added", description: `${newProducts.length} new products have been added.` });
   };
   
   const updateProduct = async (updatedProduct: Product) => {
@@ -147,6 +153,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     isLoading,
     loadInitialData,
     addProduct,
+    addMultipleProducts,
     updateProduct,
     receiveStock,
     addSale,
