@@ -31,11 +31,11 @@ export default function InventoryPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="font-headline text-3xl font-bold tracking-tight">
+        <h1 className="font-headline text-3xl font-bold tracking-tight shrink-0">
           Inventory
         </h1>
 
-        <div className="flex flex-1 items-center justify-center gap-2 min-w-[200px] md:min-w-[400px]">
+        <div className="flex flex-1 items-center justify-center gap-2 min-w-[300px] md:min-w-[400px]">
            <Input
             placeholder="Search products..."
             value={searchTerm}
@@ -62,7 +62,7 @@ export default function InventoryPage() {
             </Button>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
             <BulkProductDialog />
             <ProductDialog />
         </div>
@@ -70,7 +70,7 @@ export default function InventoryPage() {
 
       <InventorySummaryCards />
 
-      <DataTable columns={columns} data={filteredProducts} />
+      <DataTable columns={columns} data={filteredProducts} searchTerm={searchTerm} />
     </div>
   );
 }

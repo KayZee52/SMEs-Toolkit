@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -25,14 +26,17 @@ import { Input } from "@/components/ui/input"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+  data: TData[],
+  searchTerm: string
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  searchTerm,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
+  
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
   const table = useReactTable({
@@ -47,21 +51,16 @@ export function DataTable<TData, TValue>({
     state: {
       sorting,
       columnFilters,
+      globalFilter: searchTerm,
     },
   })
+  
+  React.useEffect(() => {
+    table.getColumn("name")?.setFilterValue(searchTerm)
+  }, [searchTerm, table])
 
   return (
     <div className="rounded-lg border shadow-sm bg-card">
-      <div className="p-4">
-        <Input
-            placeholder="Filter products..."
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("name")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
-      </div>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (

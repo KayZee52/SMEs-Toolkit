@@ -45,6 +45,9 @@ export const columns: ColumnDef<Product>[] = [
         </Button>
       );
     },
+    cell: ({ row }) => (
+      <div className="font-medium">{row.original.name}</div>
+    ),
   },
    {
     accessorKey: "description",
