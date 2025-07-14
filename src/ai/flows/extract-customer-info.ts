@@ -56,8 +56,8 @@ const extractCustomerInfoFlow = ai.defineFlow(
     inputSchema: ExtractCustomerInfoInputSchema,
     outputSchema: ExtractCustomerInfoOutputSchema,
   },
-  async input => {
-    const {output} = await extractCustomerInfoPrompt(input);
+  async (input, flowOptions) => {
+    const {output} = await extractCustomerInfoPrompt(input, flowOptions);
     if (output) {
       return output;
     }

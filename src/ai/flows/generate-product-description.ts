@@ -52,8 +52,8 @@ const generateProductDescriptionFlow = ai.defineFlow(
     inputSchema: GenerateProductDescriptionInputSchema,
     outputSchema: GenerateProductDescriptionOutputSchema,
   },
-  async input => {
-    const response = await prompt(input);
+  async (input, flowOptions) => {
+    const response = await prompt(input, flowOptions);
     if (response.output) {
       return response.output;
     }

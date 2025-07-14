@@ -184,11 +184,11 @@ const kemzAssistantFlow = ai.defineFlow(
     inputSchema: KemzAssistantInputSchema,
     outputSchema: KemzAssistantOutputSchema,
   },
-  async (flowInput) => {
+  async (flowInput, flowOptions) => {
     const response = await prompt({
         ...flowInput,
         currentDate: new Date().toISOString(),
-    });
+    }, flowOptions);
     
     // Prefer the structured JSON output if it exists and is valid.
     const output = response.output;

@@ -104,8 +104,8 @@ const summarizeReportFlow = ai.defineFlow(
     inputSchema: SummarizeReportInputSchema,
     outputSchema: SummarizeReportOutputSchema,
   },
-  async (input) => {
-    const {output} = await prompt(input);
+  async (input, flowOptions) => {
+    const {output} = await prompt(input, flowOptions);
     
     if (output) {
       return output;
