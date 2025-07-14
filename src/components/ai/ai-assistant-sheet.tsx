@@ -1,6 +1,7 @@
+
 "use client";
 import { useState, useRef, useEffect, type FormEvent } from "react";
-import { User, Loader, X, Send } from "lucide-react";
+import { User, Loader, X, Send, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -107,6 +108,10 @@ export function AIAssistant() {
     handleQuery(input);
   };
 
+  const handleResetChat = () => {
+    setMessages([]);
+  };
+
   useEffect(() => {
     if (scrollAreaRef.current) {
       const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
@@ -146,11 +151,17 @@ export function AIAssistant() {
               <MaDIcon className="w-5 h-5" />
               Ma-D <span className="text-primary font-normal">AI Assistant</span>
             </SheetTitle>
-            <SheetClose asChild>
-              <Button variant="ghost" size="icon">
-                <X className="h-4 w-4" />
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" onClick={handleResetChat}>
+                <RotateCw className="h-4 w-4" />
+                <span className="sr-only">Reset Chat</span>
               </Button>
-            </SheetClose>
+              <SheetClose asChild>
+                <Button variant="ghost" size="icon">
+                  <X className="h-4 w-4" />
+                </Button>
+              </SheetClose>
+            </div>
           </SheetHeader>
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full" ref={scrollAreaRef}>
