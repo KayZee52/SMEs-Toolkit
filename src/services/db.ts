@@ -337,6 +337,10 @@ export async function restoreDatabase(): Promise<{success: boolean}> {
         throw new Error("No backup file found to restore.");
     }
     
+    // Step 1: Read current settings to preserve credentials
+    const currentSettings = await getSettings();
+    const { passwordHash, googleApiKey } = currentSettings;
+
     db.close();
 
     try {
@@ -349,8 +353,19 @@ export async function restoreDatabase(): Promise<{success: boolean}> {
         if (fs.existsSync(`${backupPath}-shm`)) fs.renameSync(`${backupPath}-shm`, `${dbPath}-shm`);
         if (fs.existsSync(`${backupPath}-wal`)) fs.renameSync(`${backupPath}-wal`, `${dbPath}-wal`);
         
+        // Step 2: Re-initialize with the restored database
         db = getDbConnection();
-        console.log("Database restored successfully from backup.");
+
+        // Step 3: Restore the preserved settings into the newly restored DB
+        const restoredSettings = await getSettings(); // Read settings from the old backup
+        const finalSettings = {
+            ...restoredSettings,
+            passwordHash,
+            googleApiKey,
+        };
+        await updateSettings(finalSettings);
+        
+        console.log("Database restored successfully from backup. Critical settings preserved.");
         return { success: true };
     } catch (error) {
         console.error("Error restoring database from backup:", error);
