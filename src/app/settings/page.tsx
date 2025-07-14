@@ -20,14 +20,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { Building, Languages, Save, Lock, AlertTriangle, DatabaseZap, ShieldCheck } from "lucide-react";
+import { Building, Languages, Save, Lock, AlertTriangle, DatabaseZap, ShieldCheck, History } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useApp } from "@/contexts/app-context";
 import type { Settings } from "@/lib/types";
 import { MaDIcon } from "@/components/ui/icons";
 
 export default function SettingsPage() {
-  const { settings: globalSettings, updateSettings, setPassword, recreateDatabase, isAuthRequired, verifyPassword } = useApp();
+  const { settings: globalSettings, updateSettings, setPassword, recreateDatabase, restoreDatabase, isAuthRequired, verifyPassword, backupExists } = useApp();
   const { toast } = useToast();
 
   const [settings, setSettings] = useState<Settings>(globalSettings);
@@ -90,6 +90,10 @@ export default function SettingsPage() {
         }
       }
       await recreateDatabase();
+  }
+
+  const handleRestoreDatabase = async () => {
+      await restoreDatabase();
   }
 
   const hasSettingsChanges = JSON.stringify(settings) !== JSON.stringify(globalSettings);
@@ -274,11 +278,11 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between rounded-lg border border-destructive/20 p-4">
                     <div>
                         <h3 className="font-semibold">Recreate Database</h3>
-                        <p className="text-sm text-muted-foreground">This will delete all your current data and reset the application to its initial state with mock data. This cannot be undone.</p>
+                        <p className="text-sm text-muted-foreground">This will backup your current data and reset the app with mock data. This can be undone.</p>
                     </div>
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
-                           <Button variant="destructive">
+                           <Button variant="destructive" className="bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20">
                                 <DatabaseZap className="mr-2 h-4 w-4" />
                                 Recreate Database
                             </Button>
@@ -287,7 +291,7 @@ export default function SettingsPage() {
                             <AlertDialogHeader>
                             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                             <AlertDialogDescription>
-                                This action is permanent. To confirm, please enter your password.
+                                This will create a backup of your current data and reset the application. To confirm, please enter your password if one is set.
                             </AlertDialogDescription>
                             </AlertDialogHeader>
                             {isAuthRequired && (
@@ -312,13 +316,26 @@ export default function SettingsPage() {
                                     onClick={handleRecreateDatabase}
                                     disabled={isAuthRequired && !deleteConfirmationPassword}
                                 >
-                                    Yes, delete everything
+                                    Yes, reset everything
                                 </Button>
                             </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
                 </div>
+
+                {backupExists && (
+                    <div className="flex items-center justify-between rounded-lg border border-primary/20 p-4 bg-primary/5">
+                        <div>
+                            <h3 className="font-semibold">Restore Previous Data</h3>
+                            <p className="text-sm text-muted-foreground">A backup was found. You can restore your data from before the last reset.</p>
+                        </div>
+                        <Button onClick={handleRestoreDatabase}>
+                            <History className="mr-2 h-4 w-4" />
+                            Restore from Backup
+                        </Button>
+                    </div>
+                )}
             </CardContent>
         </Card>
     </div>

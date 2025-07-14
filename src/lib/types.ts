@@ -73,6 +73,7 @@ export interface AppContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   isAuthRequired: boolean;
+  backupExists: boolean;
   login: (password: string) => Promise<boolean>;
   logout: () => void;
   setPassword: (password: string) => Promise<void>;
@@ -91,5 +92,6 @@ export interface AppContextType {
   findCustomerByName: (name: string) => Customer | undefined;
   updateSettings: (settings: Settings, isSecurityUpdate?: boolean) => Promise<void>;
   recreateDatabase: () => Promise<void>;
+  restoreDatabase: () => Promise<void>;
   translations: Translation;
 }

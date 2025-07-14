@@ -32,6 +32,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthRequired, setIsAuthRequired] = useState(false);
+  const [backupExists, setBackupExists] = useState(false);
 
 
   const loadInitialData = useCallback(async () => {
@@ -43,6 +44,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       setCustomers(data.customers);
       setExpenses(data.expenses);
       setSettings(data.settings);
+      setBackupExists(data.backupExists);
 
       // Authentication check
       if (data.settings.passwordHash) {
@@ -194,20 +196,34 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     try {
       await db.recreateDatabase();
       toast({
-        title: "Database Recreating",
-        description: "Reloading the application with a fresh start...",
+        title: "Database Resetting",
+        description: "Your data has been backed up. Reloading the application now...",
       });
-      // Use a timeout to allow the toast to be seen before the reload.
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+      setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Recreation Failed",
-        description: "Could not recreate the database. Check the console for errors.",
+        title: "Reset Failed",
+        description: "Could not back up and reset the database. Check console for errors.",
       });
     }
+  };
+
+  const restoreDatabase = async () => {
+      try {
+        await db.restoreDatabase();
+        toast({
+            title: "Database Restoring",
+            description: "Your previous data is being restored. Reloading the application now...",
+        });
+        setTimeout(() => window.location.reload(), 1500);
+      } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Restore Failed",
+            description: "Could not restore the database from backup. Check console for errors.",
+        });
+      }
   };
 
 
@@ -220,6 +236,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     isLoading,
     isAuthenticated,
     isAuthRequired,
+    backupExists,
     login,
     logout,
     setPassword,
@@ -239,6 +256,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     updateSettings,
     translations,
     recreateDatabase,
+    restoreDatabase,
   };
   
   return (

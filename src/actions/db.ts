@@ -52,16 +52,21 @@ export async function getSettings(): Promise<Settings> {
     };
 }
 
+export async function doesBackupExist(): Promise<boolean> {
+    const backupPath = path.join(process.cwd(), 'smes-toolkit.db.backup');
+    return fs.existsSync(backupPath);
+}
 
 export async function getInitialData() {
-  const [products, sales, customers, expenses, settings] = await Promise.all([
+  const [products, sales, customers, expenses, settings, backupExists] = await Promise.all([
     getProducts(),
     getSales(),
     getCustomers(),
     getExpenses(),
     getSettings(),
+    doesBackupExist(),
   ]);
-  return { products, sales, customers, expenses, settings };
+  return { products, sales, customers, expenses, settings, backupExists };
 }
 
 // --- Add/Update Functions ---
@@ -250,22 +255,57 @@ export async function updateSettings(newSettings: Settings): Promise<Settings> {
 
 export async function recreateDatabase(): Promise<{success: boolean}> {
   const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
+  const backupPath = `${dbPath}.backup`;
   
-  // Close the existing connection if it's open
   db.close(); 
   
   try {
-    const filesToDelete = [`${dbPath}`, `${dbPath}-shm`, `${dbPath}-wal`];
-    filesToDelete.forEach(file => {
-      if (fs.existsSync(file)) {
-        fs.unlinkSync(file);
-      }
-    });
-    console.log("Database files deleted successfully. The application will re-initialize it on the next action.");
+    // If a backup already exists, remove it before creating a new one.
+    if (fs.existsSync(backupPath)) {
+        fs.unlinkSync(backupPath);
+        fs.unlinkSync(`${backupPath}-shm`);
+        fs.unlinkSync(`${backupPath}-wal`);
+    }
+
+    // Rename current database to backup
+    fs.renameSync(dbPath, backupPath);
+    if (fs.existsSync(`${dbPath}-shm`)) fs.renameSync(`${dbPath}-shm`, `${backupPath}-shm`);
+    if (fs.existsSync(`${dbPath}-wal`)) fs.renameSync(`${dbPath}-wal`, `${backupPath}-wal`);
+
+    console.log("Database backed up and will be recreated on next run.");
     return { success: true };
   } catch (error) {
-    console.error("Error deleting database file:", error);
-    // Re-throw to be caught by the caller
-    throw new Error("Could not recreate the database.");
+    console.error("Error creating database backup:", error);
+    throw new Error("Could not create database backup.");
   }
+}
+
+export async function restoreDatabase(): Promise<{success: boolean}> {
+    const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
+    const backupPath = `${dbPath}.backup`;
+    
+    if (!fs.existsSync(backupPath)) {
+        throw new Error("No backup file found to restore.");
+    }
+    
+    db.close();
+
+    try {
+        // Delete the current (likely empty) database files
+        const filesToDelete = [`${dbPath}`, `${dbPath}-shm`, `${dbPath}-wal`];
+        filesToDelete.forEach(file => {
+          if (fs.existsSync(file)) fs.unlinkSync(file);
+        });
+
+        // Restore the backup by renaming it
+        fs.renameSync(backupPath, dbPath);
+        if (fs.existsSync(`${backupPath}-shm`)) fs.renameSync(`${backupPath}-shm`, `${dbPath}-shm`);
+        if (fs.existsSync(`${backupPath}-wal`)) fs.renameSync(`${backupPath}-wal`, `${dbPath}-wal`);
+        
+        console.log("Database restored successfully from backup.");
+        return { success: true };
+    } catch (error) {
+        console.error("Error restoring database from backup:", error);
+        throw new Error("Could not restore database.");
+    }
 }
