@@ -7,8 +7,8 @@ import { extractCustomerInfo } from "@/ai/flows/extract-customer-info";
 import { summarizeReport } from "@/ai/flows/summarize-report-flow";
 import type { Product, Sale, Expense, Customer, Settings } from "@/lib/types";
 
-// The API key logic has been moved directly into the flows for simplicity and reliability.
-// These service functions are now simple wrappers.
+// These service functions are now simple wrappers that pass data directly to the flows.
+// The flows themselves are responsible for retrieving the API key.
 
 export async function getAiReply(
   query: string,

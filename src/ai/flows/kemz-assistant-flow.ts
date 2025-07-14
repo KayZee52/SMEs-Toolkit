@@ -188,19 +188,13 @@ const kemzAssistantFlow = ai.defineFlow(
       throw new Error("API_KEY_NOT_SET");
     }
 
-    const response = await prompt({
+    const {output} = await prompt({
         ...flowInput,
         currentDate: new Date().toISOString(),
     }, { apiKey });
     
-    const output = response.output;
-    if (output?.answer) {
+    if (output) {
       return output;
-    }
-    
-    const textResponse = response.text;
-    if (textResponse) {
-      return { answer: textResponse };
     }
 
     throw new Error("AI failed to generate a valid response.");

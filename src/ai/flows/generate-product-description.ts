@@ -57,14 +57,11 @@ const generateProductDescriptionFlow = ai.defineFlow(
       throw new Error("API_KEY_NOT_SET");
     }
     
-    const response = await prompt(input, { apiKey });
-    if (response.output) {
-      return response.output;
+    const {output} = await prompt(input, { apiKey });
+    if (output) {
+      return output;
     }
-    const textResponse = response.text;
-    if (textResponse) {
-      return { description: textResponse };
-    }
+    
     throw new Error("AI failed to generate a description.");
   }
 );
