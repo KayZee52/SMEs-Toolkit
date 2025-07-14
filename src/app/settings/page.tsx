@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -20,7 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { Building, Languages, Save, Lock, AlertTriangle, DatabaseZap, ShieldCheck, History, KeyRound } from "lucide-react";
+import { Building, Languages, Save, Lock, AlertTriangle, DatabaseZap, ShieldCheck, History, KeyRound, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useApp } from "@/contexts/app-context";
 import type { Settings } from "@/lib/types";
@@ -285,7 +286,13 @@ export default function SettingsPage() {
                         placeholder="Enter your Google AI API key"
                     />
                 </div>
-                <div className="flex justify-end">
+                <div className="flex items-center justify-end gap-2">
+                    <Button variant="outline" asChild>
+                        <Link href="https://aistudio.google.com/app/apikey" target="_blank">
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            Get API Key
+                        </Link>
+                    </Button>
                     <Button onClick={handleSave}>
                         <Save className="mr-2 h-4 w-4" />
                         Save API Key
