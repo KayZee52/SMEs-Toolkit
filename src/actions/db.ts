@@ -197,6 +197,7 @@ export async function addCustomer(customerData: Omit<Customer, 'id' | 'createdAt
         id: `cust_${Date.now()}`,
         createdAt: new Date().toISOString(),
         notes: customerData.notes || null,
+        type: customerData.type || "Regular",
     };
     const stmt = db.prepare(
         'INSERT INTO customers (id, name, phone, createdAt, notes, type) VALUES (@id, @name, @phone, @createdAt, @notes, @type)'
@@ -250,11 +251,13 @@ export async function updateSettings(newSettings: Settings): Promise<Settings> {
 export async function recreateDatabase(): Promise<void> {
   const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
   
+  // Close the existing connection if it's open
   if (db.open) {
     db.close(); 
     console.log("Database connection closed for recreation.");
   }
   
+  // Delete the database files
   try {
     const filesToDelete = [`${dbPath}`, `${dbPath}-shm`, `${dbPath}-wal`];
     filesToDelete.forEach(file => {
