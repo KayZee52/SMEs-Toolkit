@@ -6,23 +6,14 @@ import type { Sale } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download } from "lucide-react";
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
-};
+import { formatCurrency } from "@/lib/utils";
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleString();
 };
 
 const ProfitBadge = ({ profit }: { profit: number }) => {
-  let variant: "default" | "secondary" | "destructive" | "outline" =
-    "secondary";
-  if (profit <= 0) variant = "destructive";
-  return <Badge variant={variant}>{formatCurrency(profit)}</Badge>;
+  return <Badge variant={profit > 0 ? "success" : (profit < 0 ? "destructive" : "secondary")}>{formatCurrency(profit)}</Badge>;
 };
 
 interface ColumnsProps {

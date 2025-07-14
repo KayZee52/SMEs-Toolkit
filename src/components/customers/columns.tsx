@@ -9,22 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Edit } from "lucide-react";
 import { CustomerDialog } from "./customer-dialog";
 import type { Translation } from "@/lib/i18n";
+import { formatCurrency } from "@/lib/utils";
 
 export type AugmentedCustomer = Customer & {
   totalSpent: number;
   lastPurchaseDate: string | null;
 };
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
-};
-
 const DebtBadge = ({ type, translations }: { type?: string; translations: Translation }) => {
   if (type === "Debtor") {
-    return <Badge variant="destructive">{translations.hasDebt}</Badge>;
+    return <Badge variant="warning">{translations.hasDebt}</Badge>;
   }
   return <Badge variant="secondary">{translations.noDebt}</Badge>;
 };

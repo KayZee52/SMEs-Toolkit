@@ -44,9 +44,8 @@ export const columns: ColumnDef<Transaction>[] = [
             const transaction = row.original;
             const isSale = transaction.type === 'Sale';
             const amount = isSale ? transaction.total : transaction.amount;
-            const sign = isSale ? '+ ' : '- ';
             
-            return <span className={isSale ? "text-green-500" : "text-red-500"}>{sign}{formatCurrency(amount)}</span>
+            return <Badge variant={isSale ? "success" : "destructive"}>{isSale ? '+' : '-'}{formatCurrency(amount)}</Badge>
         }
     },
     {

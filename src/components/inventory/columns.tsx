@@ -9,13 +9,7 @@ import { ArrowUpDown } from "lucide-react";
 import { ProductDialog } from "./product-dialog";
 import { ReceiveStockDialog } from "./receive-stock-dialog";
 import { formatDistanceToNow } from "date-fns";
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
-};
+import { formatCurrency } from "@/lib/utils";
 
 const StockBadge = ({ stock }: { stock: number }) => {
   if (stock === 0) {
@@ -23,7 +17,7 @@ const StockBadge = ({ stock }: { stock: number }) => {
   }
   if (stock < 10) {
     return (
-      <Badge variant="outline" className="border-amber-500 text-amber-500">
+      <Badge variant="warning">
         Low Stock ({stock})
       </Badge>
     );
