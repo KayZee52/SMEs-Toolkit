@@ -186,24 +186,20 @@ const kemzAssistantFlow = ai.defineFlow(
         currentDate: new Date().toISOString(),
     });
     
+    // Prefer the structured JSON output if it exists and is valid.
     const output = response.output;
     if (output?.answer) {
       return output;
     }
     
+    // Fallback to the raw text response if structured output fails.
     const textResponse = response.text;
     if (textResponse) {
-        // Attempt to parse if it's a JSON string with an answer key
-        try {
-            const parsed = JSON.parse(textResponse);
-            if (parsed.answer) return { answer: parsed.answer };
-        } catch (e) {
-            // Not a JSON string, so return the raw text
-            return { answer: textResponse };
-        }
-        return { answer: textResponse };
+      return { answer: textResponse };
     }
 
     throw new Error("AI failed to generate a valid response.");
   }
 );
+
+    

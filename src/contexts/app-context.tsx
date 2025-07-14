@@ -133,9 +133,15 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     try {
       const newSale = await db.addSale(saleData);
       setSales(prev => [newSale, ...prev]);
-      // Refetch products to update stock
-      const updatedProducts = await db.getProducts();
-      setProducts(updatedProducts);
+      // Optimize by updating stock locally instead of refetching all products
+      setProducts(prevProducts => {
+        return prevProducts.map(p => {
+          if (p.id === newSale.productId) {
+            return { ...p, stock: p.stock - newSale.quantity };
+          }
+          return p;
+        });
+      });
       toast({ title: "Sale Logged", description: `Sale of ${newSale.productName} recorded.` });
     } catch (error: any) {
         toast({
@@ -275,3 +281,5 @@ export const useApp = (): AppContextType => {
   }
   return context;
 };
+
+    

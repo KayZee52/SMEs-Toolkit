@@ -325,3 +325,5 @@ export async function restoreDatabase(): Promise<{success: boolean}> {
         throw new Error("Could not restore database.");
     }
 }
+
+    
