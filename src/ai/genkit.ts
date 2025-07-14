@@ -1,10 +1,9 @@
 import {genkit, type GenkitConfig} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 
-// By leaving the plugins array empty here, we prevent Genkit from
-// automatically initializing the Google AI plugin with a fallback/environment
-// API key. The plugin will be provided manually at the time of each call
-// in `src/services/ai.ts`, ensuring we only use the key from user settings.
+// This configuration prevents Genkit from automatically using an environment
+// variable key. The placeholder key here will be overridden by the key
+// from user settings at the time of each API call in `src/services/ai.ts`.
 export const ai = genkit({
-  plugins: [],
+  plugins: [googleAI({apiKey: 'placeholder'})],
 });

@@ -2,7 +2,6 @@
 // Changes to this file may be overwritten.
 "use server";
 
-import { googleAI } from "@genkit-ai/googleai";
 import { kemzAssistant } from "@/ai/flows/kemz-assistant-flow";
 import { generateProductDescription } from "@/ai/flows/generate-product-description";
 import { extractCustomerInfo } from "@/ai/flows/extract-customer-info";
@@ -15,7 +14,8 @@ const getCallOptions = (apiKey: string | null | undefined) => {
   if (!apiKey) {
     throw new Error("API_KEY_NOT_SET");
   }
-  return { plugins: [googleAI()], apiKey };
+  // The apiKey passed here will override any default key configured in genkit.ts.
+  return { apiKey };
 };
 
 export async function getAiReply(
@@ -39,6 +39,7 @@ export async function getAiReply(
     if (errorMessage.includes("API_KEY_NOT_SET")) {
         return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
     }
+    // This will now correctly catch errors from invalid keys provided by the user.
     return { success: false, error: `AI request failed. Please check if your API key is valid.` };
   }
 }
