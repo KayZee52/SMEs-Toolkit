@@ -76,6 +76,7 @@ export interface AppContextType {
   login: (password: string) => Promise<boolean>;
   logout: () => void;
   setPassword: (password: string) => Promise<void>;
+  verifyPassword: (password: string) => Promise<boolean>;
   loadInitialData: () => Promise<void>;
   addProduct: (product: Omit<Product, "id" | "lastUpdatedAt">) => Promise<void>;
   addMultipleProducts: (products: Omit<Product, "id" | "lastUpdatedAt">[]) => Promise<void>;

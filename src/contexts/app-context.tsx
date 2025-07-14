@@ -83,6 +83,11 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     }
     return match;
   };
+
+  const verifyPassword = async (password: string): Promise<boolean> => {
+    if (!settings.passwordHash) return false;
+    return await bcrypt.compare(password, settings.passwordHash);
+  }
   
   const logout = () => {
     setIsAuthenticated(false);
@@ -218,6 +223,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     login,
     logout,
     setPassword,
+    verifyPassword,
     loadInitialData,
     addProduct,
     addMultipleProducts,

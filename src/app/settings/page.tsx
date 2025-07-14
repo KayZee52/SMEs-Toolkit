@@ -20,19 +20,20 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { Building, Languages, Save, Lock, AlertTriangle, DatabaseZap } from "lucide-react";
+import { Building, Languages, Save, Lock, AlertTriangle, DatabaseZap, ShieldCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useApp } from "@/contexts/app-context";
 import type { Settings } from "@/lib/types";
 import { MaDIcon } from "@/components/ui/icons";
 
 export default function SettingsPage() {
-  const { settings: globalSettings, updateSettings, setPassword, recreateDatabase } = useApp();
+  const { settings: globalSettings, updateSettings, setPassword, recreateDatabase, isAuthRequired, verifyPassword } = useApp();
   const { toast } = useToast();
 
   const [settings, setSettings] = useState<Settings>(globalSettings);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [deleteConfirmationPassword, setDeleteConfirmationPassword] = useState("");
 
   useEffect(() => {
     setSettings(globalSettings);
@@ -77,6 +78,17 @@ export default function SettingsPage() {
   };
   
   const handleRecreateDatabase = async () => {
+      if(isAuthRequired) {
+        const isPasswordCorrect = await verifyPassword(deleteConfirmationPassword);
+        if (!isPasswordCorrect) {
+            toast({
+                variant: "destructive",
+                title: "Incorrect Password",
+                description: "Database was not recreated. Please try again.",
+            });
+            return;
+        }
+      }
       await recreateDatabase();
   }
 
@@ -275,9 +287,21 @@ export default function SettingsPage() {
                             <AlertDialogHeader>
                             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                             <AlertDialogDescription>
-                                This action is permanent and cannot be undone. All your products, sales, customers, and expenses will be permanently deleted. The application will be reset to its original demo state.
+                                This action is permanent. To confirm, please enter your password.
                             </AlertDialogDescription>
                             </AlertDialogHeader>
+                            {isAuthRequired && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="delete-password">Password</Label>
+                                    <Input 
+                                        id="delete-password"
+                                        type="password"
+                                        value={deleteConfirmationPassword}
+                                        onChange={(e) => setDeleteConfirmationPassword(e.target.value)}
+                                        placeholder="Enter your password to confirm"
+                                    />
+                                </div>
+                            )}
                             <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
@@ -286,6 +310,7 @@ export default function SettingsPage() {
                                <Button
                                     variant="destructive"
                                     onClick={handleRecreateDatabase}
+                                    disabled={isAuthRequired && !deleteConfirmationPassword}
                                 >
                                     Yes, delete everything
                                 </Button>
@@ -299,5 +324,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    
