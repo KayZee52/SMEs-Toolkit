@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatsCards } from "@/components/dashboard/stats-cards";
@@ -11,19 +11,11 @@ import { TopProductsChart } from "@/components/dashboard/top-products-chart";
 import { LogSaleDialog } from "@/components/sales/log-sale-dialog";
 import { ProductDialog } from "@/components/inventory/product-dialog";
 import { Download } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import html2canvas from "html2canvas";
 import { useApp } from "@/contexts/app-context";
-import { formatCurrency } from "@/lib/utils";
-import { format, formatDistanceToNow, subDays } from "date-fns";
-import type { Sale } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
-  const { sales, products, isLoading } = useApp();
-  const salesChartRef = useRef<HTMLDivElement>(null);
-  const topProductsChartRef = useRef<HTMLDivElement>(null);
+  const { isLoading } = useApp();
 
   if (isLoading) {
       return (
@@ -52,143 +44,6 @@ export default function DashboardPage() {
       )
   }
 
-  const handleExportRecentActivityPdf = () => {
-    const doc = new jsPDF();
-    const recentSales = sales.slice(0, 5);
-
-    const getProfit = (sale: Sale) => {
-      const product = products.find((p) => p.id === sale.productId);
-      if (!product) return 0;
-      return (sale.pricePerUnit - product.cost) * sale.quantity;
-    };
-
-    const tableColumn = ["Product", "Customer", "Total", "Profit", "Time"];
-    const tableRows: (string | number)[][] = [];
-
-    recentSales.forEach((sale) => {
-      const saleData = [
-        `${sale.productName}\n${sale.quantity} units`,
-        sale.customerName,
-        formatCurrency(sale.total),
-        formatCurrency(getProfit(sale)),
-        formatDistanceToNow(new Date(sale.date), { addSuffix: true }),
-      ];
-      tableRows.push(saleData);
-    });
-
-    doc.text("Recent Activity", 14, 15);
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 20,
-    });
-
-    doc.save("recent_activity.pdf");
-  };
-
-  const handleExportSalesChartPdf = async () => {
-    const doc = new jsPDF();
-    doc.text("Sales Over the Week", 14, 15);
-    let tableStartY = 20;
-
-    if (salesChartRef.current) {
-      const canvas = await html2canvas(salesChartRef.current, { 
-        backgroundColor: 'hsl(224 71.4% 4.1%)' // Themed background
-      });
-      const imgData = canvas.toDataURL('image/png');
-      const imgProps = doc.getImageProperties(imgData);
-      const pdfWidth = doc.internal.pageSize.getWidth();
-      const imgWidth = pdfWidth - 28; // with 14 margin on each side
-      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-      doc.addImage(imgData, 'PNG', 14, 25, imgWidth, imgHeight);
-      tableStartY = 25 + imgHeight + 5;
-    }
-
-    const salesData = Array.from({ length: 7 }, (_, i) => {
-      const date = subDays(new Date(), i);
-      return {
-        date: format(date, "MMM d"),
-        shortDate: format(date, "MM/dd/yyyy"),
-        totalSales: 0,
-      };
-    }).reverse();
-
-    sales.forEach((sale) => {
-      const saleDate = format(new Date(sale.date), "MM/dd/yyyy");
-      const entry = salesData.find((d) => d.shortDate === saleDate);
-      if (entry) {
-        entry.totalSales += sale.total;
-      }
-    });
-
-    const tableColumn = ["Date", "Total Sales"];
-    const tableRows: (string | number)[][] = [];
-
-    salesData.forEach((data) => {
-      const rowData = [data.date, formatCurrency(data.totalSales)];
-      tableRows.push(rowData);
-    });
-
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: tableStartY,
-    });
-
-    doc.save("sales_over_week.pdf");
-  };
-
-  const handleExportTopProductsPdf = async () => {
-    const doc = new jsPDF();
-    doc.text("Top-Selling Products", 14, 15);
-    let tableStartY = 20;
-    
-    if (topProductsChartRef.current) {
-        const canvas = await html2canvas(topProductsChartRef.current, {
-            backgroundColor: 'hsl(224 71.4% 4.1%)' // Themed background
-        });
-        const imgData = canvas.toDataURL('image/png');
-        const imgProps = doc.getImageProperties(imgData);
-        const pdfWidth = doc.internal.pageSize.getWidth();
-        const imgWidth = pdfWidth - 28; // with 14 margin on each side
-        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-        doc.addImage(imgData, 'PNG', 14, 25, imgWidth, imgHeight);
-        tableStartY = 25 + imgHeight + 5;
-    }
-
-    const productSales = sales.reduce<Record<string, { name: string; sales: number }>>((acc, sale) => {
-      const productName = products.find(p => p.id === sale.productId)?.name || "Unknown";
-      if (!acc[productName]) {
-        acc[productName] = { name: productName, sales: 0 };
-      }
-      acc[productName].sales += sale.total;
-      return acc;
-    }, {});
-
-    const topProducts = Object.values(productSales)
-      .sort((a, b) => b.sales - a.sales)
-      .slice(0, 5);
-      
-    const tableColumn = ["Product Name", "Total Revenue"];
-    const tableRows: (string | number)[][] = [];
-
-    topProducts.forEach((product) => {
-        const rowData = [
-          product.name,
-          formatCurrency(product.sales),
-        ];
-        tableRows.push(rowData);
-    });
-
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: tableStartY,
-    });
-
-    doc.save("top_selling_products.pdf");
-  };
-
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
@@ -206,58 +61,52 @@ export default function DashboardPage() {
             })}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2 non-printable">
           <LogSaleDialog />
           <ProductDialog />
+          <Button variant="outline" onClick={() => window.print()}>
+            <Download className="mr-2 h-4 w-4" />
+            Export Page
+          </Button>
         </div>
       </div>
+      
+      <div className="printable-area">
+        {/* KPI Cards */}
+        <StatsCards />
 
-      {/* KPI Cards */}
-      <StatsCards />
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5 mt-6">
+          <Card className="lg:col-span-3">
+            <CardHeader>
+              <CardTitle className="font-headline">Sales Over the Week</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SalesChart />
+            </CardContent>
+          </Card>
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="font-headline">
+                Top-Selling Products
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <TopProductsChart />
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <Card className="lg:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="font-headline">Sales Over the Week</CardTitle>
-            <Button onClick={handleExportSalesChartPdf} variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              Export PDF
-            </Button>
+        {/* Recent Activity */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="font-headline">Recent Activity</CardTitle>
           </CardHeader>
-          <CardContent ref={salesChartRef}>
-            <SalesChart />
-          </CardContent>
-        </Card>
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="font-headline">
-              Top-Selling Products
-            </CardTitle>
-             <Button onClick={handleExportTopProductsPdf} variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              Export PDF
-            </Button>
-          </CardHeader>
-          <CardContent ref={topProductsChartRef}>
-            <TopProductsChart />
+          <CardContent>
+            <RecentActivity />
           </CardContent>
         </Card>
       </div>
-
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="font-headline">Recent Activity</CardTitle>
-          <Button onClick={handleExportRecentActivityPdf} variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export PDF
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <RecentActivity />
-        </CardContent>
-      </Card>
     </div>
   );
 }

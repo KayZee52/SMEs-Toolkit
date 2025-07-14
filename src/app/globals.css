@@ -112,19 +112,14 @@
 }
 
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  .printable-area, .printable-area * {
-    visibility: visible;
+  body {
+    background-color: white !important;
+    color: black !important;
   }
   .printable-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    padding: 2rem;
-    background-color: white;
-    color: black;
+    display: block;
+  }
+  .non-printable {
+    display: none !important;
   }
 }

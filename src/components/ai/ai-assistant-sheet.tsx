@@ -131,7 +131,7 @@ export function AIAssistant() {
   return (
     <>
       {settings.enableAssistant && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-6 right-6 z-50 non-printable">
             {!isOpen && (
                 <Button
                   onClick={() => setIsOpen(true)}
