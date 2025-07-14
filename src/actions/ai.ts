@@ -1,7 +1,7 @@
 
 "use server";
 
-import { aiAssistedQuery } from "@/ai/flows/ai-powered-query-assistance";
+import { kemzAssistant } from "@/ai/flows/kemz-assistant-flow";
 import { generateProductDescription } from "@/ai/flows/generate-product-description";
 import { extractCustomerInfo } from "@/ai/flows/extract-customer-info";
 import { summarizeReport } from "@/ai/flows/summarize-report-flow";
@@ -18,7 +18,7 @@ export async function getAiReply(
   }
 ) {
   try {
-    const result = await aiAssistedQuery({ query, ...context });
+    const result = await kemzAssistant({ query, ...context });
     return { success: true, data: result };
   } catch (error) {
     console.error(error);
