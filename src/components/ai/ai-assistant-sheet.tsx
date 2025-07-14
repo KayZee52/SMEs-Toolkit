@@ -174,7 +174,7 @@ export function AIAssistant() {
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       {suggestions.map((suggestion, index) => (
                         <Button
-                          key={index}
+                          key={`${suggestion}-${index}`}
                           variant="outline"
                           size="sm"
                           className="h-auto whitespace-normal text-left justify-start"
