@@ -13,6 +13,7 @@ import type {
 } from '@/lib/types';
 import fs from 'fs';
 import path from 'path';
+import bcrypt from "bcryptjs";
 
 let db = dbInstance;
 
@@ -72,6 +73,29 @@ export async function getInitialData() {
   ]);
   return { products, sales, customers, expenses, settings, backupExists };
 }
+
+// --- Auth Functions ---
+
+export async function login(password: string): Promise<{ success: boolean }> {
+    const settings = await getSettings();
+    if (!settings.passwordHash) return { success: false };
+    const match = await bcrypt.compare(password, settings.passwordHash);
+    return { success: match };
+}
+
+export async function verifyPassword(password: string): Promise<boolean> {
+    const settings = await getSettings();
+    if (!settings.passwordHash) return false;
+    return await bcrypt.compare(password, settings.passwordHash);
+}
+
+export async function setPassword(password: string): Promise<void> {
+    const settings = await getSettings();
+    const newHash = await bcrypt.hash(password, 10);
+    const newSettings = { ...settings, passwordHash: newHash };
+    await updateSettings(newSettings);
+}
+
 
 // --- Add/Update Functions ---
 

@@ -6,7 +6,6 @@ import type { Product, Sale, Customer, Expense, Settings, AppContextType, LogSal
 import { useToast } from "@/hooks/use-toast";
 import { getTranslations } from "@/lib/i18n";
 import * as db from "@/actions/db";
-import bcrypt from "bcryptjs";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -76,20 +75,18 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const translations = getTranslations(settings.language);
 
   const login = async (password: string): Promise<boolean> => {
-    if (!settings.passwordHash) return false;
-    const match = await bcrypt.compare(password, settings.passwordHash);
-    if (match) {
+    const { success } = await db.login(password);
+    if (success) {
         setIsAuthenticated(true);
         toast({ title: "Login Successful", description: "Welcome back!" });
     } else {
         toast({ variant: "destructive", title: "Login Failed", description: "Incorrect password." });
     }
-    return match;
+    return success;
   };
 
   const verifyPassword = async (password: string): Promise<boolean> => {
-    if (!settings.passwordHash) return false;
-    return await bcrypt.compare(password, settings.passwordHash);
+    return await db.verifyPassword(password);
   }
   
   const logout = () => {
@@ -98,9 +95,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   }
 
   const setPassword = async (password: string) => {
-    const newHash = await bcrypt.hash(password, 10);
-    const newSettings = { ...settings, passwordHash: newHash };
-    await updateSettings(newSettings, true); 
+    await db.setPassword(password);
+    await loadInitialData(); // Reload data to get new settings and hash
     setIsAuthRequired(true);
     setIsAuthenticated(true); // Grant access immediately after setup
     toast({ title: "Password Set", description: "Your application is now password protected." });
@@ -188,15 +184,13 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     return customers.find(c => c.name.toLowerCase() === name.toLowerCase());
   }
 
-  const updateSettings = async (newSettings: Settings, isSecurityUpdate = false) => {
+  const updateSettings = async (newSettings: Settings) => {
     const updatedSettings = await db.updateSettings(newSettings);
     setSettings(updatedSettings);
-    if (!isSecurityUpdate) {
-        toast({
-          title: "Settings Updated",
-          description: "Your changes have been saved to the database.",
-        });
-    }
+    toast({
+      title: "Settings Updated",
+      description: "Your changes have been saved.",
+    });
   };
 
   const recreateDatabase = async () => {

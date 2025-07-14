@@ -38,6 +38,20 @@ export async function getInitialData() {
   return await dbService.getInitialData();
 }
 
+// Auth Actions
+export async function login(password: string): Promise<{ success: boolean }> {
+    return await dbService.login(password);
+}
+
+export async function verifyPassword(password: string): Promise<boolean> {
+    return await dbService.verifyPassword(password);
+}
+
+export async function setPassword(password: string): Promise<void> {
+    return await dbService.setPassword(password);
+}
+
+// Data Mutation Actions
 export async function addProduct(productData: Omit<Product, 'id' | 'lastUpdatedAt'>): Promise<Product> {
   return await dbService.addProduct(productData);
 }
