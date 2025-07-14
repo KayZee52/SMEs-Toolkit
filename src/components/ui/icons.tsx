@@ -17,6 +17,7 @@ export const MaDIcon = React.forwardRef<
     height={40}
     className={cn(className)}
     {...props}
+    unoptimized
   />
 ));
 MaDIcon.displayName = "MaDIcon";
