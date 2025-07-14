@@ -185,7 +185,7 @@ const kemzAssistantFlow: Flow<KemzAssistantInput, KemzAssistantOutput> = ai.defi
     outputSchema: KemzAssistantOutputSchema,
   },
   async (flowInput, flowOptions) => {
-    const response = await prompt({
+    const response = await prompt.run({
         ...flowInput,
         currentDate: new Date().toISOString(),
     }, flowOptions);

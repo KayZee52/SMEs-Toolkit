@@ -57,7 +57,7 @@ const extractCustomerInfoFlow: Flow<ExtractCustomerInfoInput, ExtractCustomerInf
     outputSchema: ExtractCustomerInfoOutputSchema,
   },
   async (input, flowOptions) => {
-    const {output} = await extractCustomerInfoPrompt(input, flowOptions);
+    const {output} = await extractCustomerInfoPrompt.run(input, flowOptions);
     if (output) {
       return output;
     }

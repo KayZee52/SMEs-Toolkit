@@ -9,9 +9,13 @@ import { extractCustomerInfo } from "@/ai/flows/extract-customer-info";
 import { summarizeReport } from "@/ai/flows/summarize-report-flow";
 import type { Product, Sale, Expense, Customer, Settings } from "@/lib/types";
 import { getSettings } from "./db";
+import { FlowCallOptions } from "genkit/flow";
 
 // Helper function to create call options, ensuring the API key from settings is used.
-const getCallOptions = (apiKey: string | null | undefined) => {
+const getCallOptions = async (): Promise<FlowCallOptions> => {
+  const settings = await getSettings();
+  const apiKey = settings.googleApiKey;
+
   if (!apiKey) {
     throw new Error("API_KEY_NOT_SET");
   }
@@ -30,29 +34,24 @@ export async function getAiReply(
   }
 ) {
   try {
-    const settings = await getSettings();
-    const callOptions = getCallOptions(settings.googleApiKey);
+    const callOptions = await getCallOptions();
     const result = await kemzAssistant({ query, ...context }, callOptions);
     return { success: true, data: result };
   } catch (error) {
-    console.error(error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
     if (errorMessage.includes("API_KEY_NOT_SET")) {
         return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
     }
-    // This will now correctly catch errors from invalid keys provided by the user.
     return { success: false, error: `AI request failed. Please check if your API key is valid.` };
   }
 }
 
 export async function getCustomerInfoFromText(salesLog: string) {
   try {
-    const settings = await getSettings();
-    const callOptions = getCallOptions(settings.googleApiKey);
+    const callOptions = await getCallOptions();
     const result = await extractCustomerInfo({ salesLog }, callOptions);
     return { success: true, data: result };
   } catch (error) {
-    console.error(error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
     if (errorMessage.includes("API_KEY_NOT_SET")) {
         return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
@@ -66,8 +65,7 @@ export async function generateDescriptionForProduct(
   category?: string
 ) {
   try {
-    const settings = await getSettings();
-    const callOptions = getCallOptions(settings.googleApiKey);
+    const callOptions = await getCallOptions();
     const result = await generateProductDescription(
       {
         productName,
@@ -77,7 +75,6 @@ export async function generateDescriptionForProduct(
     );
     return { success: true, data: result };
   } catch (error) {
-    console.error(error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
     if (errorMessage.includes("API_KEY_NOT_SET")) {
         return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
@@ -93,12 +90,10 @@ export async function getReportSummary(context: {
   dateRange: { from: string; to: string };
 }) {
   try {
-    const settings = await getSettings();
-    const callOptions = getCallOptions(settings.googleApiKey);
+    const callOptions = await getCallOptions();
     const result = await summarizeReport(context, callOptions);
     return { success: true, data: result };
   } catch (error) {
-    console.error(error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
      if (errorMessage.includes("API_KEY_NOT_SET")) {
         return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };

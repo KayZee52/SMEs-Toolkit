@@ -1,4 +1,4 @@
-import {genkit, type GenkitConfig} from 'genkit';
+import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 
 // This configuration prevents Genkit from automatically using an environment

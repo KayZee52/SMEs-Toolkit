@@ -53,7 +53,7 @@ const generateProductDescriptionFlow: Flow<GenerateProductDescriptionInput, Gene
     outputSchema: GenerateProductDescriptionOutputSchema,
   },
   async (input, flowOptions) => {
-    const response = await prompt(input, flowOptions);
+    const response = await prompt.run(input, flowOptions);
     if (response.output) {
       return response.output;
     }

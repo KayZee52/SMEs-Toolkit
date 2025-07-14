@@ -105,7 +105,7 @@ const summarizeReportFlow: Flow<SummarizeReportInput, SummarizeReportOutput> = a
     outputSchema: SummarizeReportOutputSchema,
   },
   async (input, flowOptions) => {
-    const {output} = await prompt(input, flowOptions);
+    const {output} = await prompt.run(input, flowOptions);
     
     if (output) {
       return output;
