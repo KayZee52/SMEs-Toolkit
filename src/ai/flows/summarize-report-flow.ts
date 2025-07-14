@@ -10,7 +10,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {Flow, FlowCallOptions} from 'genkit/flow';
 
 const ProductSchema = z.object({
     id: z.string(),
@@ -64,15 +63,13 @@ const SummarizeReportOutputSchema = z.object({
 export type SummarizeReportOutput = z.infer<typeof SummarizeReportOutputSchema>;
 
 export async function summarizeReport(
-  input: SummarizeReportInput,
-  callOptions?: FlowCallOptions
+  input: SummarizeReportInput
 ): Promise<SummarizeReportOutput> {
-  return summarizeReportFlow.run(input, callOptions);
+  return summarizeReportFlow(input);
 }
 
 const prompt = ai.definePrompt({
   name: 'summarizeReportPrompt',
-  model: 'googleai/gemini-2.0-flash',
   input: {schema: SummarizeReportInputSchema},
   output: {schema: SummarizeReportOutputSchema},
   prompt: `You are a savvy business analyst AI. Your task is to provide a clear and concise summary of business performance based on the provided data for a specific date range.
@@ -98,14 +95,14 @@ Expense Data:
 });
 
 
-const summarizeReportFlow: Flow<SummarizeReportInput, SummarizeReportOutput> = ai.defineFlow(
+const summarizeReportFlow = ai.defineFlow(
   {
     name: 'summarizeReportFlow',
     inputSchema: SummarizeReportInputSchema,
     outputSchema: SummarizeReportOutputSchema,
   },
-  async (input, flowOptions) => {
-    const {output} = await prompt.run(input, flowOptions);
+  async (input) => {
+    const {output} = await prompt(input);
     
     if (output) {
       return output;

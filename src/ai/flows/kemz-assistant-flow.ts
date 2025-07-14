@@ -15,7 +15,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {Flow, FlowCallOptions} from 'genkit/flow';
 
 // Zod schemas for data types, mirroring src/lib/types.ts
 const ProductSchema = z.object({
@@ -89,16 +88,14 @@ export type KemzAssistantOutput = z.infer<typeof KemzAssistantOutputSchema>;
 
 
 export async function kemzAssistant(
-  input: KemzAssistantInput,
-  callOptions?: FlowCallOptions
+  input: KemzAssistantInput
 ): Promise<KemzAssistantOutput> {
-  return kemzAssistantFlow.run(input, callOptions);
+  return kemzAssistantFlow(input);
 }
 
 
 const prompt = ai.definePrompt({
   name: 'kemzAssistantPrompt',
-  model: 'googleai/gemini-2.0-flash',
   input: { schema: PromptInputSchema },
   output: { schema: KemzAssistantOutputSchema },
   system: `You are Ma-D, a smart, friendly, and helpful digital business buddy. Your identity, knowledge base, and rules are defined below. You must strictly adhere to these rules.
@@ -178,25 +175,23 @@ Use the following information to answer any other questions about your developer
   `,
 });
 
-const kemzAssistantFlow: Flow<KemzAssistantInput, KemzAssistantOutput> = ai.defineFlow(
+const kemzAssistantFlow = ai.defineFlow(
   {
     name: 'kemzAssistantFlow',
     inputSchema: KemzAssistantInputSchema,
     outputSchema: KemzAssistantOutputSchema,
   },
-  async (flowInput, flowOptions) => {
-    const response = await prompt.run({
+  async (flowInput) => {
+    const response = await prompt({
         ...flowInput,
         currentDate: new Date().toISOString(),
-    }, flowOptions);
+    });
     
-    // Prefer the structured JSON output if it exists and is valid.
     const output = response.output;
     if (output?.answer) {
       return output;
     }
     
-    // Fallback to the raw text response if structured output fails.
     const textResponse = response.text;
     if (textResponse) {
       return { answer: textResponse };
