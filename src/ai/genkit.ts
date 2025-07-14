@@ -18,6 +18,8 @@ export const ai = genkit({
         }
 
         // Clone the request and add the API key to the headers.
+        // This explicitly overrides any other API key that might be
+        // found in environment variables by the underlying library.
         const newReq = new Request(req);
         newReq.headers.set('x-goog-api-key', apiKey);
         return await next(newReq);
