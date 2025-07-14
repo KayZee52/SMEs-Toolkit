@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useRef } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatsCards } from "@/components/dashboard/stats-cards";
@@ -16,6 +16,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
   const { isLoading } = useApp();
+  const [currentDate, setCurrentDate] = useState("");
+
+  useEffect(() => {
+    setCurrentDate(new Date().toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }));
+  }, []);
 
   if (isLoading) {
       return (
@@ -53,12 +63,7 @@ export default function DashboardPage() {
             Hi, there
           </h1>
           <p className="text-muted-foreground">
-            {new Date().toLocaleDateString("en-US", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
+            {currentDate}
           </p>
         </div>
         <div className="flex items-center gap-2 non-printable">
