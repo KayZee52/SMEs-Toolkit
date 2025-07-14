@@ -284,9 +284,9 @@ export async function recreateDatabase(): Promise<{success: boolean}> {
   const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
   const backupPath = `${dbPath}.backup`;
 
-  // Step 1: Read current settings to preserve API key and password
+  // Step 1: Read current settings to preserve API key
   const currentSettings = await getSettings();
-  const { passwordHash, googleApiKey } = currentSettings;
+  const { googleApiKey } = currentSettings;
   
   db.close(); 
   
@@ -314,13 +314,13 @@ export async function recreateDatabase(): Promise<{success: boolean}> {
     const seededSettings = await getSettings();
     const finalSettings = {
         ...seededSettings,
-        passwordHash,
-        googleApiKey,
+        passwordHash: null, // Erase password
+        googleApiKey, // Preserve API Key
     };
     await updateSettings(finalSettings);
 
 
-    console.log("Database backed up and recreated. Critical settings preserved.");
+    console.log("Database backed up and recreated. API key preserved, password erased.");
     return { success: true };
   } catch (error) {
     console.error("Error creating database backup:", error);
