@@ -28,7 +28,7 @@ import type { Settings } from "@/lib/types";
 import { MaDIcon } from "@/components/ui/icons";
 
 export default function SettingsPage() {
-  const { settings: globalSettings, updateSettings, setPassword, recreateDatabase, restoreDatabase, isAuthRequired, verifyPassword, backupExists } = useApp();
+  const { settings: globalSettings, updateSettings, recreateDatabase, restoreDatabase, isAuthRequired, verifyPassword, backupExists, setPassword } = useApp();
   const { toast } = useToast();
 
   const [settings, setSettings] = useState<Settings>(globalSettings);
