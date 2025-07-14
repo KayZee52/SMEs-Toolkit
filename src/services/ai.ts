@@ -7,10 +7,11 @@ import { extractCustomerInfo } from "@/ai/flows/extract-customer-info";
 import { summarizeReport } from "@/ai/flows/summarize-report-flow";
 import type { Product, Sale, Expense, Customer, Settings } from "@/lib/types";
 import { getSettings } from "./db";
+import { FlowAuth, FlowCallOptions } from "genkit/flow";
 
 // This is the new central control point for the API key.
 // It fetches settings and ensures an API key is available.
-async function getCallOptions() {
+async function getCallOptions(): Promise<FlowCallOptions<FlowAuth>> {
     const settings = await getSettings();
     const apiKey = settings.googleApiKey;
     if (!apiKey) {
@@ -31,7 +32,6 @@ export async function getAiReply(
   }
 ) {
   try {
-    // Get the key from settings. The flow will not run if it's missing.
     const callOptions = await getCallOptions();
     const result = await kemzAssistant({ query, ...context }, callOptions);
     return { success: true, data: result };
