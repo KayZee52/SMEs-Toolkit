@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {FlowCallOptions} from 'genkit/flow';
 
 const GenerateProductDescriptionInputSchema = z.object({
   productName: z.string().describe('The name of the product.'),
@@ -22,8 +23,11 @@ const GenerateProductDescriptionOutputSchema = z.object({
 });
 export type GenerateProductDescriptionOutput = z.infer<typeof GenerateProductDescriptionOutputSchema>;
 
-export async function generateProductDescription(input: GenerateProductDescriptionInput): Promise<GenerateProductDescriptionOutput> {
-  return generateProductDescriptionFlow(input);
+export async function generateProductDescription(
+  input: GenerateProductDescriptionInput,
+  callOptions?: FlowCallOptions
+): Promise<GenerateProductDescriptionOutput> {
+  return generateProductDescriptionFlow(input, callOptions);
 }
 
 const prompt = ai.definePrompt({

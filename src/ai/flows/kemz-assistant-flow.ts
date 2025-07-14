@@ -15,6 +15,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {FlowCallOptions} from 'genkit/flow';
 
 // Zod schemas for data types, mirroring src/lib/types.ts
 const ProductSchema = z.object({
@@ -87,8 +88,11 @@ const KemzAssistantOutputSchema = z.object({
 export type KemzAssistantOutput = z.infer<typeof KemzAssistantOutputSchema>;
 
 
-export async function kemzAssistant(input: KemzAssistantInput): Promise<KemzAssistantOutput> {
-  return kemzAssistantFlow(input);
+export async function kemzAssistant(
+  input: KemzAssistantInput,
+  callOptions?: FlowCallOptions
+): Promise<KemzAssistantOutput> {
+  return kemzAssistantFlow(input, callOptions);
 }
 
 
@@ -201,5 +205,3 @@ const kemzAssistantFlow = ai.defineFlow(
     throw new Error("AI failed to generate a valid response.");
   }
 );
-
-    
