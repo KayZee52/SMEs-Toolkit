@@ -1,9 +1,10 @@
+
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 
-// This configuration prevents Genkit from automatically using an environment
-// variable key. The placeholder key here will be overridden by the key
-// from user settings at the time of each API call in `src/services/ai.ts`.
+// This configuration now uses a placeholder API key.
+// This prevents Genkit from automatically using an environment variable key.
+// The real key from user settings will be passed with each API call in `src/services/ai.ts`.
 export const ai = genkit({
-  plugins: [googleAI({apiKey: 'placeholder'})],
+  plugins: [googleAI({apiKey: 'placeholder-will-be-overridden'})],
 });

@@ -8,10 +8,13 @@ import { summarizeReport } from "@/ai/flows/summarize-report-flow";
 import type { Product, Sale, Expense, Customer, Settings } from "@/lib/types";
 import { getSettings } from "./db";
 
+// This is the new central control point for the API key.
+// It fetches settings and ensures an API key is available.
 async function getCallOptions() {
     const settings = await getSettings();
     const apiKey = settings.googleApiKey;
     if (!apiKey) {
+      // This specific error message is caught below to provide a user-friendly message.
       throw new Error("API_KEY_NOT_SET");
     }
     return { apiKey };
@@ -28,22 +31,24 @@ export async function getAiReply(
   }
 ) {
   try {
-    const { apiKey } = await getCallOptions();
-    const result = await kemzAssistant({ query, ...context, apiKey });
+    // Get the key from settings. The flow will not run if it's missing.
+    const callOptions = await getCallOptions();
+    const result = await kemzAssistant({ query, ...context }, callOptions);
     return { success: true, data: result };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
     if (errorMessage.includes("API_KEY_NOT_SET")) {
         return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
     }
+    // This will now correctly trigger if the user-provided key is invalid.
     return { success: false, error: `AI request failed. Please check if your API key is valid.` };
   }
 }
 
 export async function getCustomerInfoFromText(salesLog: string) {
   try {
-    const { apiKey } = await getCallOptions();
-    const result = await extractCustomerInfo({ salesLog, apiKey });
+    const callOptions = await getCallOptions();
+    const result = await extractCustomerInfo({ salesLog }, callOptions);
     return { success: true, data: result };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
@@ -59,13 +64,13 @@ export async function generateDescriptionForProduct(
   category?: string
 ) {
   try {
-    const { apiKey } = await getCallOptions();
+    const callOptions = await getCallOptions();
     const result = await generateProductDescription(
       {
         productName,
         productCategory: category,
-        apiKey,
-      }
+      },
+      callOptions
     );
     return { success: true, data: result };
   } catch (error) {
@@ -84,8 +89,8 @@ export async function getReportSummary(context: {
   dateRange: { from: string; to: string };
 }) {
   try {
-    const { apiKey } = await getCallOptions();
-    const result = await summarizeReport({ ...context, apiKey });
+    const callOptions = await getCallOptions();
+    const result = await summarizeReport({ ...context }, callOptions);
     return { success: true, data: result };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
