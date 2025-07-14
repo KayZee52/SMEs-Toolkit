@@ -199,6 +199,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         title: "Database Resetting",
         description: "Your data has been backed up. Reloading the application now...",
       });
+      // Log the user out to force re-authentication on the new database.
+      logout();
       setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
       toast({

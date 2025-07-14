@@ -295,7 +295,7 @@ export default function SettingsPage() {
                             </AlertDialogDescription>
                             </AlertDialogHeader>
                             {isAuthRequired && (
-                                <div className="space-y-2">
+                                <div className="space-y-2 py-2">
                                     <Label htmlFor="delete-password">Password</Label>
                                     <Input 
                                         id="delete-password"

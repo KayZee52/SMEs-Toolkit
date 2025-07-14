@@ -262,17 +262,24 @@ export async function recreateDatabase(): Promise<{success: boolean}> {
   db.close(); 
   
   try {
-    // If a backup already exists, remove it before creating a new one.
+    // If a backup already exists, remove it before creating a new one to prevent conflicts.
     if (fs.existsSync(backupPath)) {
         fs.unlinkSync(backupPath);
-        if(fs.existsSync(`${backupPath}-shm`)) fs.unlinkSync(`${backupPath}-shm`);
-        if(fs.existsSync(`${backupPath}-wal`)) fs.unlinkSync(`${backupPath}-wal`);
     }
+    const walBackupPath = `${backupPath}-wal`;
+    const shmBackupPath = `${backupPath}-shm`;
+    if(fs.existsSync(walBackupPath)) fs.unlinkSync(walBackupPath);
+    if(fs.existsSync(shmBackupPath)) fs.unlinkSync(shmBackupPath);
+    
 
     // Rename current database to backup
-    fs.renameSync(dbPath, backupPath);
-    if (fs.existsSync(`${dbPath}-shm`)) fs.renameSync(`${dbPath}-shm`, `${backupPath}-shm`);
-    if (fs.existsSync(`${dbPath}-wal`)) fs.renameSync(`${dbPath}-wal`, `${backupPath}-wal`);
+    if (fs.existsSync(dbPath)) {
+        fs.renameSync(dbPath, backupPath);
+        const walPath = `${dbPath}-wal`;
+        const shmPath = `${dbPath}-shm`;
+        if (fs.existsSync(walPath)) fs.renameSync(walPath, walBackupPath);
+        if (fs.existsSync(shmPath)) fs.renameSync(shmPath, shmBackupPath);
+    }
 
     // Get a new connection which will create a new file and seed it
     db = getDbConnection();
