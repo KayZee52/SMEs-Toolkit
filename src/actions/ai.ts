@@ -5,11 +5,17 @@ import { aiAssistedQuery } from "@/ai/flows/ai-powered-query-assistance";
 import { generateProductDescription } from "@/ai/flows/generate-product-description";
 import { extractCustomerInfo } from "@/ai/flows/extract-customer-info";
 import { summarizeReport } from "@/ai/flows/summarize-report-flow";
-import type { Product, Sale, Expense } from "@/lib/types";
+import type { Product, Sale, Expense, Customer, Settings } from "@/lib/types";
 
 export async function getAiReply(
   query: string,
-  context: { products: Product[]; sales: Sale[] }
+  context: {
+    products: Product[];
+    sales: Sale[];
+    expenses: Expense[];
+    customers: Customer[];
+    settings: Pick<Settings, 'businessName' | 'currency'>;
+  }
 ) {
   try {
     const result = await aiAssistedQuery({ query, ...context });

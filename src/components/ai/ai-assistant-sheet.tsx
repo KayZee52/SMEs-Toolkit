@@ -26,8 +26,8 @@ type Message = {
 const suggestions = [
   "What were my total sales today?",
   "Which product is the most profitable?",
-  "Forecast inventory for all products",
-  "Write a marketing email for the Wool Scarf",
+  "Summarize today's activity.",
+  "Suggest which items I should restock.",
 ];
 
 export function AIAssistant() {
@@ -36,8 +36,15 @@ export function AIAssistant() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const { addCustomer, findCustomerByName, settings, products, sales } =
-    useApp();
+  const { 
+    addCustomer, 
+    findCustomerByName, 
+    settings, 
+    products, 
+    sales, 
+    expenses, 
+    customers 
+  } = useApp();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
@@ -65,7 +72,18 @@ export function AIAssistant() {
       }
     }
 
-    const aiReplyRes = await getAiReply(query, { products, sales });
+    // Pass the full, current context to the AI
+    const aiReplyRes = await getAiReply(query, {
+      products,
+      sales,
+      expenses,
+      customers,
+      settings: {
+        businessName: settings.businessName,
+        currency: settings.currency,
+      },
+    });
+
     if (aiReplyRes.success && aiReplyRes.data?.answer) {
       const assistantMessage: Message = {
         role: "assistant",
@@ -212,7 +230,7 @@ export function AIAssistant() {
             <Input
               value={input}
               onChange={handleInputChange}
-              placeholder="e.g., Sold one silk tie..."
+              placeholder="Ask Ma-D anything..."
               className="pr-12 h-12 text-base"
               disabled={isLoading}
             />
