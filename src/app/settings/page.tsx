@@ -281,10 +281,14 @@ export default function SettingsPage() {
                             <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                                className="bg-destructive hover:bg-destructive/90"
-                                onClick={handleRecreateDatabase}
+                                asChild
                             >
-                                Yes, delete everything
+                               <Button
+                                    variant="destructive"
+                                    onClick={handleRecreateDatabase}
+                                >
+                                    Yes, delete everything
+                                </Button>
                             </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
@@ -295,3 +299,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    
