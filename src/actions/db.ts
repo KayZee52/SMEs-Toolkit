@@ -48,6 +48,7 @@ export async function getSettings(): Promise<Settings> {
         enableAssistant: true,
         autoSuggestions: true,
         language: "en",
+        passwordHash: null,
     };
 }
 
@@ -247,7 +248,11 @@ export async function updateSettings(newSettings: Settings): Promise<Settings> {
 
 export async function recreateDatabase(): Promise<void> {
   const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
-  db.close(); 
+  
+  if (db.open) {
+    db.close(); 
+  }
+  
   try {
     if (fs.existsSync(dbPath)) {
       fs.unlinkSync(dbPath);

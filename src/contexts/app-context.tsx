@@ -6,6 +6,7 @@ import type { Product, Sale, Customer, Expense, Settings, AppContextType, LogSal
 import { useToast } from "@/hooks/use-toast";
 import { getTranslations } from "@/lib/i18n";
 import * as db from "@/actions/db";
+import bcrypt from "bcryptjs";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -26,8 +27,12 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     enableAssistant: true,
     autoSuggestions: true,
     language: "en",
+    passwordHash: null,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthRequired, setIsAuthRequired] = useState(false);
+
 
   const loadInitialData = useCallback(async () => {
     setIsLoading(true);
@@ -38,12 +43,22 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       setCustomers(data.customers);
       setExpenses(data.expenses);
       setSettings(data.settings);
+
+      // Authentication check
+      if (data.settings.passwordHash) {
+          setIsAuthRequired(true);
+          setIsAuthenticated(false);
+      } else {
+          setIsAuthRequired(false);
+          setIsAuthenticated(true);
+      }
+
     } catch (error) {
       console.error("Fatal: Failed to load initial data from database.", error);
       toast({
         variant: "destructive",
-        title: "Fatal Error",
-        description: "Could not load data from the database. The application cannot start. Please check the console for details.",
+        title: "Database Error",
+        description: "Could not load data. The database file might be corrupt. Please check the console for details and consider restarting the application.",
         duration: Infinity,
       });
       // We stop loading here to prevent the app from running in a broken state.
@@ -59,6 +74,26 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   
   const translations = getTranslations(settings.language);
 
+  const login = async (password: string): Promise<boolean> => {
+    if (!settings.passwordHash) return false;
+    const match = await bcrypt.compare(password, settings.passwordHash);
+    if (match) {
+        setIsAuthenticated(true);
+        toast({ title: "Login Successful", description: "Welcome back!" });
+    } else {
+        toast({ variant: "destructive", title: "Login Failed", description: "Incorrect password." });
+    }
+    return match;
+  };
+
+  const setPassword = async (password: string) => {
+    const newHash = await bcrypt.hash(password, 10);
+    const newSettings = { ...settings, passwordHash: newHash };
+    await updateSettings(newSettings, true); // Pass a flag to indicate this is a security update
+    setIsAuthRequired(true);
+    toast({ title: "Password Set", description: "Your application is now password protected." });
+  };
+  
   const addProduct = async (productData: Omit<Product, "id" | "lastUpdatedAt">) => {
     const newProduct = await db.addProduct(productData);
     setProducts(prev => [...prev, newProduct].sort((a, b) => a.name.localeCompare(b.name)));
@@ -135,13 +170,15 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     return customers.find(c => c.name.toLowerCase() === name.toLowerCase());
   }
 
-  const updateSettings = async (newSettings: Settings) => {
+  const updateSettings = async (newSettings: Settings, isSecurityUpdate = false) => {
     const updatedSettings = await db.updateSettings(newSettings);
     setSettings(updatedSettings);
-    toast({
-      title: "Settings Updated",
-      description: "Your changes have been saved to the database.",
-    });
+    if (!isSecurityUpdate) {
+        toast({
+          title: "Settings Updated",
+          description: "Your changes have been saved to the database.",
+        });
+    }
   };
 
   const value: AppContextType = {
@@ -151,6 +188,10 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     expenses,
     settings,
     isLoading,
+    isAuthenticated,
+    isAuthRequired,
+    login,
+    setPassword,
     loadInitialData,
     addProduct,
     addMultipleProducts,

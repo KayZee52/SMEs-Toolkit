@@ -9,20 +9,20 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { Building, BrainCircuit, Cloud, Languages, Save } from "lucide-react";
+import { Building, BrainCircuit, Cloud, Languages, Save, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useApp } from "@/contexts/app-context";
 import type { Settings } from "@/lib/types";
 import { MaDIcon } from "@/components/ui/icons";
 
 export default function SettingsPage() {
-  const { settings: globalSettings, updateSettings } = useApp();
+  const { settings: globalSettings, updateSettings, setPassword } = useApp();
   const { toast } = useToast();
 
-  // Local state for form edits
   const [settings, setSettings] = useState<Settings>(globalSettings);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Sync local state if global state changes (e.g., on initial load or after save)
   useEffect(() => {
     setSettings(globalSettings);
   }, [globalSettings]);
@@ -33,18 +33,39 @@ export default function SettingsPage() {
 
   const handleSave = () => {
     updateSettings(settings);
-    // Toast is now handled in the context
   };
 
   const handleDiscard = () => {
-    setSettings(globalSettings); // Revert local changes to match global state
+    setSettings(globalSettings);
     toast({
       title: "Changes Discarded",
       description: "Your pending changes have been discarded.",
     });
   };
   
-  const hasChanges = JSON.stringify(settings) !== JSON.stringify(globalSettings);
+  const handlePasswordChange = () => {
+    if (newPassword !== confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Passwords do not match",
+        description: "Please ensure both password fields are identical.",
+      });
+      return;
+    }
+    if (newPassword.length < 4) {
+        toast({
+            variant: "destructive",
+            title: "Password is too short",
+            description: "Password must be at least 4 characters long.",
+        });
+        return;
+    }
+    setPassword(newPassword);
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+
+  const hasSettingsChanges = JSON.stringify(settings) !== JSON.stringify(globalSettings);
 
   return (
     <div className="flex flex-col gap-6">
@@ -52,16 +73,27 @@ export default function SettingsPage() {
         <h1 className="font-headline text-3xl font-bold tracking-tight">
           Settings
         </h1>
+         {hasSettingsChanges && (
+            <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={handleDiscard}>
+                Discard
+                </Button>
+                <Button onClick={handleSave}>
+                <Save className="mr-2 h-4 w-4" />
+                Save Changes
+                </Button>
+            </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Business Info Card */}
-        <Card>
+        <Card className="lg:col-span-1">
           <CardHeader className="flex flex-row items-center gap-4">
             <Building className="h-6 w-6" />
             <div>
               <CardTitle className="font-headline">Business Info</CardTitle>
-              <CardDescription>Manage your business profile and currency.</CardDescription>
+              <CardDescription>Manage your business profile.</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -77,7 +109,7 @@ export default function SettingsPage() {
               <Label htmlFor="currency">Currency</Label>
               <Select 
                 value={settings.currency}
-                onValueChange={(value: "USD" | "LRD" | "NGN") => handleInputChange('currency', value)}
+                onValueChange={(value) => handleInputChange('currency', value)}
               >
                 <SelectTrigger id="currency">
                   <SelectValue placeholder="Select currency" />
@@ -93,23 +125,20 @@ export default function SettingsPage() {
         </Card>
 
         {/* AI Assistant Settings Card */}
-        <Card>
+        <Card className="lg:col-span-1">
           <CardHeader className="flex flex-row items-center gap-4">
             <MaDIcon className="w-6 h-6 text-primary" />
             <div>
               <CardTitle className="font-futuristic text-xl tracking-wider">
-                Ma-D <span className="text-primary font-normal">AI Assistant</span>
+                Ma-D AI
               </CardTitle>
-              <CardDescription>Customize the behavior of the assistant.</CardDescription>
+              <CardDescription>Customize the AI assistant.</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
                 <Label>Enable Assistant</Label>
-                <p className="text-sm text-muted-foreground">
-                  Turn the AI helper on or off.
-                </p>
               </div>
               <Switch 
                 checked={settings.enableAssistant}
@@ -119,9 +148,6 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
                 <Label>Auto Suggestions</Label>
-                <p className="text-sm text-muted-foreground">
-                  Let the AI provide smart prompts.
-                </p>
               </div>
               <Switch 
                 checked={settings.autoSuggestions}
@@ -131,59 +157,29 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Backup & Sync Card */}
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-4">
-            <Cloud className="h-6 w-6" />
-            <div>
-              <CardTitle className="font-headline">Backup & Sync</CardTitle>
-              <CardDescription>Manage your data backup and synchronization.</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-             <div className="text-sm text-muted-foreground">
-                <p>Status: <span className="text-green-500 font-medium">Online</span></p>
-                <p>Last Sync: Today, 2:15 PM</p>
-            </div>
-            <Button className="w-full">
-              <Cloud className="mr-2 h-4 w-4" />
-              Sync Manually
-            </Button>
-            <p className="text-xs text-muted-foreground text-center">
-              Automatic daily backups are enabled.
-            </p>
-          </CardContent>
-        </Card>
-        
-        {/* Language & Accessibility Card */}
-        <Card>
+         {/* Appearance Card */}
+        <Card className="lg:col-span-1">
           <CardHeader className="flex flex-row items-center gap-4">
             <Languages className="h-6 w-6" />
             <div>
               <CardTitle className="font-headline">Appearance</CardTitle>
-              <CardDescription>Adjust the app&apos;s look and feel.</CardDescription>
+              <CardDescription>Adjust look and feel.</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
                <div className="space-y-0.5">
                 <Label>Theme</Label>
-                 <p className="text-sm text-muted-foreground">
-                  Choose between light, dark, or system theme.
-                </p>
               </div>
               <ThemeToggle />
             </div>
              <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
                <div className="space-y-0.5">
                 <Label>Language</Label>
-                 <p className="text-sm text-muted-foreground">
-                  Select your preferred language.
-                </p>
               </div>
               <Select 
                 value={settings.language}
-                onValueChange={(value: "en" | "en-lr" | "fr") => handleInputChange('language', value)}
+                onValueChange={(value) => handleInputChange('language', value)}
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select language" />
@@ -197,19 +193,46 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
-
       </div>
 
-      {/* Save Changes Footer */}
-      <div className="mt-4 flex justify-end gap-2">
-        <Button variant="outline" onClick={handleDiscard} disabled={!hasChanges}>
-          Discard
-        </Button>
-        <Button onClick={handleSave} disabled={!hasChanges}>
-          <Save className="mr-2 h-4 w-4" />
-          Save Changes
-        </Button>
-      </div>
+       {/* Security Card */}
+        <Card>
+            <CardHeader className="flex flex-row items-center gap-4">
+                <Lock className="h-6 w-6" />
+                <div>
+                <CardTitle className="font-headline">Security</CardTitle>
+                <CardDescription>Manage your application password.</CardDescription>
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="new-password">New Password</Label>
+                    <Input 
+                        id="new-password"
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter new password (min. 4 characters)"
+                    />
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="confirm-password">Confirm New Password</Label>
+                    <Input 
+                        id="confirm-password"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm new password"
+                    />
+                </div>
+                <div className="flex justify-end">
+                    <Button onClick={handlePasswordChange} disabled={!newPassword || !confirmPassword}>
+                        <Save className="mr-2 h-4 w-4" />
+                        Update Password
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
     </div>
   );
 }

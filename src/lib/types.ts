@@ -51,6 +51,7 @@ export type Settings = {
   enableAssistant: boolean;
   autoSuggestions: boolean;
   language: "en" | "en-lr" | "fr";
+  passwordHash: string | null;
 };
 
 export type LogSaleFormValues = {
@@ -70,6 +71,10 @@ export interface AppContextType {
   expenses: Expense[];
   settings: Settings;
   isLoading: boolean;
+  isAuthenticated: boolean;
+  isAuthRequired: boolean;
+  login: (password: string) => Promise<boolean>;
+  setPassword: (password: string) => Promise<void>;
   loadInitialData: () => Promise<void>;
   addProduct: (product: Omit<Product, "id" | "lastUpdatedAt">) => Promise<void>;
   addMultipleProducts: (products: Omit<Product, "id" | "lastUpdatedAt">[]) => Promise<void>;
@@ -82,6 +87,6 @@ export interface AppContextType {
   updateExpense: (expense: Expense) => Promise<void>;
   deleteExpense: (id: string) => Promise<void>;
   findCustomerByName: (name: string) => Customer | undefined;
-  updateSettings: (settings: Settings) => Promise<void>;
+  updateSettings: (settings: Settings, isSecurityUpdate?: boolean) => Promise<void>;
   translations: Translation;
 }

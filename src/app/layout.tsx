@@ -2,10 +2,6 @@
 import type { Metadata } from "next";
 import { AppProvider } from "@/contexts/app-context";
 import { Toaster } from "@/components/ui/toaster";
-import { Sidebar, SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import SidebarNav from "@/components/layout/sidebar-nav";
-import Header from "@/components/layout/header";
-import { AIAssistant } from "@/components/ai/ai-assistant-sheet";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import AppContent from "@/components/layout/app-content";
 import "./globals.css";

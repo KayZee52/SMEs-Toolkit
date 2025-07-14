@@ -82,6 +82,7 @@ const seedIfEmpty = () => {
             enableAssistant: true,
             autoSuggestions: true,
             language: "en",
+            passwordHash: null,
         };
         const settingsInsertStmt = db.prepare("INSERT OR IGNORE INTO settings (key, data) VALUES (?, ?)");
         settingsInsertStmt.run('appSettings', JSON.stringify(defaultSettings));

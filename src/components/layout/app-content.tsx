@@ -6,9 +6,10 @@ import { Sidebar, SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import SidebarNav from "@/components/layout/sidebar-nav";
 import Header from "@/components/layout/header";
 import { AIAssistant } from "@/components/ai/ai-assistant-sheet";
+import { LoginPage } from "@/components/auth/login-page";
 
 export default function AppContent({ children }: { children: React.ReactNode }) {
-    const { isLoading } = useApp();
+    const { isLoading, isAuthenticated, isAuthRequired } = useApp();
 
     if (isLoading) {
         return (
@@ -16,6 +17,10 @@ export default function AppContent({ children }: { children: React.ReactNode }) 
                 <div className="text-2xl">Loading...</div>
             </div>
         );
+    }
+
+    if (isAuthRequired && !isAuthenticated) {
+        return <LoginPage />;
     }
     
     return (
