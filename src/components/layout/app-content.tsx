@@ -7,19 +7,23 @@ import SidebarNav from "@/components/layout/sidebar-nav";
 import Header from "@/components/layout/header";
 import { AIAssistant } from "@/components/ai/ai-assistant-sheet";
 import { LoginPage } from "@/components/auth/login-page";
+import { Loader2 } from "lucide-react";
 
 export default function AppContent({ children }: { children: React.ReactNode }) {
-    const { isLoading, isAuthenticated, isAuthRequired } = useApp();
+    const { isLoading, isAuthenticated } = useApp();
 
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="text-2xl">Loading...</div>
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-muted-foreground">Loading your business data...</p>
+                </div>
             </div>
         );
     }
 
-    if (isAuthRequired && !isAuthenticated) {
+    if (!isAuthenticated) {
         return <LoginPage />;
     }
     

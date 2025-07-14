@@ -50,7 +50,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
           setIsAuthenticated(false);
       } else {
           setIsAuthRequired(false);
-          setIsAuthenticated(true);
+          setIsAuthenticated(false); // Force setup
       }
 
     } catch (error) {
@@ -61,8 +61,6 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         description: "Could not load data. The database file might be corrupt. Please check the console for details and consider restarting the application.",
         duration: Infinity,
       });
-      // We stop loading here to prevent the app from running in a broken state.
-      // The isLoading flag will remain true, showing the loading screen.
       return;
     }
     setIsLoading(false);
@@ -89,8 +87,9 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const setPassword = async (password: string) => {
     const newHash = await bcrypt.hash(password, 10);
     const newSettings = { ...settings, passwordHash: newHash };
-    await updateSettings(newSettings, true); // Pass a flag to indicate this is a security update
+    await updateSettings(newSettings, true); 
     setIsAuthRequired(true);
+    setIsAuthenticated(true); // Grant access immediately after setup
     toast({ title: "Password Set", description: "Your application is now password protected." });
   };
   
