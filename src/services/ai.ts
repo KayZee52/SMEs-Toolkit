@@ -28,7 +28,7 @@ export async function getAiReply(
     if (errorMessage.includes("API_KEY_NOT_SET")) {
         return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
     }
-    return { success: false, error: `AI request failed: ${errorMessage}` };
+    return { success: false, error: `AI request failed. Please check if your API key is valid.` };
   }
 }
 
@@ -62,7 +62,7 @@ export async function generateDescriptionForProduct(
     if (errorMessage.includes("API_KEY_NOT_SET")) {
         return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
     }
-    return { success: false, error: `Failed to generate description: ${errorMessage}` };
+    return { success: false, error: `Failed to generate description. Please check if your API key is valid.` };
   }
 }
 
@@ -81,6 +81,6 @@ export async function getReportSummary(context: {
      if (errorMessage.includes("API_KEY_NOT_SET")) {
         return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
     }
-    return { success: false, error: `AI request failed: ${errorMessage}` };
+    return { success: false, error: `AI request failed. Please check if your API key is valid.` };
   }
 }
