@@ -185,6 +185,27 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     }
   };
 
+  const recreateDatabase = async () => {
+    try {
+      await db.recreateDatabase();
+      toast({
+        title: "Database Recreating",
+        description: "Reloading the application with a fresh start...",
+      });
+      // Use a timeout to allow the toast to be seen before the reload.
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Recreation Failed",
+        description: "Could not recreate the database. Check the console for errors.",
+      });
+    }
+  };
+
+
   const value: AppContextType = {
     products,
     sales,
@@ -211,6 +232,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     findCustomerByName,
     updateSettings,
     translations,
+    recreateDatabase,
   };
   
   return (

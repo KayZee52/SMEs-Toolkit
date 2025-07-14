@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -6,16 +7,27 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { Building, Languages, Save, Lock } from "lucide-react";
+import { Building, Languages, Save, Lock, AlertTriangle, DatabaseZap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useApp } from "@/contexts/app-context";
 import type { Settings } from "@/lib/types";
 import { MaDIcon } from "@/components/ui/icons";
 
 export default function SettingsPage() {
-  const { settings: globalSettings, updateSettings, setPassword } = useApp();
+  const { settings: globalSettings, updateSettings, setPassword, recreateDatabase } = useApp();
   const { toast } = useToast();
 
   const [settings, setSettings] = useState<Settings>(globalSettings);
@@ -63,6 +75,10 @@ export default function SettingsPage() {
     setNewPassword("");
     setConfirmPassword("");
   };
+  
+  const handleRecreateDatabase = async () => {
+      await recreateDatabase();
+  }
 
   const hasSettingsChanges = JSON.stringify(settings) !== JSON.stringify(globalSettings);
 
@@ -229,6 +245,50 @@ export default function SettingsPage() {
                         <Save className="mr-2 h-4 w-4" />
                         Update Password
                     </Button>
+                </div>
+            </CardContent>
+        </Card>
+
+        {/* Danger Zone */}
+        <Card className="border-destructive">
+             <CardHeader className="flex flex-row items-center gap-4">
+                <AlertTriangle className="h-6 w-6 text-destructive" />
+                <div>
+                <CardTitle className="font-headline text-destructive">Danger Zone</CardTitle>
+                <CardDescription>These actions are irreversible. Please proceed with caution.</CardDescription>
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex items-center justify-between rounded-lg border border-destructive/20 p-4">
+                    <div>
+                        <h3 className="font-semibold">Recreate Database</h3>
+                        <p className="text-sm text-muted-foreground">This will delete all your current data and reset the application to its initial state with mock data. This cannot be undone.</p>
+                    </div>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                           <Button variant="destructive">
+                                <DatabaseZap className="mr-2 h-4 w-4" />
+                                Recreate Database
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action is permanent and cannot be undone. All your products, sales, customers, and expenses will be permanently deleted. The application will be reset to its original demo state.
+                            </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                className="bg-destructive hover:bg-destructive/90"
+                                onClick={handleRecreateDatabase}
+                            >
+                                Yes, delete everything
+                            </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
             </CardContent>
         </Card>

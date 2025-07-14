@@ -89,5 +89,6 @@ export interface AppContextType {
   deleteExpense: (id: string) => Promise<void>;
   findCustomerByName: (name: string) => Customer | undefined;
   updateSettings: (settings: Settings, isSecurityUpdate?: boolean) => Promise<void>;
+  recreateDatabase: () => Promise<void>;
   translations: Translation;
 }

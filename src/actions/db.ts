@@ -248,16 +248,12 @@ export async function updateSettings(newSettings: Settings): Promise<Settings> {
     return newSettings;
 }
 
-export async function recreateDatabase(): Promise<void> {
+export async function recreateDatabase(): Promise<{success: boolean}> {
   const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
   
   // Close the existing connection if it's open
-  if (db.open) {
-    db.close(); 
-    console.log("Database connection closed for recreation.");
-  }
+  db.close(); 
   
-  // Delete the database files
   try {
     const filesToDelete = [`${dbPath}`, `${dbPath}-shm`, `${dbPath}-wal`];
     filesToDelete.forEach(file => {
@@ -266,8 +262,10 @@ export async function recreateDatabase(): Promise<void> {
       }
     });
     console.log("Database files deleted successfully. The application will re-initialize it on the next action.");
+    return { success: true };
   } catch (error) {
     console.error("Error deleting database file:", error);
+    // Re-throw to be caught by the caller
     throw new Error("Could not recreate the database.");
   }
 }
