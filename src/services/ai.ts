@@ -6,20 +6,9 @@ import { generateProductDescription } from "@/ai/flows/generate-product-descript
 import { extractCustomerInfo } from "@/ai/flows/extract-customer-info";
 import { summarizeReport } from "@/ai/flows/summarize-report-flow";
 import type { Product, Sale, Expense, Customer, Settings } from "@/lib/types";
-import { getSettings } from "./db";
-import { FlowAuth, FlowCallOptions } from "genkit/flow";
 
-// This is the new central control point for the API key.
-// It fetches settings and ensures an API key is available.
-async function getCallOptions(): Promise<FlowCallOptions<FlowAuth>> {
-    const settings = await getSettings();
-    const apiKey = settings.googleApiKey;
-    if (!apiKey) {
-      // This specific error message is caught below to provide a user-friendly message.
-      throw new Error("API_KEY_NOT_SET");
-    }
-    return { apiKey };
-}
+// The API key logic has been moved directly into the flows for simplicity and reliability.
+// These service functions are now simple wrappers.
 
 export async function getAiReply(
   query: string,
@@ -32,23 +21,20 @@ export async function getAiReply(
   }
 ) {
   try {
-    const callOptions = await getCallOptions();
-    const result = await kemzAssistant({ query, ...context }, callOptions);
+    const result = await kemzAssistant({ query, ...context });
     return { success: true, data: result };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
     if (errorMessage.includes("API_KEY_NOT_SET")) {
         return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
     }
-    // This will now correctly trigger if the user-provided key is invalid.
     return { success: false, error: `AI request failed. Please check if your API key is valid.` };
   }
 }
 
 export async function getCustomerInfoFromText(salesLog: string) {
   try {
-    const callOptions = await getCallOptions();
-    const result = await extractCustomerInfo({ salesLog }, callOptions);
+    const result = await extractCustomerInfo({ salesLog });
     return { success: true, data: result };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
@@ -64,13 +50,11 @@ export async function generateDescriptionForProduct(
   category?: string
 ) {
   try {
-    const callOptions = await getCallOptions();
     const result = await generateProductDescription(
       {
         productName,
         productCategory: category,
-      },
-      callOptions
+      }
     );
     return { success: true, data: result };
   } catch (error) {
@@ -89,8 +73,7 @@ export async function getReportSummary(context: {
   dateRange: { from: string; to: string };
 }) {
   try {
-    const callOptions = await getCallOptions();
-    const result = await summarizeReport({ ...context }, callOptions);
+    const result = await summarizeReport({ ...context });
     return { success: true, data: result };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";

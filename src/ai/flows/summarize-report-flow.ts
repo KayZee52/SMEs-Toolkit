@@ -10,7 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { Flow, FlowAuth, FlowCallOptions } from 'genkit/flow';
+import { getSettings } from '@/services/db';
 
 const ProductSchema = z.object({
     id: z.string(),
@@ -63,12 +63,10 @@ const SummarizeReportOutputSchema = z.object({
 });
 export type SummarizeReportOutput = z.infer<typeof SummarizeReportOutputSchema>;
 
-// This is the exported wrapper function. It now accepts callOptions.
 export async function summarizeReport(
   input: SummarizeReportInput,
-  callOptions: FlowCallOptions<FlowAuth>
 ): Promise<SummarizeReportOutput> {
-  return summarizeReportFlow(input, callOptions);
+  return summarizeReportFlow(input);
 }
 
 const prompt = ai.definePrompt({
@@ -97,15 +95,20 @@ Expense Data:
 `,
 });
 
-// The flow now receives callOptions and passes them to the prompt.
-const summarizeReportFlow: Flow<SummarizeReportInput, SummarizeReportOutput> = ai.defineFlow(
+const summarizeReportFlow = ai.defineFlow(
   {
     name: 'summarizeReportFlow',
     inputSchema: SummarizeReportInputSchema,
     outputSchema: SummarizeReportOutputSchema,
   },
-  async (input, streamingCallback, callOptions) => {
-    const {output} = await prompt(input, callOptions); // Pass callOptions here
+  async (input) => {
+    const settings = await getSettings();
+    const apiKey = settings.googleApiKey;
+    if (!apiKey) {
+      throw new Error("API_KEY_NOT_SET");
+    }
+
+    const {output} = await prompt(input, { apiKey });
     
     if (output) {
       return output;

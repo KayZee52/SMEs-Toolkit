@@ -15,7 +15,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { Flow, FlowAuth, FlowCallOptions } from 'genkit/flow';
+import { getSettings } from '@/services/db';
 
 // Zod schemas for data types, mirroring src/lib/types.ts
 const ProductSchema = z.object({
@@ -87,12 +87,10 @@ const KemzAssistantOutputSchema = z.object({
 });
 export type KemzAssistantOutput = z.infer<typeof KemzAssistantOutputSchema>;
 
-// This is the exported wrapper function. It now accepts callOptions.
 export async function kemzAssistant(
   input: KemzAssistantInput,
-  callOptions: FlowCallOptions<FlowAuth>
 ): Promise<KemzAssistantOutput> {
-  return kemzAssistantFlow(input, callOptions);
+  return kemzAssistantFlow(input);
 }
 
 
@@ -177,18 +175,23 @@ Use the following information to answer any other questions about your developer
   `,
 });
 
-// The flow now receives callOptions and passes them to the prompt.
-const kemzAssistantFlow: Flow<KemzAssistantInput, KemzAssistantOutput> = ai.defineFlow(
+const kemzAssistantFlow = ai.defineFlow(
   {
     name: 'kemzAssistantFlow',
     inputSchema: KemzAssistantInputSchema,
     outputSchema: KemzAssistantOutputSchema,
   },
-  async (flowInput, streamingCallback, callOptions) => {
+  async (flowInput) => {
+    const appSettings = await getSettings();
+    const apiKey = appSettings.googleApiKey;
+    if (!apiKey) {
+      throw new Error("API_KEY_NOT_SET");
+    }
+
     const response = await prompt({
         ...flowInput,
         currentDate: new Date().toISOString(),
-    }, callOptions); // Pass callOptions here
+    }, { apiKey });
     
     const output = response.output;
     if (output?.answer) {
