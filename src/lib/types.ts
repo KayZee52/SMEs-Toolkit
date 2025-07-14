@@ -74,6 +74,7 @@ export interface AppContextType {
   isAuthenticated: boolean;
   isAuthRequired: boolean;
   login: (password: string) => Promise<boolean>;
+  logout: () => void;
   setPassword: (password: string) => Promise<void>;
   loadInitialData: () => Promise<void>;
   addProduct: (product: Omit<Product, "id" | "lastUpdatedAt">) => Promise<void>;

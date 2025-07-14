@@ -4,6 +4,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useApp } from "@/contexts/app-context";
 import {
   SidebarHeader,
   SidebarMenu,
@@ -21,6 +22,7 @@ import {
   AreaChart,
   ArrowRightLeft,
   Settings,
+  LockKeyhole,
 } from "lucide-react";
 
 const navItems = [
@@ -36,6 +38,7 @@ const navItems = [
 
 export default function SidebarNav() {
   const pathname = usePathname();
+  const { logout, isAuthRequired } = useApp();
 
   return (
     <>
@@ -72,9 +75,22 @@ export default function SidebarNav() {
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter>
-        {/* Footer content can go here if needed */}
-      </SidebarFooter>
+      {isAuthRequired && (
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={logout}
+                className="font-body text-base"
+                tooltip="Lock App"
+              >
+                <LockKeyhole />
+                <span>Lock App</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      )}
     </>
   );
 }

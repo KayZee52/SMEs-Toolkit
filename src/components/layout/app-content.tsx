@@ -10,7 +10,7 @@ import { LoginPage } from "@/components/auth/login-page";
 import { Loader2 } from "lucide-react";
 
 export default function AppContent({ children }: { children: React.ReactNode }) {
-    const { isLoading, isAuthenticated } = useApp();
+    const { isLoading, isAuthenticated, isAuthRequired } = useApp();
 
     if (isLoading) {
         return (
@@ -23,7 +23,7 @@ export default function AppContent({ children }: { children: React.ReactNode }) 
         );
     }
 
-    if (!isAuthenticated) {
+    if (!isAuthenticated && isAuthRequired) {
         return <LoginPage />;
     }
     

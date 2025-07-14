@@ -50,7 +50,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
           setIsAuthenticated(false);
       } else {
           setIsAuthRequired(false);
-          setIsAuthenticated(false); // Force setup
+          setIsAuthenticated(true); // Allow access for setup
       }
 
     } catch (error) {
@@ -83,6 +83,11 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     }
     return match;
   };
+  
+  const logout = () => {
+    setIsAuthenticated(false);
+    toast({ title: "App Locked", description: "Please enter your password to continue."});
+  }
 
   const setPassword = async (password: string) => {
     const newHash = await bcrypt.hash(password, 10);
@@ -190,6 +195,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     isAuthenticated,
     isAuthRequired,
     login,
+    logout,
     setPassword,
     loadInitialData,
     addProduct,
