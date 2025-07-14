@@ -311,13 +311,11 @@ export async function recreateDatabase(): Promise<{success: boolean}> {
     db = getDbConnection();
 
     // Step 3: Restore the preserved settings
-    const seededSettings = await getSettings();
-    const finalSettings = {
-        ...seededSettings,
-        passwordHash: null, // Erase password
-        googleApiKey, // Preserve API Key
-    };
-    await updateSettings(finalSettings);
+    let seededSettings = await getSettings();
+    seededSettings.passwordHash = null; // Erase password
+    seededSettings.googleApiKey = googleApiKey; // Preserve API Key
+    
+    await updateSettings(seededSettings);
 
 
     console.log("Database backed up and recreated. API key preserved, password erased.");
@@ -373,3 +371,5 @@ export async function restoreDatabase(): Promise<{success: boolean}> {
         throw new Error("Could not restore database.");
     }
 }
+
+    

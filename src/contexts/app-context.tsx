@@ -52,7 +52,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
           setIsAuthenticated(false);
       } else {
           setIsAuthRequired(false);
-          setIsAuthenticated(true); // Allow access for setup
+          setIsAuthenticated(false); // Go to setup screen
       }
 
     } catch (error) {
@@ -200,8 +200,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         title: "Database Resetting",
         description: "Your data has been backed up. Reloading the application now...",
       });
-      // Log the user out to force re-authentication on the new database.
-      logout();
+      // This will force a reload and the context will handle auth state
       setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
       toast({
@@ -276,5 +275,7 @@ export const useApp = (): AppContextType => {
   }
   return context;
 };
+
+    
 
     
