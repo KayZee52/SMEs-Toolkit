@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { Building, BrainCircuit, Cloud, Languages, Save, Lock } from "lucide-react";
+import { Building, Languages, Save, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useApp } from "@/contexts/app-context";
 import type { Settings } from "@/lib/types";
