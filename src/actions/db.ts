@@ -196,6 +196,7 @@ export async function addCustomer(customerData: Omit<Customer, 'id' | 'createdAt
         ...customerData,
         id: `cust_${Date.now()}`,
         createdAt: new Date().toISOString(),
+        notes: customerData.notes || null,
     };
     const stmt = db.prepare(
         'INSERT INTO customers (id, name, phone, createdAt, notes, type) VALUES (@id, @name, @phone, @createdAt, @notes, @type)'
@@ -249,24 +250,19 @@ export async function updateSettings(newSettings: Settings): Promise<Settings> {
 export async function recreateDatabase(): Promise<void> {
   const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
   
-  // Close the existing connection before deleting the file
   if (db.open) {
     db.close(); 
-    console.log("Database connection closed.");
+    console.log("Database connection closed for recreation.");
   }
   
   try {
-    // Delete the database file and its auxiliary files
-    if (fs.existsSync(dbPath)) {
-      fs.unlinkSync(dbPath);
-    }
-     if (fs.existsSync(`${dbPath}-shm`)) {
-      fs.unlinkSync(`${dbPath}-shm`);
-    }
-    if (fs.existsSync(`${dbPath}-wal`)) {
-      fs.unlinkSync(`${dbPath}-wal`);
-    }
-    console.log("Database file deleted successfully. The application will re-initialize it on next load.");
+    const filesToDelete = [`${dbPath}`, `${dbPath}-shm`, `${dbPath}-wal`];
+    filesToDelete.forEach(file => {
+      if (fs.existsSync(file)) {
+        fs.unlinkSync(file);
+      }
+    });
+    console.log("Database files deleted successfully. The application will re-initialize it on the next action.");
   } catch (error) {
     console.error("Error deleting database file:", error);
     throw new Error("Could not recreate the database.");
