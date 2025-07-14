@@ -10,10 +10,11 @@ export const ai = genkit({
       // to update their key in settings and have it apply immediately.
       requestMiddleware: async (req, next) => {
         const settings = await getSettings();
-        const apiKey = settings.googleApiKey || '';
+        const apiKey = settings.googleApiKey; // No fallback here
         
         if (!apiKey) {
-            throw new Error("Google AI API key is not set. Please add it in the settings.");
+            // Throw a specific error that the service layer can catch.
+            throw new Error("API_KEY_NOT_SET");
         }
 
         // Clone the request and add the API key to the headers.

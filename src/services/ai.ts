@@ -24,6 +24,10 @@ export async function getAiReply(
   } catch (error) {
     console.error(error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    // Check for our custom error to give a user-friendly message.
+    if (errorMessage.includes("API_KEY_NOT_SET")) {
+        return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
+    }
     return { success: false, error: `AI request failed: ${errorMessage}` };
   }
 }
@@ -35,6 +39,9 @@ export async function getCustomerInfoFromText(salesLog: string) {
   } catch (error) {
     console.error(error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    if (errorMessage.includes("API_KEY_NOT_SET")) {
+        return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
+    }
     return { success: false, error: `Failed to extract customer info: ${errorMessage}` };
   }
 }
@@ -52,6 +59,9 @@ export async function generateDescriptionForProduct(
   } catch (error) {
     console.error(error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    if (errorMessage.includes("API_KEY_NOT_SET")) {
+        return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
+    }
     return { success: false, error: `Failed to generate description: ${errorMessage}` };
   }
 }
@@ -68,6 +78,9 @@ export async function getReportSummary(context: {
   } catch (error) {
     console.error(error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+     if (errorMessage.includes("API_KEY_NOT_SET")) {
+        return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
+    }
     return { success: false, error: `AI request failed: ${errorMessage}` };
   }
 }
