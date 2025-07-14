@@ -7,6 +7,7 @@ import { generateProductDescription } from "@/ai/flows/generate-product-descript
 import { extractCustomerInfo } from "@/ai/flows/extract-customer-info";
 import { summarizeReport } from "@/ai/flows/summarize-report-flow";
 import type { Product, Sale, Expense, Customer, Settings } from "@/lib/types";
+import { getSettings } from "./db";
 
 export async function getAiReply(
   query: string,
@@ -19,12 +20,16 @@ export async function getAiReply(
   }
 ) {
   try {
-    const result = await kemzAssistant({ query, ...context });
+    const settings = await getSettings();
+    const apiKey = settings.googleApiKey;
+    if (!apiKey) {
+      throw new Error("API_KEY_NOT_SET");
+    }
+    const result = await kemzAssistant({ query, ...context }, { apiKey });
     return { success: true, data: result };
   } catch (error) {
     console.error(error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-    // Check for our custom error to give a user-friendly message.
     if (errorMessage.includes("API_KEY_NOT_SET")) {
         return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
     }
@@ -34,7 +39,12 @@ export async function getAiReply(
 
 export async function getCustomerInfoFromText(salesLog: string) {
   try {
-    const result = await extractCustomerInfo({ salesLog });
+    const settings = await getSettings();
+    const apiKey = settings.googleApiKey;
+    if (!apiKey) {
+      throw new Error("API_KEY_NOT_SET");
+    }
+    const result = await extractCustomerInfo({ salesLog }, { apiKey });
     return { success: true, data: result };
   } catch (error) {
     console.error(error);
@@ -51,10 +61,18 @@ export async function generateDescriptionForProduct(
   category?: string
 ) {
   try {
-    const result = await generateProductDescription({
-      productName,
-      productCategory: category,
-    });
+    const settings = await getSettings();
+    const apiKey = settings.googleApiKey;
+    if (!apiKey) {
+      throw new Error("API_KEY_NOT_SET");
+    }
+    const result = await generateProductDescription(
+      {
+        productName,
+        productCategory: category,
+      },
+      { apiKey }
+    );
     return { success: true, data: result };
   } catch (error) {
     console.error(error);
@@ -73,7 +91,12 @@ export async function getReportSummary(context: {
   dateRange: { from: string; to: string };
 }) {
   try {
-    const result = await summarizeReport(context);
+    const settings = await getSettings();
+    const apiKey = settings.googleApiKey;
+    if (!apiKey) {
+      throw new Error("API_KEY_NOT_SET");
+    }
+    const result = await summarizeReport(context, { apiKey });
     return { success: true, data: result };
   } catch (error) {
     console.error(error);

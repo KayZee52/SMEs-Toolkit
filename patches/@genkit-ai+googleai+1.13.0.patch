@@ -1,0 +1,26 @@
+diff --git a/node_modules/@genkit-ai/googleai/lib/googleai.js b/node_modules/@genkit-ai/googleai/lib/googleai.js
+index 2132e0c..3869263 100644
+--- a/node_modules/@genkit-ai/googleai/lib/googleai.js
++++ b/node_modules/@genkit-ai/googleai/lib/googleai.js
+@@ -107,7 +107,7 @@ function googleAI(config) {
+     const aistudio = (0, google_auth_library_1.getGoogleAIStudioRequest)({
+         ...config,
+         // We will provide the API key on a per-request basis.
+-        apiKey: config?.apiKey ?? process.env.GOOGLE_API_KEY,
++        apiKey: config?.apiKey,
+     });
+     const vertex = (0, google_auth_library_1.getVertexRequest)({ ...config });
+     const middleware = config?.requestMiddleware;
+diff --git a/node_modules/@genkit-ai/googleai/src/googleai.ts b/node_modules/@genkit-ai/googleai/src/googleai.ts
+index c6db394..5183492 100644
+--- a/node_modules/@genkit-ai/googleai/src/googleai.ts
++++ b/node_modules/@genkit-ai/googleai/src/googleai.ts
+@@ -124,7 +124,7 @@ export function googleAI(config?: GoogleAIPluginParams): GenkitPlugin {
+   const aistudio = getGoogleAIStudioRequest({
+     ...config,
+     // We will provide the API key on a per-request basis.
+-    apiKey: config?.apiKey ?? process.env.GOOGLE_API_KEY,
++    apiKey: config?.apiKey,
+   });
+   const vertex = getVertexRequest({ ...config });
+ 
