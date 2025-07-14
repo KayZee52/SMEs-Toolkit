@@ -283,6 +283,10 @@ export async function updateSettings(newSettings: Settings): Promise<Settings> {
 export async function recreateDatabase(): Promise<{success: boolean}> {
   const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
   const backupPath = `${dbPath}.backup`;
+
+  // Step 1: Read current settings to preserve API key and password
+  const currentSettings = await getSettings();
+  const { passwordHash, googleApiKey } = currentSettings;
   
   db.close(); 
   
@@ -303,9 +307,20 @@ export async function recreateDatabase(): Promise<{success: boolean}> {
         if (fs.existsSync(shmPath)) fs.renameSync(shmPath, shmBackupPath);
     }
 
+    // Step 2: Re-initialize the database (which seeds it with defaults)
     db = getDbConnection();
 
-    console.log("Database backed up and will be recreated on next run.");
+    // Step 3: Restore the preserved settings
+    const seededSettings = await getSettings();
+    const finalSettings = {
+        ...seededSettings,
+        passwordHash,
+        googleApiKey,
+    };
+    await updateSettings(finalSettings);
+
+
+    console.log("Database backed up and recreated. Critical settings preserved.");
     return { success: true };
   } catch (error) {
     console.error("Error creating database backup:", error);
