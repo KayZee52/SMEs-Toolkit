@@ -12,7 +12,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {FlowCallOptions} from 'genkit/flow';
+import {Flow, FlowCallOptions} from 'genkit/flow';
 
 const ExtractCustomerInfoInputSchema = z.object({
   salesLog: z.string().describe('The sales log to extract customer information from.'),
@@ -32,7 +32,7 @@ export async function extractCustomerInfo(
   input: ExtractCustomerInfoInput,
   callOptions?: FlowCallOptions
 ): Promise<ExtractCustomerInfoOutput> {
-  return extractCustomerInfoFlow(input, callOptions);
+  return extractCustomerInfoFlow.run(input, callOptions);
 }
 
 const extractCustomerInfoPrompt = ai.definePrompt({
@@ -50,7 +50,7 @@ const extractCustomerInfoPrompt = ai.definePrompt({
   `,
 });
 
-const extractCustomerInfoFlow = ai.defineFlow(
+const extractCustomerInfoFlow: Flow<ExtractCustomerInfoInput, ExtractCustomerInfoOutput> = ai.defineFlow(
   {
     name: 'extractCustomerInfoFlow',
     inputSchema: ExtractCustomerInfoInputSchema,

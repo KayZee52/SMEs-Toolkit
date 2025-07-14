@@ -10,7 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {FlowCallOptions} from 'genkit/flow';
+import {Flow, FlowCallOptions} from 'genkit/flow';
 
 const ProductSchema = z.object({
     id: z.string(),
@@ -67,7 +67,7 @@ export async function summarizeReport(
   input: SummarizeReportInput,
   callOptions?: FlowCallOptions
 ): Promise<SummarizeReportOutput> {
-  return summarizeReportFlow(input, callOptions);
+  return summarizeReportFlow.run(input, callOptions);
 }
 
 const prompt = ai.definePrompt({
@@ -98,7 +98,7 @@ Expense Data:
 });
 
 
-const summarizeReportFlow = ai.defineFlow(
+const summarizeReportFlow: Flow<SummarizeReportInput, SummarizeReportOutput> = ai.defineFlow(
   {
     name: 'summarizeReportFlow',
     inputSchema: SummarizeReportInputSchema,
