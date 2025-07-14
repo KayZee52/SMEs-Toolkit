@@ -1,13 +1,21 @@
 
 "use server";
 
-import { run } from "genkit";
 import { kemzAssistant } from "@/ai/flows/kemz-assistant-flow";
 import { generateProductDescription } from "@/ai/flows/generate-product-description";
 import { extractCustomerInfo } from "@/ai/flows/extract-customer-info";
 import { summarizeReport } from "@/ai/flows/summarize-report-flow";
 import type { Product, Sale, Expense, Customer, Settings } from "@/lib/types";
 import { getSettings } from "./db";
+
+async function getCallOptions() {
+    const settings = await getSettings();
+    const apiKey = settings.googleApiKey;
+    if (!apiKey) {
+      throw new Error("API_KEY_NOT_SET");
+    }
+    return { apiKey };
+}
 
 export async function getAiReply(
   query: string,
@@ -20,12 +28,8 @@ export async function getAiReply(
   }
 ) {
   try {
-    const settings = await getSettings();
-    const apiKey = settings.googleApiKey;
-    if (!apiKey) {
-      throw new Error("API_KEY_NOT_SET");
-    }
-    const result = await kemzAssistant({ query, ...context }, { auth: apiKey });
+    const { apiKey } = await getCallOptions();
+    const result = await kemzAssistant({ query, ...context, apiKey });
     return { success: true, data: result };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
@@ -38,12 +42,8 @@ export async function getAiReply(
 
 export async function getCustomerInfoFromText(salesLog: string) {
   try {
-    const settings = await getSettings();
-    const apiKey = settings.googleApiKey;
-    if (!apiKey) {
-      throw new Error("API_KEY_NOT_SET");
-    }
-    const result = await extractCustomerInfo({ salesLog }, { auth: apiKey });
+    const { apiKey } = await getCallOptions();
+    const result = await extractCustomerInfo({ salesLog, apiKey });
     return { success: true, data: result };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
@@ -59,17 +59,13 @@ export async function generateDescriptionForProduct(
   category?: string
 ) {
   try {
-    const settings = await getSettings();
-    const apiKey = settings.googleApiKey;
-     if (!apiKey) {
-      throw new Error("API_KEY_NOT_SET");
-    }
+    const { apiKey } = await getCallOptions();
     const result = await generateProductDescription(
       {
         productName,
         productCategory: category,
-      },
-      { auth: apiKey }
+        apiKey,
+      }
     );
     return { success: true, data: result };
   } catch (error) {
@@ -88,12 +84,8 @@ export async function getReportSummary(context: {
   dateRange: { from: string; to: string };
 }) {
   try {
-    const settings = await getSettings();
-    const apiKey = settings.googleApiKey;
-     if (!apiKey) {
-      throw new Error("API_KEY_NOT_SET");
-    }
-    const result = await summarizeReport(context, { auth: apiKey });
+    const { apiKey } = await getCallOptions();
+    const result = await summarizeReport({ ...context, apiKey });
     return { success: true, data: result };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
