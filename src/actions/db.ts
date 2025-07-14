@@ -1,7 +1,7 @@
 
 'use server';
 
-import db from '@/lib/db';
+import dbInstance, { getDbConnection } from '@/lib/db';
 import type {
   Product,
   Sale,
@@ -12,6 +12,8 @@ import type {
 } from '@/lib/types';
 import fs from 'fs';
 import path from 'path';
+
+let db = dbInstance;
 
 // --- Get Functions ---
 
@@ -263,8 +265,8 @@ export async function recreateDatabase(): Promise<{success: boolean}> {
     // If a backup already exists, remove it before creating a new one.
     if (fs.existsSync(backupPath)) {
         fs.unlinkSync(backupPath);
-        fs.unlinkSync(`${backupPath}-shm`);
-        fs.unlinkSync(`${backupPath}-wal`);
+        if(fs.existsSync(`${backupPath}-shm`)) fs.unlinkSync(`${backupPath}-shm`);
+        if(fs.existsSync(`${backupPath}-wal`)) fs.unlinkSync(`${backupPath}-wal`);
     }
 
     // Rename current database to backup
@@ -272,10 +274,14 @@ export async function recreateDatabase(): Promise<{success: boolean}> {
     if (fs.existsSync(`${dbPath}-shm`)) fs.renameSync(`${dbPath}-shm`, `${backupPath}-shm`);
     if (fs.existsSync(`${dbPath}-wal`)) fs.renameSync(`${dbPath}-wal`, `${backupPath}-wal`);
 
+    // Get a new connection which will create a new file and seed it
+    db = getDbConnection();
+
     console.log("Database backed up and will be recreated on next run.");
     return { success: true };
   } catch (error) {
     console.error("Error creating database backup:", error);
+    db = getDbConnection(); // Re-establish connection on failure
     throw new Error("Could not create database backup.");
   }
 }
@@ -302,10 +308,13 @@ export async function restoreDatabase(): Promise<{success: boolean}> {
         if (fs.existsSync(`${backupPath}-shm`)) fs.renameSync(`${backupPath}-shm`, `${dbPath}-shm`);
         if (fs.existsSync(`${backupPath}-wal`)) fs.renameSync(`${backupPath}-wal`, `${dbPath}-wal`);
         
+        // Get a new connection to the restored database
+        db = getDbConnection();
         console.log("Database restored successfully from backup.");
         return { success: true };
     } catch (error) {
         console.error("Error restoring database from backup:", error);
+        db = getDbConnection(); // Re-establish connection on failure
         throw new Error("Could not restore database.");
     }
 }
