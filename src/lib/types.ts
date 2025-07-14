@@ -52,6 +52,7 @@ export type Settings = {
   autoSuggestions: boolean;
   language: "en" | "en-lr" | "fr";
   passwordHash: string | null;
+  googleApiKey?: string | null;
 };
 
 export type LogSaleFormValues = {

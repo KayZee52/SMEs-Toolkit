@@ -28,6 +28,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     autoSuggestions: true,
     language: "en",
     passwordHash: null,
+    googleApiKey: null,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);

@@ -52,6 +52,7 @@ export async function getSettings(): Promise<Settings> {
         autoSuggestions: true,
         language: "en",
         passwordHash: null,
+        googleApiKey: null,
     };
 }
 

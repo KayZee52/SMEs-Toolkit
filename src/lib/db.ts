@@ -84,6 +84,7 @@ export function getDbConnection() {
                 autoSuggestions: true,
                 language: "en",
                 passwordHash: null,
+                googleApiKey: null,
             };
             const settingsInsertStmt = dbInstance.prepare("INSERT OR IGNORE INTO settings (key, data) VALUES (?, ?)");
             settingsInsertStmt.run('appSettings', JSON.stringify(defaultSettings));

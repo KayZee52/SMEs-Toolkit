@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { Building, Languages, Save, Lock, AlertTriangle, DatabaseZap, ShieldCheck, History } from "lucide-react";
+import { Building, Languages, Save, Lock, AlertTriangle, DatabaseZap, ShieldCheck, History, KeyRound } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useApp } from "@/contexts/app-context";
 import type { Settings } from "@/lib/types";
@@ -260,6 +260,35 @@ export default function SettingsPage() {
                     <Button onClick={handlePasswordChange} disabled={!newPassword || !confirmPassword}>
                         <Save className="mr-2 h-4 w-4" />
                         Update Password
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+
+        {/* API Keys Card */}
+        <Card>
+            <CardHeader className="flex flex-row items-center gap-4">
+                <KeyRound className="h-6 w-6" />
+                <div>
+                <CardTitle className="font-headline">API Keys</CardTitle>
+                <CardDescription>Manage API keys for external services.</CardDescription>
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="google-api-key">Google AI API Key</Label>
+                    <Input 
+                        id="google-api-key"
+                        type="password"
+                        value={settings.googleApiKey || ""}
+                        onChange={(e) => handleInputChange('googleApiKey', e.target.value)}
+                        placeholder="Enter your Google AI API key"
+                    />
+                </div>
+                <div className="flex justify-end">
+                    <Button onClick={handleSave}>
+                        <Save className="mr-2 h-4 w-4" />
+                        Save API Key
                     </Button>
                 </div>
             </CardContent>
