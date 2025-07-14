@@ -65,7 +65,7 @@ export default function TransactionsPage() {
       startY: 20,
     });
 
-    doc.save("transactions_log.pdf");
+    doc.save(`transactions_log_${new Date().toISOString()}.pdf`);
   };
 
   return (

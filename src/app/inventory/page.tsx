@@ -10,7 +10,12 @@ import { BulkProductDialog } from "@/components/inventory/bulk-product-dialog";
 import { InventorySummaryCards } from "@/components/inventory/inventory-summary-cards";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { formatCurrency } from "@/lib/utils";
 import type { Product } from "@/lib/types";
+import { format } from "date-fns";
 
 export default function InventoryPage() {
   const { products } = useApp();
@@ -27,6 +32,33 @@ export default function InventoryPage() {
     .filter((product) =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+  const handleExportPdf = () => {
+    const doc = new jsPDF();
+    const tableColumn = ["Name", "Stock", "Sell Price", "Avg. Cost", "Category", "Last Updated"];
+    const tableRows: (string | number)[][] = [];
+
+    filteredProducts.forEach((product) => {
+      const productData = [
+        product.name,
+        product.stock,
+        formatCurrency(product.price),
+        formatCurrency(product.cost),
+        product.category || "N/A",
+        format(new Date(product.lastUpdatedAt), "PPP"),
+      ];
+      tableRows.push(productData);
+    });
+
+    doc.text("Inventory Report", 14, 15);
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+    });
+    
+    doc.save(`inventory_report_${new Date().toISOString()}.pdf`);
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -63,6 +95,9 @@ export default function InventoryPage() {
         </div>
         
         <div className="flex items-center gap-2 shrink-0">
+            <Button variant="outline" onClick={handleExportPdf}>
+              <Download className="mr-2 h-4 w-4" /> Export PDF
+            </Button>
             <BulkProductDialog />
             <ProductDialog />
         </div>
