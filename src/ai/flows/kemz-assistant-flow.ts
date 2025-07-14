@@ -15,7 +15,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { getSettings } from '@/services/db';
 
 // Zod schemas for data types, mirroring src/lib/types.ts
 const ProductSchema = z.object({
@@ -182,16 +181,10 @@ const kemzAssistantFlow = ai.defineFlow(
     outputSchema: KemzAssistantOutputSchema,
   },
   async (flowInput) => {
-    const appSettings = await getSettings();
-    const apiKey = appSettings.googleApiKey;
-    if (!apiKey) {
-      throw new Error("API_KEY_NOT_SET");
-    }
-
     const {output} = await prompt({
         ...flowInput,
         currentDate: new Date().toISOString(),
-    }, { apiKey });
+    });
     
     if (output) {
       return output;

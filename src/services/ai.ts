@@ -7,9 +7,6 @@ import { extractCustomerInfo } from "@/ai/flows/extract-customer-info";
 import { summarizeReport } from "@/ai/flows/summarize-report-flow";
 import type { Product, Sale, Expense, Customer, Settings } from "@/lib/types";
 
-// These service functions are now simple wrappers that pass data directly to the flows.
-// The flows themselves are responsible for retrieving the API key.
-
 export async function getAiReply(
   query: string,
   context: {
@@ -25,10 +22,10 @@ export async function getAiReply(
     return { success: true, data: result };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-    if (errorMessage.includes("API_KEY_NOT_SET")) {
-        return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
+    if (errorMessage.includes("API key not valid")) {
+        return { success: false, error: "The Google AI API key is not valid. Please check it in the .env file." };
     }
-    return { success: false, error: `AI request failed. Please check if your API key is valid.` };
+    return { success: false, error: `AI request failed: ${errorMessage}` };
   }
 }
 
@@ -38,8 +35,8 @@ export async function getCustomerInfoFromText(salesLog: string) {
     return { success: true, data: result };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-    if (errorMessage.includes("API_KEY_NOT_SET")) {
-        return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
+    if (errorMessage.includes("API key not valid")) {
+        return { success: false, error: "The Google AI API key is not valid. Please check it in the .env file." };
     }
     return { success: false, error: `Failed to extract customer info: ${errorMessage}` };
   }
@@ -59,10 +56,10 @@ export async function generateDescriptionForProduct(
     return { success: true, data: result };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-    if (errorMessage.includes("API_KEY_NOT_SET")) {
-        return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
+    if (errorMessage.includes("API key not valid")) {
+        return { success: false, error: "The Google AI API key is not valid. Please check it in the .env file." };
     }
-    return { success: false, error: `Failed to generate description. Please check if your API key is valid.` };
+    return { success: false, error: `Failed to generate description: ${errorMessage}` };
   }
 }
 
@@ -77,9 +74,9 @@ export async function getReportSummary(context: {
     return { success: true, data: result };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-     if (errorMessage.includes("API_KEY_NOT_SET")) {
-        return { success: false, error: "The Google AI API key is not set. Please add it in the settings to enable AI features." };
+     if (errorMessage.includes("API key not valid")) {
+        return { success: false, error: "The Google AI API key is not valid. Please check it in the .env file." };
     }
-    return { success: false, error: `AI request failed. Please check if your API key is valid.` };
+    return { success: false, error: `AI request failed: ${errorMessage}` };
   }
 }

@@ -2,9 +2,8 @@
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 
-// This configuration now uses a placeholder API key.
-// This prevents Genkit from automatically using an environment variable key.
-// The real key from user settings will be passed with each API call in the flow files.
+// This configuration now uses the API key directly from the .env file.
+// Make sure to set GOOGLE_API_KEY in your .env file.
 export const ai = genkit({
-  plugins: [googleAI({apiKey: 'placeholder-will-be-overridden'})],
+  plugins: [googleAI()],
 });

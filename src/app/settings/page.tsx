@@ -26,6 +26,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useApp } from "@/contexts/app-context";
 import type { Settings } from "@/lib/types";
 import { MaDIcon } from "@/components/ui/icons";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
 
 export default function SettingsPage() {
   const { settings: globalSettings, updateSettings, recreateDatabase, restoreDatabase, isAuthRequired, verifyPassword, backupExists, setPassword } = useApp();
@@ -117,6 +119,14 @@ export default function SettingsPage() {
             </div>
         )}
       </div>
+
+       <Alert>
+          <KeyRound className="h-4 w-4" />
+          <AlertTitle>API Key Management</AlertTitle>
+          <AlertDescription>
+            The Google AI API Key is now managed in the project's <strong>.env</strong> file. You can edit this file in the file explorer to add or change your key.
+          </AlertDescription>
+        </Alert>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Business Info Card */}
@@ -261,41 +271,6 @@ export default function SettingsPage() {
                     <Button onClick={handlePasswordChange} disabled={!newPassword || !confirmPassword}>
                         <Save className="mr-2 h-4 w-4" />
                         Update Password
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
-
-        {/* API Keys Card */}
-        <Card>
-            <CardHeader className="flex flex-row items-center gap-4">
-                <KeyRound className="h-6 w-6" />
-                <div>
-                <CardTitle className="font-headline">API Keys</CardTitle>
-                <CardDescription>Manage API keys for external services.</CardDescription>
-                </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="space-y-2">
-                    <Label htmlFor="google-api-key">Google AI API Key</Label>
-                    <Input 
-                        id="google-api-key"
-                        type="password"
-                        value={settings.googleApiKey || ""}
-                        onChange={(e) => handleInputChange('googleApiKey', e.target.value)}
-                        placeholder="Enter your Google AI API key"
-                    />
-                </div>
-                <div className="flex items-center justify-end gap-2">
-                    <Button variant="outline" asChild>
-                        <Link href="https://aistudio.google.com/app/apikey" target="_blank">
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Get API Key
-                        </Link>
-                    </Button>
-                    <Button onClick={handleSave}>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save API Key
                     </Button>
                 </div>
             </CardContent>

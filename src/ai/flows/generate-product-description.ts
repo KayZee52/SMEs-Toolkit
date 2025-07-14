@@ -10,7 +10,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { getSettings } from '@/services/db';
 
 const GenerateProductDescriptionInputSchema = z.object({
   productName: z.string().describe('The name of the product.'),
@@ -51,13 +50,7 @@ const generateProductDescriptionFlow = ai.defineFlow(
     outputSchema: GenerateProductDescriptionOutputSchema,
   },
   async (input) => {
-    const settings = await getSettings();
-    const apiKey = settings.googleApiKey;
-    if (!apiKey) {
-      throw new Error("API_KEY_NOT_SET");
-    }
-    
-    const {output} = await prompt(input, { apiKey });
+    const {output} = await prompt(input);
     if (output) {
       return output;
     }

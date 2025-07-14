@@ -11,7 +11,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { getSettings } from '@/services/db';
 
 const ExtractCustomerInfoInputSchema = z.object({
   salesLog: z.string().describe('The sales log to extract customer information from.'),
@@ -54,13 +53,7 @@ const extractCustomerInfoFlow = ai.defineFlow(
     outputSchema: ExtractCustomerInfoOutputSchema,
   },
   async (input) => {
-    const settings = await getSettings();
-    const apiKey = settings.googleApiKey;
-    if (!apiKey) {
-      throw new Error("API_KEY_NOT_SET");
-    }
-
-    const {output} = await prompt(input, { apiKey });
+    const {output} = await prompt(input);
     if (output) {
       return output;
     }
