@@ -11,6 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {googleAI} from '@genkit-ai/googleai';
 
 const ExtractCustomerInfoInputSchema = z.object({
   salesLog: z.string().describe('The sales log to extract customer information from.'),
@@ -34,6 +35,7 @@ export async function extractCustomerInfo(
 
 const prompt = ai.definePrompt({
   name: 'extractCustomerInfoPrompt',
+  model: googleAI.model('gemini-1.5-flash-latest'),
   input: {schema: ExtractCustomerInfoInputSchema},
   output: {schema: ExtractCustomerInfoOutputSchema},
   prompt: `You are an AI assistant tasked with extracting customer information from sales logs.

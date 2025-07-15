@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {googleAI} from '@genkit-ai/googleai';
 
 const ProductSchema = z.object({
     id: z.string(),
@@ -70,6 +71,7 @@ export async function summarizeReport(
 
 const prompt = ai.definePrompt({
   name: 'summarizeReportPrompt',
+  model: googleAI.model('gemini-1.5-flash-latest'),
   input: {schema: SummarizeReportInputSchema},
   output: {schema: SummarizeReportOutputSchema},
   prompt: `You are a savvy business analyst AI. Your task is to provide a clear and concise summary of business performance based on the provided data for a specific date range.

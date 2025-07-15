@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {googleAI} from '@genkit-ai/googleai';
 
 const GenerateProductDescriptionInputSchema = z.object({
   productName: z.string().describe('The name of the product.'),
@@ -30,6 +31,7 @@ export async function generateProductDescription(
 
 const prompt = ai.definePrompt({
   name: 'generateProductDescriptionPrompt',
+  model: googleAI.model('gemini-1.5-flash-latest'),
   input: {schema: GenerateProductDescriptionInputSchema},
   output: {schema: GenerateProductDescriptionOutputSchema},
   prompt: `You are a marketing expert specializing in writing compelling, concise, and attractive product descriptions.
