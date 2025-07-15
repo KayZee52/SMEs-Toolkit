@@ -23,7 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
 export function LoginPage() {
-  const { login, setPassword, isAuthRequired, recreateDatabase } = useApp();
+  const { login, setPassword, isAuthRequired } = useApp();
   const { toast } = useToast();
 
   const [password, setPasswordState] = useState("");
@@ -62,12 +62,6 @@ export function LoginPage() {
     setIsLoading(false);
   };
 
-  const handleForgotPassword = async () => {
-    setIsLoading(true);
-    await recreateDatabase();
-    // The app will reload automatically via the context's implementation
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isSetupMode) {
@@ -99,38 +93,6 @@ export function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">{isSetupMode ? "Create Password" : "Password"}</Label>
-                {!isSetupMode && (
-                   <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="link" type="button" className="p-0 h-auto text-xs">
-                          Forgot Password?
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete all your sales, products, customers, and expenses.
-                            <br/><br/>
-                            <span className="font-semibold text-foreground">Your API key will be preserved.</span>
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            asChild
-                          >
-                             <Button
-                                variant="destructive"
-                                onClick={handleForgotPassword}
-                              >
-                                  Yes, reset everything
-                              </Button>
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                )}
               </div>
               <Input 
                 id="password" 

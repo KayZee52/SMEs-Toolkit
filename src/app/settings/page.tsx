@@ -124,7 +124,7 @@ export default function SettingsPage() {
           <KeyRound className="h-4 w-4" />
           <AlertTitle>API Key Management</AlertTitle>
           <AlertDescription>
-            The Google AI API Key is now managed in the project's <strong>.env</strong> file. You can edit this file in the file explorer to add or change your key.
+            To use the AI features, you must add your Google AI API Key to the <strong>.env</strong> file in the project's root directory. Create the file if it doesn't exist and add the line: <code className="font-mono bg-muted px-1 py-0.5 rounded">GOOGLE_API_KEY=&quot;YOUR_API_KEY_HERE&quot;</code>. The app will automatically detect the key.
           </AlertDescription>
         </Alert>
 

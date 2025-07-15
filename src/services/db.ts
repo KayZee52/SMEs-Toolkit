@@ -2,7 +2,7 @@
 // Changes to this file may be overwritten.
 'use server';
 
-import dbInstance, { getDbConnection } from '@/lib/db';
+import dbInstance from '@/lib/db';
 import type {
   Product,
   Sale,
@@ -14,8 +14,16 @@ import type {
 import fs from 'fs';
 import path from 'path';
 import bcrypt from "bcryptjs";
+import Database from 'better-sqlite3';
 
 let db = dbInstance;
+
+// Function to re-establish connection, needed for database recreation/restore
+function getDbConnection() {
+  const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
+  return new Database(dbPath);
+}
+
 
 // --- Get Functions ---
 
@@ -371,5 +379,3 @@ export async function restoreDatabase(): Promise<{success: boolean}> {
         throw new Error("Could not restore database.");
     }
 }
-
-    
