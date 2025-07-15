@@ -96,7 +96,7 @@ export function ProductDialog({ product }: ProductDialogProps) {
       toast({
         variant: "destructive",
         title: "Generation Failed",
-        description: "Could not generate a description. Please try again.",
+        description: res.error || "Could not generate a description. Please try again.",
       });
     }
     setIsGenerating(false);

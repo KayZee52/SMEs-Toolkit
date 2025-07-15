@@ -53,10 +53,10 @@ const generateProductDescriptionFlow = ai.defineFlow(
   },
   async (input) => {
     const {output} = await prompt(input);
-    if (output) {
+    if (output?.description) {
       return output;
     }
     
-    throw new Error("AI failed to generate a description.");
+    throw new Error("The AI returned an empty or invalid description. Please try rephrasing your product name or try again.");
   }
 );
