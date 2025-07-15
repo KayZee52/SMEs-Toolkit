@@ -12,8 +12,11 @@ import { TopProductsTable } from "@/components/reports/top-products-table";
 import { TopCustomersTable } from "@/components/reports/top-customers-table";
 import { DateRangePicker } from "@/components/reports/date-range-picker";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import { AiSummary } from "@/components/reports/ai-summary";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+
 
 export default function ReportsPage() {
   const { sales, expenses, customers } = useApp();
@@ -21,6 +24,7 @@ export default function ReportsPage() {
     from: subDays(new Date(), 29),
     to: new Date(),
   });
+  const [isExporting, setIsExporting] = useState(false);
 
   const filteredData = useMemo(() => {
     const from = date?.from ? startOfDay(date.from) : new Date(0);
@@ -39,6 +43,33 @@ export default function ReportsPage() {
     return { sales: filteredSales, expenses: filteredExpenses };
   }, [date, sales, expenses]);
 
+  const handleExport = async () => {
+    setIsExporting(true);
+    const printableArea = document.getElementById('printable-area');
+    if (printableArea) {
+      try {
+        const canvas = await html2canvas(printableArea, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: null,
+            windowWidth: printableArea.scrollWidth,
+            windowHeight: printableArea.scrollHeight
+        });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            orientation: 'p',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
+        });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save(`reports_${new Date().toISOString().split('T')[0]}.pdf`);
+      } catch (error) {
+          console.error("Error exporting to PDF:", error);
+      }
+    }
+    setIsExporting(false);
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4 non-printable">
@@ -47,14 +78,18 @@ export default function ReportsPage() {
         </h1>
         <div className="flex items-center gap-2">
           <DateRangePicker date={date} setDate={setDate} />
-          <Button onClick={() => window.print()}>
-            <Download className="mr-2 h-4 w-4" />
-            Export PDF
-          </Button>
+           <Button onClick={handleExport} disabled={isExporting}>
+              {isExporting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              {isExporting ? "Exporting..." : "Export PDF"}
+            </Button>
         </div>
       </div>
       
-      <div className="printable-area space-y-6">
+      <div id="printable-area" className="printable-area space-y-6">
         <AiSummary
           filteredSales={filteredData.sales}
           filteredExpenses={filteredData.expenses}
