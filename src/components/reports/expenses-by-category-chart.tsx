@@ -6,6 +6,7 @@ import type { Expense } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { formatCurrency } from "@/lib/utils";
+import { ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 interface ExpensesByCategoryChartProps {
   expenses: Expense[];
@@ -41,15 +42,14 @@ export function ExpensesByCategoryChart({ expenses }: ExpensesByCategoryChartPro
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--background))',
-                  borderColor: 'hsl(var(--border))',
-                  borderRadius: 'var(--radius)',
-                  fontFamily: 'var(--font-body)',
-                }}
-                formatter={(value, name) => [`${formatCurrency(value as number)}`, name]}
-              />
+              <ChartTooltip
+                  cursor={false}
+                  content={
+                    <ChartTooltipContent
+                      formatter={(value) => formatCurrency(value as number)}
+                    />
+                  }
+                />
               <Pie
                 data={chartData}
                 cx="50%"
