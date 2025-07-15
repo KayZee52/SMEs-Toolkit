@@ -6,7 +6,7 @@ import type { Expense } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { formatCurrency } from "@/lib/utils";
-import { ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 
 interface ExpensesByCategoryChartProps {
   expenses: Expense[];
@@ -30,6 +30,17 @@ export function ExpensesByCategoryChart({ expenses }: ExpensesByCategoryChartPro
     return Object.entries(expensesByCategory).map(([name, value]) => ({ name, value }));
   }, [expenses]);
   
+  const chartConfig = useMemo(() => {
+    const config: ChartConfig = {};
+    chartData.forEach((entry, index) => {
+        config[entry.name] = {
+            label: entry.name,
+            color: COLORS[index % COLORS.length],
+        };
+    });
+    return config;
+  }, [chartData]);
+  
   return (
     <Card>
       <CardHeader>
@@ -40,33 +51,35 @@ export function ExpensesByCategoryChart({ expenses }: ExpensesByCategoryChartPro
       </CardHeader>
       <CardContent className="h-[300px] w-full">
         {chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <ChartTooltip
-                  cursor={false}
-                  content={
-                    <ChartTooltipContent
-                      formatter={(value) => formatCurrency(value as number)}
-                    />
-                  }
-                />
-              <Pie
-                data={chartData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-                nameKey="name"
-              >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Legend iconSize={10} />
-            </PieChart>
-          </ResponsiveContainer>
+          <ChartContainer config={chartConfig}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <ChartTooltip
+                    cursor={false}
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value) => formatCurrency(value as number)}
+                      />
+                    }
+                  />
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                  nameKey="name"
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Legend iconSize={10} />
+              </PieChart>
+            </ResponsiveContainer>
+          </ChartContainer>
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground">
             No expense data for this period.
