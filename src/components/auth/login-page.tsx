@@ -20,11 +20,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ShieldAlert } from "lucide-react";
+import { Loader2, ShieldAlert, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 export function LoginPage() {
-  const { login, setPassword, isAuthRequired } = useApp();
+  const { login, setPassword, isAuthRequired, recreateDatabase } = useApp();
   const { toast } = useToast();
 
   const [password, setPasswordState] = useState("");
@@ -72,6 +72,12 @@ export function LoginPage() {
     }
   };
 
+  const handleReset = async () => {
+      setIsLoading(true);
+      await recreateDatabase();
+      // The app will reload via context, so we just need to keep loading state
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
@@ -103,6 +109,40 @@ export function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">{isSetupMode ? "Create Password" : "Password"}</Label>
+                {!isSetupMode && (
+                   <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                           <Button variant="link" type="button" className="h-auto p-0 text-xs">
+                                Forgot your password?
+                           </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                            <AlertDialogTitle className="flex items-center gap-2">
+                                <AlertTriangle className="text-destructive"/> Are you absolutely sure?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Password recovery is not possible. The only way to regain access is to <strong className="text-destructive">completely erase all of your business data</strong> and start over.
+                                <br/><br/>
+                                This action cannot be undone.
+                            </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                asChild
+                            >
+                               <Button
+                                    variant="destructive"
+                                    onClick={handleReset}
+                                >
+                                    Yes, delete everything & reset app
+                                </Button>
+                            </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                )}
               </div>
               <Input 
                 id="password" 
