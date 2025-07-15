@@ -310,6 +310,7 @@ export async function recreateDatabase(): Promise<{ success: boolean }> {
       fs.renameSync(dbPath, backupPath);
     }
     
+    // This will now create a fresh, empty database without seeding it.
     initializeDb();
     return { success: true };
   } catch (error) {

@@ -11,18 +11,8 @@ const globalForDb = global as unknown as {
   db: Database.Database | undefined;
 };
 
-export function initializeDb() {
-  const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
-  
-  if (globalForDb.db && globalForDb.db.open) {
-    return globalForDb.db;
-  }
-  
-  const newDbInstance = new Database(dbPath);
-  newDbInstance.pragma('journal_mode = WAL');
-
-  // Create tables if they don't exist
-  newDbInstance.exec(`
+function createTables(db: Database.Database) {
+    db.exec(`
     CREATE TABLE IF NOT EXISTS products (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -74,37 +64,52 @@ export function initializeDb() {
       data TEXT NOT NULL
     );
   `);
+}
 
-  // --- Seeding Logic ---
-  const productCountStmt = newDbInstance.prepare('SELECT count(*) as count FROM products');
-  const productCount = productCountStmt.get() as { count: number };
+function seedDatabase(db: Database.Database) {
+  const seedTransaction = db.transaction(() => {
+    const defaultSettings: Settings = {
+      businessName: "SME's Toolkit",
+      currency: "USD",
+      enableAssistant: true,
+      autoSuggestions: true,
+      language: "en",
+      passwordHash: null,
+      googleApiKey: null,
+    };
+    const settingsInsertStmt = db.prepare("INSERT OR IGNORE INTO settings (key, data) VALUES (?, ?)");
+    settingsInsertStmt.run('appSettings', JSON.stringify(defaultSettings));
 
-  if (productCount.count === 0) {
-    const seedTransaction = newDbInstance.transaction(() => {
-      const defaultSettings: Settings = {
-        businessName: "SME's Toolkit",
-        currency: "USD",
-        enableAssistant: true,
-        autoSuggestions: true,
-        language: "en",
-        passwordHash: null,
-        googleApiKey: null,
-      };
-      const settingsInsertStmt = newDbInstance.prepare("INSERT OR IGNORE INTO settings (key, data) VALUES (?, ?)");
-      settingsInsertStmt.run('appSettings', JSON.stringify(defaultSettings));
+    const insertProduct = db.prepare('INSERT INTO products (id, name, description, stock, price, cost, category, supplier, lastUpdatedAt) VALUES (@id, @name, @description, @stock, @price, @cost, @category, @supplier, @lastUpdatedAt)');
+    const insertCustomer = db.prepare('INSERT INTO customers (id, name, phone, createdAt, notes, type) VALUES (@id, @name, @phone, @createdAt, @notes, @type)');
+    const insertSale = db.prepare('INSERT INTO sales (id, productId, customerId, customerName, productName, quantity, pricePerUnit, total, profit, notes, date) VALUES (@id, @productId, @customerId, @customerName, @productName, @quantity, @pricePerUnit, @total, @profit, @notes, @date)');
+    const insertExpense = db.prepare('INSERT INTO expenses (id, description, category, amount, date, notes) VALUES (@id, @description, @category, @amount, @date, @notes)');
 
-      const insertProduct = newDbInstance.prepare('INSERT INTO products (id, name, description, stock, price, cost, category, supplier, lastUpdatedAt) VALUES (@id, @name, @description, @stock, @price, @cost, @category, @supplier, @lastUpdatedAt)');
-      const insertCustomer = newDbInstance.prepare('INSERT INTO customers (id, name, phone, createdAt, notes, type) VALUES (@id, @name, @phone, @createdAt, @notes, @type)');
-      const insertSale = newDbInstance.prepare('INSERT INTO sales (id, productId, customerId, customerName, productName, quantity, pricePerUnit, total, profit, notes, date) VALUES (@id, @productId, @customerId, @customerName, @productName, @quantity, @pricePerUnit, @total, @profit, @notes, @date)');
-      const insertExpense = newDbInstance.prepare('INSERT INTO expenses (id, description, category, amount, date, notes) VALUES (@id, @description, @category, @amount, @date, @notes)');
+    for (const product of MOCK_PRODUCTS) insertProduct.run(product);
+    for (const customer of MOCK_CUSTOMERS) insertCustomer.run(customer);
+    for (const sale of MOCK_SALES) insertSale.run(sale);
+    for (const expense of MOCK_EXPENSES) insertExpense.run(expense);
+  });
+  seedTransaction();
+  console.log("Database seeded successfully.");
+}
 
-      for (const product of MOCK_PRODUCTS) insertProduct.run(product);
-      for (const customer of MOCK_CUSTOMERS) insertCustomer.run(customer);
-      for (const sale of MOCK_SALES) insertSale.run(sale);
-      for (const expense of MOCK_EXPENSES) insertExpense.run(expense);
-    });
-    seedTransaction();
-    console.log("Database seeded successfully.");
+
+export function initializeDb() {
+  const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
+  const dbExists = fs.existsSync(dbPath);
+  
+  if (globalForDb.db && globalForDb.db.open) {
+    return globalForDb.db;
+  }
+  
+  const newDbInstance = new Database(dbPath);
+  newDbInstance.pragma('journal_mode = WAL');
+
+  createTables(newDbInstance);
+
+  if (!dbExists) {
+    seedDatabase(newDbInstance);
   }
   
   globalForDb.db = newDbInstance;
