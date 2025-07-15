@@ -2,7 +2,7 @@
 // Changes to this file may be overwritten.
 'use server';
 
-import dbInstance from '@/lib/db';
+import { db, initializeDb, closeDbConnection } from '@/lib/db';
 import type {
   Product,
   Sale,
@@ -16,7 +16,6 @@ import path from 'path';
 import bcrypt from "bcryptjs";
 import Database from 'better-sqlite3';
 
-let db = dbInstance;
 
 // --- Get Functions ---
 
@@ -281,47 +280,52 @@ export async function updateSettings(newSettings: Settings): Promise<Settings> {
     return newSettings;
 }
 
-// This function needs to be called from the AppContext to ensure the DB connection is closed first.
-export async function recreateDatabase(): Promise<{success: boolean}> {
-  const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
-  const backupPath = `${dbPath}.backup`;
-  
+export async function recreateDatabase(): Promise<{ success: boolean }> {
   try {
-    // Backup current DB
-    if (fs.existsSync(backupPath)) {
-        fs.unlinkSync(backupPath);
-    }
-    fs.renameSync(dbPath, backupPath);
+    const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
+    const backupPath = `${dbPath}.backup`;
 
-    // Re-initialize a fresh DB with mock data
-    const newDb = new Database(dbPath);
-    newDb.close(); // The initialization logic in `lib/db.ts` will seed it on next connect.
+    closeDbConnection();
+
+    if (fs.existsSync(dbPath)) {
+      if (fs.existsSync(backupPath)) {
+        fs.unlinkSync(backupPath);
+      }
+      fs.renameSync(dbPath, backupPath);
+    }
     
+    initializeDb();
     return { success: true };
   } catch (error) {
-    console.error("Error creating database backup:", error);
-    // Try to restore the original DB if backup failed
-    if (fs.existsSync(backupPath) && !fs.existsSync(dbPath)) {
-      fs.renameSync(backupPath, dbPath);
-    }
-    throw error;
+    console.error("Error recreating database:", error);
+    // Attempt to re-establish a connection if something failed
+    initializeDb();
+    return { success: false };
   }
 }
 
-export async function restoreDatabase(): Promise<{success: boolean}> {
+export async function restoreDatabase(): Promise<{ success: boolean }> {
+  try {
     const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
     const backupPath = `${dbPath}.backup`;
-    
+
     if (!fs.existsSync(backupPath)) {
-        throw new Error("No backup file found to restore.");
+      console.log("No backup file found to restore.");
+      return { success: false };
     }
+
+    closeDbConnection();
+
+    if (fs.existsSync(dbPath)) {
+      fs.unlinkSync(dbPath);
+    }
+    fs.renameSync(backupPath, dbPath);
     
-    try {
-        fs.unlinkSync(dbPath);
-        fs.renameSync(backupPath, dbPath);
-        return { success: true };
-    } catch (error) {
-        console.error("Error restoring database from backup:", error);
-        throw error;
-    }
+    initializeDb();
+    return { success: true };
+  } catch (error) {
+    console.error("Error restoring database from backup:", error);
+    initializeDb();
+    return { success: false };
+  }
 }

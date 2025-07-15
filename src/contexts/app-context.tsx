@@ -194,41 +194,38 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   };
 
   const recreateDatabase = async () => {
-    // This is a "dangerous" operation, so we lock the UI.
     setIsLoading(true);
-    try {
-      await dbActions.recreateDatabase();
+    const result = await dbActions.recreateDatabase();
+    if (result.success) {
       toast({
         title: "Database Resetting",
         description: "Your data has been backed up. Reloading the application now...",
       });
-      // This will force a reload and the context will handle auth state
       setTimeout(() => window.location.reload(), 1500);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Reset Failed",
-        description: "Could not back up and reset the database. Check console for errors.",
-      });
-      // Unlock the UI on failure
-      setIsLoading(false);
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Reset Failed",
+            description: "Could not back up and reset the database. Check console for errors.",
+        });
+        setIsLoading(false);
     }
   };
 
   const restoreDatabase = async () => {
       setIsLoading(true);
-      try {
-        await dbActions.restoreDatabase();
+      const result = await dbActions.restoreDatabase();
+      if (result.success) {
         toast({
             title: "Database Restoring",
             description: "Your previous data is being restored. Reloading the application now...",
         });
         setTimeout(() => window.location.reload(), 1500);
-      } catch (error) {
+      } else {
         toast({
             variant: "destructive",
             title: "Restore Failed",
-            description: "Could not restore the database from backup. Check console for errors.",
+            description: "Could not restore the database. No backup may exist. Check console for errors.",
         });
         setIsLoading(false);
       }

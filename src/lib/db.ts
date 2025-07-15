@@ -11,8 +11,14 @@ const globalForDb = global as unknown as {
   db: Database.Database | undefined;
 };
 
-function initializeDb() {
+export function initializeDb() {
   const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
+  
+  // Close existing connection if it's open
+  if (globalForDb.db && globalForDb.db.open) {
+    globalForDb.db.close();
+  }
+  
   const newDbInstance = new Database(dbPath);
   newDbInstance.pragma('journal_mode = WAL');
 
@@ -83,6 +89,7 @@ function initializeDb() {
         autoSuggestions: true,
         language: "en",
         passwordHash: null,
+        googleApiKey: null,
       };
       const settingsInsertStmt = newDbInstance.prepare("INSERT OR IGNORE INTO settings (key, data) VALUES (?, ?)");
       settingsInsertStmt.run('appSettings', JSON.stringify(defaultSettings));
@@ -100,19 +107,22 @@ function initializeDb() {
     seedTransaction();
     console.log("Database seeded successfully.");
   }
-
+  
+  globalForDb.db = newDbInstance;
   console.log("Database connection established.");
   return newDbInstance;
 }
 
-const db = globalForDb.db ?? initializeDb();
+export const db = globalForDb.db ?? initializeDb();
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForDb.db = db;
+export function closeDbConnection() {
+    if (globalForDb.db && globalForDb.db.open) {
+        globalForDb.db.close();
+        globalForDb.db = undefined;
+        console.log("Database connection closed.");
+    }
 }
 
-process.on('exit', () => db.close());
-process.on('SIGINT', () => db.close());
-process.on('SIGTERM', () => db.close());
-
-export default db;
+process.on('exit', closeDbConnection);
+process.on('SIGINT', closeDbConnection);
+process.on('SIGTERM', closeDbConnection);
