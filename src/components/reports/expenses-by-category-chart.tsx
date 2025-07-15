@@ -44,7 +44,6 @@ export function ExpensesByCategoryChart({ expenses }: ExpensesByCategoryChartPro
               <Tooltip
                 contentStyle={{
                   backgroundColor: 'hsl(var(--background))',
-                  color: 'hsl(var(--foreground))',
                   borderColor: 'hsl(var(--border))',
                   borderRadius: 'var(--radius)',
                   fontFamily: 'var(--font-body)',
