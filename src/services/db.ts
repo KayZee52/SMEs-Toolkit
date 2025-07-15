@@ -2,7 +2,7 @@
 // Changes to this file may be overwritten.
 'use server';
 
-import { db, initializeDb, closeDbConnection } from '@/lib/db';
+import { initializeDb, closeDbConnection } from '@/lib/db';
 import type {
   Product,
   Sale,
@@ -20,26 +20,31 @@ import Database from 'better-sqlite3';
 // --- Get Functions ---
 
 export async function getProducts(): Promise<Product[]> {
+  const db = initializeDb();
   const stmt = db.prepare('SELECT * FROM products ORDER BY name ASC');
   return stmt.all() as Product[];
 }
 
 export async function getSales(): Promise<Sale[]> {
+  const db = initializeDb();
   const stmt = db.prepare('SELECT * FROM sales ORDER BY date DESC');
   return stmt.all() as Sale[];
 }
 
 export async function getCustomers(): Promise<Customer[]> {
+  const db = initializeDb();
   const stmt = db.prepare('SELECT * FROM customers ORDER BY createdAt DESC');
   return stmt.all() as Customer[];
 }
 
 export async function getExpenses(): Promise<Expense[]> {
+  const db = initializeDb();
   const stmt = db.prepare('SELECT * FROM expenses ORDER BY date DESC');
   return stmt.all() as Expense[];
 }
 
 export async function getSettings(): Promise<Settings> {
+    const db = initializeDb();
     const stmt = db.prepare("SELECT data FROM settings WHERE key = 'appSettings'");
     const row = stmt.get() as { data: string } | undefined;
     if (row) {
@@ -100,6 +105,7 @@ export async function setPassword(password: string): Promise<void> {
 // --- Add/Update Functions ---
 
 export async function addProduct(productData: Omit<Product, 'id' | 'lastUpdatedAt'>): Promise<Product> {
+  const db = initializeDb();
   const newProduct: Product = {
     ...productData,
     id: `prod_${Date.now()}`,
@@ -114,6 +120,7 @@ export async function addProduct(productData: Omit<Product, 'id' | 'lastUpdatedA
 }
 
 export async function addMultipleProducts(productsData: Omit<Product, 'id' | 'lastUpdatedAt'>[]): Promise<Product[]> {
+    const db = initializeDb();
     const insertStmt = db.prepare(
         'INSERT INTO products (id, name, description, stock, price, cost, category, supplier, lastUpdatedAt) VALUES (@id, @name, @description, @stock, @price, @cost, @category, @supplier, @lastUpdatedAt)'
     );
@@ -137,6 +144,7 @@ export async function addMultipleProducts(productsData: Omit<Product, 'id' | 'la
 }
 
 export async function updateProduct(updatedProduct: Product): Promise<Product> {
+    const db = initializeDb();
     const productWithTimestamp = {
         ...updatedProduct,
         lastUpdatedAt: new Date().toISOString(),
@@ -149,6 +157,7 @@ export async function updateProduct(updatedProduct: Product): Promise<Product> {
 }
 
 export async function receiveStock(productId: string, quantity: number, costPerUnit: number): Promise<Product> {
+    const db = initializeDb();
     const product = db.prepare('SELECT * FROM products WHERE id = ?').get(productId) as Product;
     if (!product) {
         throw new Error("Product not found");
@@ -177,6 +186,7 @@ export async function receiveStock(productId: string, quantity: number, costPerU
 
 
 export async function addSale(saleData: LogSaleFormValues): Promise<Sale> {
+  const db = initializeDb();
   const product = db.prepare('SELECT * FROM products WHERE id = ?').get(saleData.productId) as Product | undefined;
   if (!product) {
     throw new Error('Product not found');
@@ -224,6 +234,7 @@ export async function addSale(saleData: LogSaleFormValues): Promise<Sale> {
 
 
 export async function addCustomer(customerData: Omit<Customer, 'id' | 'createdAt'>): Promise<Customer> {
+    const db = initializeDb();
     const newCustomer: Customer = {
         ...customerData,
         id: `cust_${Date.now()}`,
@@ -239,6 +250,7 @@ export async function addCustomer(customerData: Omit<Customer, 'id' | 'createdAt
 }
 
 export async function updateCustomer(updatedCustomer: Customer): Promise<Customer> {
+    const db = initializeDb();
     const stmt = db.prepare(
         'UPDATE customers SET name = @name, phone = @phone, notes = @notes, type = @type WHERE id = @id'
     );
@@ -248,6 +260,7 @@ export async function updateCustomer(updatedCustomer: Customer): Promise<Custome
 
 
 export async function addExpense(expenseData: Omit<Expense, 'id' | 'date'>): Promise<Expense> {
+    const db = initializeDb();
     const newExpense: Expense = {
         ...expenseData,
         id: `exp_${Date.now()}`,
@@ -261,6 +274,7 @@ export async function addExpense(expenseData: Omit<Expense, 'id' | 'date'>): Pro
 }
 
 export async function updateExpense(updatedExpense: Expense): Promise<Expense> {
+    const db = initializeDb();
     const stmt = db.prepare(
         'UPDATE expenses SET description = @description, category = @category, amount = @amount, notes = @notes WHERE id = @id'
     );
@@ -269,12 +283,14 @@ export async function updateExpense(updatedExpense: Expense): Promise<Expense> {
 }
 
 export async function deleteExpense(id: string): Promise<{ id: string }> {
+    const db = initializeDb();
     const stmt = db.prepare('DELETE FROM expenses WHERE id = ?');
     stmt.run(id);
     return { id };
 }
 
 export async function updateSettings(newSettings: Settings): Promise<Settings> {
+    const db = initializeDb();
     const stmt = db.prepare("INSERT OR REPLACE INTO settings (key, data) VALUES ('appSettings', ?)");
     stmt.run(JSON.stringify(newSettings));
     return newSettings;

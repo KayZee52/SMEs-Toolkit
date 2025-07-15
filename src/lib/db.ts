@@ -14,9 +14,8 @@ const globalForDb = global as unknown as {
 export function initializeDb() {
   const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
   
-  // Close existing connection if it's open
   if (globalForDb.db && globalForDb.db.open) {
-    globalForDb.db.close();
+    return globalForDb.db;
   }
   
   const newDbInstance = new Database(dbPath);
@@ -113,8 +112,6 @@ export function initializeDb() {
   return newDbInstance;
 }
 
-export const db = globalForDb.db ?? initializeDb();
-
 export function closeDbConnection() {
     if (globalForDb.db && globalForDb.db.open) {
         globalForDb.db.close();
@@ -122,7 +119,3 @@ export function closeDbConnection() {
         console.log("Database connection closed.");
     }
 }
-
-process.on('exit', closeDbConnection);
-process.on('SIGINT', closeDbConnection);
-process.on('SIGTERM', closeDbConnection);
