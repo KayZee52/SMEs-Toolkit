@@ -18,13 +18,6 @@ import Database from 'better-sqlite3';
 
 let db = dbInstance;
 
-// Function to re-establish connection, needed for database recreation/restore
-function getDbConnection() {
-  const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
-  return new Database(dbPath);
-}
-
-
 // --- Get Functions ---
 
 export async function getProducts(): Promise<Product[]> {
@@ -288,50 +281,30 @@ export async function updateSettings(newSettings: Settings): Promise<Settings> {
     return newSettings;
 }
 
+// This function needs to be called from the AppContext to ensure the DB connection is closed first.
 export async function recreateDatabase(): Promise<{success: boolean}> {
   const dbPath = path.join(process.cwd(), 'smes-toolkit.db');
   const backupPath = `${dbPath}.backup`;
-
-  // Step 1: Read current settings to preserve API key
-  const currentSettings = await getSettings();
-  const { googleApiKey } = currentSettings;
-  
-  db.close(); 
   
   try {
+    // Backup current DB
     if (fs.existsSync(backupPath)) {
         fs.unlinkSync(backupPath);
     }
-    const walBackupPath = `${backupPath}-wal`;
-    const shmBackupPath = `${backupPath}-shm`;
-    if(fs.existsSync(walBackupPath)) fs.unlinkSync(walBackupPath);
-    if(fs.existsSync(shmBackupPath)) fs.unlinkSync(shmBackupPath);
+    fs.renameSync(dbPath, backupPath);
+
+    // Re-initialize a fresh DB with mock data
+    const newDb = new Database(dbPath);
+    newDb.close(); // The initialization logic in `lib/db.ts` will seed it on next connect.
     
-    if (fs.existsSync(dbPath)) {
-        fs.renameSync(dbPath, backupPath);
-        const walPath = `${dbPath}-wal`;
-        const shmPath = `${dbPath}-shm`;
-        if (fs.existsSync(walPath)) fs.renameSync(walPath, walBackupPath);
-        if (fs.existsSync(shmPath)) fs.renameSync(shmPath, shmBackupPath);
-    }
-
-    // Step 2: Re-initialize the database (which seeds it with defaults)
-    db = getDbConnection();
-
-    // Step 3: Restore the preserved settings
-    let seededSettings = await getSettings();
-    seededSettings.passwordHash = null; // Erase password
-    seededSettings.googleApiKey = googleApiKey; // Preserve API Key
-    
-    await updateSettings(seededSettings);
-
-
-    console.log("Database backed up and recreated. API key preserved, password erased.");
     return { success: true };
   } catch (error) {
     console.error("Error creating database backup:", error);
-    db = getDbConnection();
-    throw new Error("Could not create database backup.");
+    // Try to restore the original DB if backup failed
+    if (fs.existsSync(backupPath) && !fs.existsSync(dbPath)) {
+      fs.renameSync(backupPath, dbPath);
+    }
+    throw error;
   }
 }
 
@@ -343,39 +316,12 @@ export async function restoreDatabase(): Promise<{success: boolean}> {
         throw new Error("No backup file found to restore.");
     }
     
-    // Step 1: Read current settings to preserve credentials
-    const currentSettings = await getSettings();
-    const { passwordHash, googleApiKey } = currentSettings;
-
-    db.close();
-
     try {
-        const filesToDelete = [`${dbPath}`, `${dbPath}-shm`, `${dbPath}-wal`];
-        filesToDelete.forEach(file => {
-          if (fs.existsSync(file)) fs.unlinkSync(file);
-        });
-
+        fs.unlinkSync(dbPath);
         fs.renameSync(backupPath, dbPath);
-        if (fs.existsSync(`${backupPath}-shm`)) fs.renameSync(`${backupPath}-shm`, `${dbPath}-shm`);
-        if (fs.existsSync(`${backupPath}-wal`)) fs.renameSync(`${backupPath}-wal`, `${dbPath}-wal`);
-        
-        // Step 2: Re-initialize with the restored database
-        db = getDbConnection();
-
-        // Step 3: Restore the preserved settings into the newly restored DB
-        const restoredSettings = await getSettings(); // Read settings from the old backup
-        const finalSettings = {
-            ...restoredSettings,
-            passwordHash,
-            googleApiKey,
-        };
-        await updateSettings(finalSettings);
-        
-        console.log("Database restored successfully from backup. Critical settings preserved.");
         return { success: true };
     } catch (error) {
         console.error("Error restoring database from backup:", error);
-        db = getDbConnection();
-        throw new Error("Could not restore database.");
+        throw error;
     }
 }

@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useCa
 import type { Product, Sale, Customer, Expense, Settings, AppContextType, LogSaleFormValues } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { getTranslations } from "@/lib/i18n";
-import * as db from "@/actions/db";
+import * as dbActions from "@/actions/db";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -38,7 +38,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const loadInitialData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await db.getInitialData();
+      const data = await dbActions.getInitialData();
       setProducts(data.products);
       setSales(data.sales);
       setCustomers(data.customers);
@@ -52,7 +52,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
           setIsAuthenticated(false);
       } else {
           setIsAuthRequired(false);
-          setIsAuthenticated(false); // Go to setup screen
+          setIsAuthenticated(true); // Go to setup screen but app is "authenticated"
       }
 
     } catch (error) {
@@ -75,7 +75,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const translations = getTranslations(settings.language);
 
   const login = async (password: string): Promise<boolean> => {
-    const { success } = await db.login(password);
+    const { success } = await dbActions.login(password);
     if (success) {
         setIsAuthenticated(true);
         toast({ title: "Login Successful", description: "Welcome back!" });
@@ -86,7 +86,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   };
 
   const verifyPassword = async (password: string): Promise<boolean> => {
-    return await db.verifyPassword(password);
+    return await dbActions.verifyPassword(password);
   }
   
   const logout = () => {
@@ -95,7 +95,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   }
 
   const setPassword = async (password: string) => {
-    await db.setPassword(password);
+    await dbActions.setPassword(password);
     await loadInitialData(); // Reload data to get new settings and hash
     setIsAuthRequired(true);
     setIsAuthenticated(true); // Grant access immediately after setup
@@ -103,32 +103,32 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   };
   
   const addProduct = async (productData: Omit<Product, "id" | "lastUpdatedAt">) => {
-    const newProduct = await db.addProduct(productData);
+    const newProduct = await dbActions.addProduct(productData);
     setProducts(prev => [...prev, newProduct].sort((a, b) => a.name.localeCompare(b.name)));
     toast({ title: "Product Added", description: `${newProduct.name} has been added.` });
   };
 
   const addMultipleProducts = async (productsData: Omit<Product, 'id' | 'lastUpdatedAt'>[]) => {
-    const newProducts = await db.addMultipleProducts(productsData);
+    const newProducts = await dbActions.addMultipleProducts(productsData);
     setProducts(prev => [...prev, ...newProducts].sort((a, b) => a.name.localeCompare(b.name)));
     toast({ title: "Products Added", description: `${newProducts.length} new products have been added.` });
   };
   
   const updateProduct = async (updatedProduct: Product) => {
-    const returnedProduct = await db.updateProduct(updatedProduct);
+    const returnedProduct = await dbActions.updateProduct(updatedProduct);
     setProducts(prev => prev.map(p => p.id === returnedProduct.id ? returnedProduct : p));
     toast({ title: "Product Updated", description: `${returnedProduct.name} has been updated.` });
   };
   
   const receiveStock = async (productId: string, quantity: number, costPerUnit: number) => {
-    const updatedProduct = await db.receiveStock(productId, quantity, costPerUnit);
+    const updatedProduct = await dbActions.receiveStock(productId, quantity, costPerUnit);
     setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
     toast({ title: "Stock Received", description: `${quantity} units of ${updatedProduct.name} added.` });
   };
 
   const addSale = async (saleData: LogSaleFormValues) => {
     try {
-      const newSale = await db.addSale(saleData);
+      const newSale = await dbActions.addSale(saleData);
       setSales(prev => [newSale, ...prev]);
       // Optimize by updating stock locally instead of refetching all products
       setProducts(prevProducts => {
@@ -150,32 +150,32 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   };
   
   const addCustomer = async (customerData: Omit<Customer, "id" | "createdAt">): Promise<Customer> => {
-    const newCustomer = await db.addCustomer(customerData);
+    const newCustomer = await dbActions.addCustomer(customerData);
     setCustomers(prev => [newCustomer, ...prev]);
     toast({ title: "Customer Added", description: `${newCustomer.name} has been added.` });
     return newCustomer;
   };
   
   const updateCustomer = async (updatedCustomer: Customer) => {
-    const returnedCustomer = await db.updateCustomer(updatedCustomer);
+    const returnedCustomer = await dbActions.updateCustomer(updatedCustomer);
     setCustomers(prev => prev.map(c => c.id === returnedCustomer.id ? returnedCustomer : c));
     toast({ title: "Customer Updated", description: `${returnedCustomer.name} has been updated.` });
   };
 
   const addExpense = async (expenseData: Omit<Expense, "id" | "date">) => {
-    const newExpense = await db.addExpense(expenseData);
+    const newExpense = await dbActions.addExpense(expenseData);
     setExpenses(prev => [newExpense, ...prev]);
     toast({ title: "Expense Added", description: `${newExpense.description} has been logged.` });
   };
   
   const updateExpense = async (updatedExpense: Expense) => {
-    const returnedExpense = await db.updateExpense(updatedExpense);
+    const returnedExpense = await dbActions.updateExpense(updatedExpense);
     setExpenses(prev => prev.map(e => e.id === returnedExpense.id ? returnedExpense : e));
     toast({ title: "Expense Updated", description: `${returnedExpense.description} has been updated.` });
   };
 
   const deleteExpense = async (id: string) => {
-    await db.deleteExpense(id);
+    await dbActions.deleteExpense(id);
     setExpenses(prev => prev.filter(e => e.id !== id));
     toast({ title: "Expense Deleted", description: "The expense record has been removed." });
   };
@@ -185,7 +185,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   }
 
   const updateSettings = async (newSettings: Settings) => {
-    const updatedSettings = await db.updateSettings(newSettings);
+    const updatedSettings = await dbActions.updateSettings(newSettings);
     setSettings(updatedSettings);
     toast({
       title: "Settings Updated",
@@ -194,8 +194,10 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   };
 
   const recreateDatabase = async () => {
+    // This is a "dangerous" operation, so we lock the UI.
+    setIsLoading(true);
     try {
-      await db.recreateDatabase();
+      await dbActions.recreateDatabase();
       toast({
         title: "Database Resetting",
         description: "Your data has been backed up. Reloading the application now...",
@@ -208,12 +210,15 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         title: "Reset Failed",
         description: "Could not back up and reset the database. Check console for errors.",
       });
+      // Unlock the UI on failure
+      setIsLoading(false);
     }
   };
 
   const restoreDatabase = async () => {
+      setIsLoading(true);
       try {
-        await db.restoreDatabase();
+        await dbActions.restoreDatabase();
         toast({
             title: "Database Restoring",
             description: "Your previous data is being restored. Reloading the application now...",
@@ -225,6 +230,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
             title: "Restore Failed",
             description: "Could not restore the database from backup. Check console for errors.",
         });
+        setIsLoading(false);
       }
   };
 
@@ -275,7 +281,3 @@ export const useApp = (): AppContextType => {
   }
   return context;
 };
-
-    
-
-    

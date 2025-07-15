@@ -20,7 +20,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldAlert } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 export function LoginPage() {
   const { login, setPassword, isAuthRequired } = useApp();
@@ -90,6 +91,15 @@ export function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {!isSetupMode && (
+                <Alert variant="warning">
+                    <ShieldAlert className="h-4 w-4" />
+                    <AlertTitle>Important</AlertTitle>
+                    <AlertDescription>
+                        Passwords cannot be recovered. Please store it in a safe place.
+                    </AlertDescription>
+                </Alert>
+            )}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">{isSetupMode ? "Create Password" : "Password"}</Label>
