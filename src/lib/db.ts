@@ -80,18 +80,10 @@ function seedDatabase(db: Database.Database) {
     const settingsInsertStmt = db.prepare("INSERT OR IGNORE INTO settings (key, data) VALUES (?, ?)");
     settingsInsertStmt.run('appSettings', JSON.stringify(defaultSettings));
 
-    const insertProduct = db.prepare('INSERT INTO products (id, name, description, stock, price, cost, category, supplier, lastUpdatedAt) VALUES (@id, @name, @description, @stock, @price, @cost, @category, @supplier, @lastUpdatedAt)');
-    const insertCustomer = db.prepare('INSERT INTO customers (id, name, phone, createdAt, notes, type) VALUES (@id, @name, @phone, @createdAt, @notes, @type)');
-    const insertSale = db.prepare('INSERT INTO sales (id, productId, customerId, customerName, productName, quantity, pricePerUnit, total, profit, notes, date) VALUES (@id, @productId, @customerId, @customerName, @productName, @quantity, @pricePerUnit, @total, @profit, @notes, @date)');
-    const insertExpense = db.prepare('INSERT INTO expenses (id, description, category, amount, date, notes) VALUES (@id, @description, @category, @amount, @date, @notes)');
-
-    for (const product of MOCK_PRODUCTS) insertProduct.run(product);
-    for (const customer of MOCK_CUSTOMERS) insertCustomer.run(customer);
-    for (const sale of MOCK_SALES) insertSale.run(sale);
-    for (const expense of MOCK_EXPENSES) insertExpense.run(expense);
+    // Mock data insertion is now removed to start with a clean slate.
   });
   seedTransaction();
-  console.log("Database seeded successfully.");
+  console.log("Database default settings applied.");
 }
 
 
