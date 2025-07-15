@@ -35,7 +35,7 @@ export async function extractCustomerInfo(
 
 const prompt = ai.definePrompt({
   name: 'extractCustomerInfoPrompt',
-  model: googleAI.model('gemini-1.5-flash'),
+  model: googleAI.model('gemini-2.0-flash'),
   input: {schema: ExtractCustomerInfoInputSchema},
   output: {schema: ExtractCustomerInfoOutputSchema},
   prompt: `You are an AI assistant tasked with extracting customer information from sales logs.

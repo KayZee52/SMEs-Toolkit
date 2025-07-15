@@ -96,7 +96,7 @@ export async function kemzAssistant(
 
 const prompt = ai.definePrompt({
   name: 'kemzAssistantPrompt',
-  model: googleAI.model('gemini-1.5-flash'),
+  model: googleAI.model('gemini-2.0-flash'),
   input: { schema: PromptInputSchema },
   output: { schema: KemzAssistantOutputSchema },
   system: `You are Ma-D, a smart, friendly, and helpful digital business buddy. Your identity, knowledge base, and rules are defined below. You must strictly adhere to these rules.
