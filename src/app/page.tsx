@@ -10,13 +10,16 @@ import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { TopProductsChart } from "@/components/dashboard/top-products-chart";
 import { LogSaleDialog } from "@/components/sales/log-sale-dialog";
 import { ProductDialog } from "@/components/inventory/product-dialog";
-import { Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import { useApp } from "@/contexts/app-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 export default function DashboardPage() {
-  const { isLoading } = useApp();
+  const { isLoading, settings } = useApp();
   const [currentDate, setCurrentDate] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     setCurrentDate(new Date().toLocaleDateString("en-US", {
@@ -26,6 +29,32 @@ export default function DashboardPage() {
       day: "numeric",
     }));
   }, []);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    const printableArea = document.getElementById('printable-area');
+    if (printableArea) {
+      try {
+        const canvas = await html2canvas(printableArea, {
+            scale: 2, // Increase scale for better quality
+            useCORS: true,
+            backgroundColor: null, // Use element's background
+        });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            orientation: 'p',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
+        });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save(`dashboard-report-${new Date().toISOString().split('T')[0]}.pdf`);
+      } catch (error) {
+          console.error("Error exporting to PDF:", error);
+      }
+    }
+    setIsExporting(false);
+  };
+
 
   if (isLoading) {
       return (
@@ -69,14 +98,18 @@ export default function DashboardPage() {
         <div className="flex items-center gap-2 non-printable">
           <LogSaleDialog />
           <ProductDialog />
-          <Button variant="outline" onClick={() => window.print()}>
-            <Download className="mr-2 h-4 w-4" />
-            Export Page
+          <Button variant="outline" onClick={handleExport} disabled={isExporting}>
+             {isExporting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+             ) : (
+                <Download className="mr-2 h-4 w-4" />
+             )}
+            {isExporting ? "Exporting..." : "Export Page"}
           </Button>
         </div>
       </div>
       
-      <div className="printable-area">
+      <div id="printable-area" className="printable-area">
         {/* KPI Cards */}
         <StatsCards />
 

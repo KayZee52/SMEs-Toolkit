@@ -117,9 +117,15 @@
     color: black !important;
   }
   .printable-area {
-    display: block;
+    display: block !important;
+    background-color: white !important;
   }
   .non-printable {
     display: none !important;
+  }
+  .card, .dialog-content, .popover-content, .sheet-content, [data-sidebar="sidebar"] {
+    background: white !important;
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
   }
 }
