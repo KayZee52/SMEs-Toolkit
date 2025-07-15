@@ -15,23 +15,25 @@ async function retry<T>(fn: () => Promise<T>, retries = 3, delay = 1000, finalEr
   let lastError: unknown;
   for (let i = 0; i < retries; i++) {
     try {
+      // Check for API key before every attempt
+      if (!process.env.GOOGLE_API_KEY) {
+        throw new Error("Google AI API key is not configured. Please set it in the .env file.");
+      }
       return await fn();
     } catch (error) {
       lastError = error;
-      // Only retry on specific, recoverable errors
       if (error instanceof Error && (error.message.includes('503') || error.message.toLowerCase().includes('overloaded'))) {
         console.log(`AI service unavailable, attempt ${i + 1} of ${retries}. Retrying in ${delay}ms...`);
         await sleep(delay);
         delay *= 2; // Exponential backoff
         continue;
       }
-      // For other errors, fail immediately
+      // For other errors, including API key errors, fail immediately
       throw error;
     }
   }
-  // If all retries fail, throw the last captured error
+  // If all retries fail on a recoverable error
   if (lastError instanceof Error) {
-      // Re-throw with a more user-friendly message if it's the specific error we were retrying
        if (lastError.message.includes('503') || lastError.message.toLowerCase().includes('overloaded')) {
             throw new Error("The AI model is temporarily overloaded. Please try again in a few moments.");
        }
@@ -48,7 +50,10 @@ function handleError(error: unknown) {
      if (errorMessage.includes("permission")) {
         return { success: false, error: "The API key is valid, but it may not be enabled for the Gemini API. Please check your Google Cloud project." };
     }
-    return { success: false, error: `${errorMessage}` };
+    if (errorMessage.includes("not configured")) {
+        return { success: false, error: errorMessage };
+    }
+    return { success: false, error: `AI Error: ${errorMessage}` };
 }
 
 export async function getAiReply(
@@ -62,9 +67,6 @@ export async function getAiReply(
   }
 ) {
   try {
-    if (!process.env.GOOGLE_API_KEY) {
-       return { success: false, error: "Google AI API key is not configured. Please set it in the .env file." };
-    }
     const result = await retry(() => kemzAssistant({ query, ...context }));
     return { success: true, data: result };
   } catch (error) {
@@ -74,9 +76,6 @@ export async function getAiReply(
 
 export async function getCustomerInfoFromText(salesLog: string) {
   try {
-     if (!process.env.GOOGLE_API_KEY) {
-       return { success: false, error: "Google AI API key is not configured. Please set it in the .env file." };
-    }
     const result = await retry(() => extractCustomerInfo({ salesLog }));
     return { success: true, data: result };
   } catch (error) {
@@ -89,9 +88,6 @@ export async function generateDescriptionForProduct(
   category?: string
 ) {
   try {
-     if (!process.env.GOOGLE_API_KEY) {
-       return { success: false, error: "Google AI API key is not configured. Please set it in the .env file." };
-    }
     const result = await retry(() => generateProductDescription(
       {
         productName,
@@ -111,9 +107,6 @@ export async function getReportSummary(context: {
   dateRange: { from: string; to: string };
 }) {
   try {
-     if (!process.env.GOOGLE_API_KEY) {
-       return { success: false, error: "Google AI API key is not configured. Please set it in the .env file." };
-    }
     const result = await retry(() => summarizeReport({ ...context }));
     return { success: true, data: result };
   } catch (error) {
