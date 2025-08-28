@@ -15,7 +15,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
 
 // Zod schemas for data types, mirroring src/lib/types.ts
 const ProductSchema = z.object({
@@ -96,7 +95,6 @@ export async function kemzAssistant(
 
 const prompt = ai.definePrompt({
   name: 'kemzAssistantPrompt',
-  model: googleAI.model('gemini-2.0-flash'),
   input: { schema: PromptInputSchema },
   output: { schema: KemzAssistantOutputSchema },
   system: `You are Ma-D, a smart, friendly, and helpful digital business buddy. Your identity, knowledge base, and rules are defined below. You must strictly adhere to these rules.

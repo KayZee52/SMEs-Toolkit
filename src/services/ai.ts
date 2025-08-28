@@ -17,7 +17,7 @@ async function retry<T>(fn: () => Promise<T>, retries = 3, delay = 1000, finalEr
     try {
       // Check for API key before every attempt
       if (!process.env.GOOGLE_API_KEY) {
-        throw new Error("Google AI API key is not configured. Please set it in the .env file.");
+        throw new Error("Google AI API key is not configured. Please set GOOGLE_API_KEY in your .env file.");
       }
       return await fn();
     } catch (error) {

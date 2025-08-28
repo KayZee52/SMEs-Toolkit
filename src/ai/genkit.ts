@@ -1,5 +1,5 @@
 
-import {genkit, Plugin} from 'genkit';
+import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 import genkitx from '@genkit-ai/next';
 
